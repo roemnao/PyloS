@@ -204,6 +204,10 @@ Lưu ý:
 - Trong app Zalo của acc phụ, mục **Quản lý thiết bị đăng nhập** sẽ hiện một phiên Zalo Web. **Đừng đăng xuất phiên đó**, nếu không bot mất kết nối.
 - **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
 - Tin acc phụ tự gửi (kể cả gửi từ điện thoại) bị bot bỏ qua, nên bot không tự trả lời chính mình.
+- **Bot tag được người trong nhóm.** Ví dụ nhờ "bot nhắc Thái Toàn nộp bài", bot trả lời "@Thái Toàn …" và người đó nhận thông báo như khi được tag thật.
+  - Bot lấy danh sách thành viên từ Zalo (làm mới mỗi giờ), cộng thêm những người đã nhắn gần đây, và chỉ tag đúng tên có trong danh sách đó.
+  - Bot không tag cả nhóm (@All).
+  - Chế độ Zalo Bot không có chức năng này.
 - Khi phiên hết hạn, log báo "Đăng nhập Zalo cá nhân thất bại". Lúc đó chỉ cần quét QR lại.
 - Các lệnh `me`, `set-webhook`... và nút "Gửi lại" ở trang Tin lỗi chỉ dùng được với Zalo Bot.
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.

@@ -243,6 +243,17 @@ class Bot:
             self.stats.incr("tokens", decision.tokens)
         return decision
 
+    async def _members(self, chat_id: str) -> dict[str, str]:
+        """{uid: tên} thành viên nhóm để bot tag được (chỉ acc Zalo cá nhân có danh sách này)."""
+        lookup = getattr(self.zalo, "members", None)
+        if lookup is None:
+            return {}
+        try:
+            return await asyncio.to_thread(lookup, chat_id)
+        except Exception:  # noqa: BLE001 - thiếu danh sách thì bot vẫn trả lời, chỉ không tag được
+            log.exception("Không lấy được thành viên nhóm %s", chat_id)
+            return {}
+
     async def _say(self, chat_id: str, text: str) -> None:
         """Gửi và ghi vào memorydata (không vào session)."""
         self.memory.add_model(chat_id, text)
@@ -258,7 +269,8 @@ class Bot:
         records = self.history.recent(msg.chat_id, self.settings.history_turns)
         turns = [Turn(r.get("role", "user"), str(r.get("text", "")), str(r.get("name", ""))) for r in records]
         ctx = ToolContext(msg.chat_id, msg.from_id, msg.from_name, self._is_owner(msg.from_id), self.settings.data_dir)
-        system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names)
+        members = await self._members(msg.chat_id) if msg.is_group else {}
+        system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names, members=list(members.values()))
 
         was_over = self._over_budget()
         try:

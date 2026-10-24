@@ -9,7 +9,7 @@ import pytest
 from bot.config import ConfigError
 from bot.storage import ActivityStore
 from bot.zalo import ZaloError
-from bot.zalo.personal import PersonalZalo, _is_network_error, load_session, to_incoming
+from bot.zalo.personal import PersonalZalo, _is_network_error, build_mentions, load_session, to_incoming
 
 from conftest import make_settings
 
@@ -20,8 +20,9 @@ class ThreadType(enum.Enum):
 
 
 class FakeMessage:
-    def __init__(self, text: str) -> None:
+    def __init__(self, text: str, mention: str | None = None) -> None:
         self.text = text
+        self.mention = mention
 
 
 class FakeApi:
@@ -30,9 +31,21 @@ class FakeApi:
         self.typing: list[tuple[str, ThreadType]] = []
         self.result = result
 
+    group_info: dict = {}
+    profiles: dict = {}
+    info_calls = 0
+
     def send(self, message, thread_id, thread_type):
         self.sent.append((thread_id, message.text, thread_type))
+        self.mentions = getattr(message, "mention", None)
         return self.result
+
+    def fetchGroupInfo(self, group_id):  # noqa: N802
+        self.info_calls += 1
+        return {"gridInfoMap": {group_id: self.group_info}}
+
+    def fetchUserInfo(self, uids):  # noqa: N802
+        return {"changed_profiles": {u: self.profiles[u] for u in uids if u in self.profiles}}
 
     def setTyping(self, thread_id, thread_type):  # noqa: N802
         self.typing.append((thread_id, thread_type))
@@ -136,3 +149,60 @@ def test_network_errors_are_detected_through_zlapi_wrapping():
         assert _is_network_error(wrapped)
     assert _is_network_error(RuntimeError("HTTPSConnectionPool(host='wpa.chat.zalo.me'): Max retries exceeded"))
     assert not _is_network_error(RuntimeError("Login failed: invalid cookies"))
+
+
+# ---------- tag người trong nhóm ----------
+
+def test_build_mentions_matches_known_names_longest_first():
+    members = {"u1": "Thái", "u2": "Thái Toàn", "u3": "Thu Hồng"}
+    text = "@Thái Toàn và @thu hồng nhớ nộp bài, còn @Lan thì chưa có trong nhóm"
+    assert build_mentions(text, members) == [
+        {"pos": 0, "len": 10, "uid": "u2", "type": 0},
+        {"pos": 14, "len": 9, "uid": "u3", "type": 0},
+    ]
+    assert build_mentions("@Tháiii ơi", members) == []  # phải hết tên ở ranh giới từ
+    # emoji ngoài BMP tính 2 đơn vị UTF-16 như Zalo (JavaScript)
+    assert build_mentions("😀 @Thái ơi", members) == [{"pos": 3, "len": 5, "uid": "u1", "type": 0}]
+
+
+async def test_members_merge_group_list_and_recent_speakers(tmp_path):
+    api = FakeApi()
+    api.group_info = {"memVerList": ["u1_0", "u2_0", "me-1_0"], "currentMems": [{"id": "u1", "dName": "An"}]}
+    api.profiles = {"u2": {"displayName": "Bình"}, "me-1": {"displayName": "Bot"}}
+    zalo = make_personal(tmp_path, api)
+    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    zalo._memory.add_user("g1", msg_id="1", uid="u3", name="Lan", text="hi", is_text=True, decision={})
+    assert zalo.members("g1") == {"u1": "An", "u2": "Bình", "u3": "Lan"}  # không có chính acc bot
+    zalo.members("g1")
+    assert api.info_calls == 1  # lưu tạm, không hỏi Zalo mỗi tin
+
+
+async def test_send_in_group_attaches_mentions_but_not_in_private(tmp_path):
+    api = FakeApi()
+    api.group_info = {"currentMems": [{"id": "u2", "dName": "Thái Toàn"}]}
+    zalo = make_personal(tmp_path, api)
+    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    await zalo.send_message("g1", "@Thái Toàn ơi nộp bài nhé")
+    assert json.loads(api.mentions) == [{"pos": 0, "len": 10, "uid": "u2", "type": 0}]
+    await zalo.send_message("u9", "@Thái Toàn ơi")
+    assert api.mentions is None
+
+
+async def test_bot_tells_model_member_names(tmp_path):
+    from bot.agent import PromptBuilder
+    from bot.app import Bot
+
+    from conftest import GROUP, FakeAgent, FakeZalo, event
+
+    class WithMembers(FakeZalo):
+        def members(self, chat_id):
+            return {"u2": "Thái Toàn", "u3": "Thu Hồng"}
+
+    agent = FakeAgent()
+    settings = make_settings(tmp_path, ALLOWED_CHAT_IDS=GROUP)
+    bot = Bot(settings, WithMembers(), agent, PromptBuilder(settings.workspace_dir), retry_delay=0)
+    await bot.handle_payload(event("/bot nhắc Thái Toàn nộp bài"))
+    await bot.drain()
+    system = agent.calls[0][0]
+    assert "@Thái Toàn" in system or "Thái Toàn" in system
+    assert "Thu Hồng" in system and "tag" in system
