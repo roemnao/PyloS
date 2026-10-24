@@ -313,13 +313,14 @@ Bot nói chuyện với web [iforgotmywayhome](https://quanlythoigian-azure.verc
    SCHEDULE_API_KEY=<khoá vừa tạo>
    ```
 
+   `SCHEDULE_API_URL` là tên miền của trang quản trị (bot gọi được cả tên miền app, nhưng tên miền quản trị là chỗ bạn tạo khoá).
 3. Khởi động lại bot. Log in `Kết nối web …: nhận cấu hình, nhịp tim mỗi phút…` và `Đã nạp tool: …`.
 
 Khoá chỉ nằm trên máy chạy bot. Web không bao giờ gửi khoá bí mật (Gemini, Zalo, phiên đăng nhập) xuống bot.
 
 ### Giao lịch cho người trong nhóm (bot lịch)
 
-Mỗi thành viên mở **web app** `https://<web>/app/` trên điện thoại hoặc máy tính, đăng nhập bằng Gmail (đồng ý điều khoản), rồi:
+Mỗi thành viên mở **web app** (link ở trang quản trị của web → Hệ thống → Thành viên, vd `https://iforgotmywayhome.vercel.app/` khi web app có tên miền riêng) trên điện thoại hoặc máy tính, đăng nhập bằng Gmail (đồng ý điều khoản), rồi:
 - **Liên kết Zalo:** bấm *Lấy mã liên kết*, rồi **nhắn riêng mã 6 số cho acc bot** (hoặc `/lienket 123456`). Bot chuyển mã lên web, không tốn token Gemini. Mã dùng một lần, hết hạn sau 10 phút.
 - **Kết nối Google Lịch:** bấm nút trong app. Quyền ghi lịch chỉ nằm trong trình duyệt của họ.
 

@@ -28,7 +28,7 @@ Nhóm mới thêm luôn ở chế độ `default`.
 
 Cần `SCHEDULE_API_KEY` (xem README, mục "Nối với web iforgotmywayhome").
 
-**Mỗi người nhận lịch làm một lần:** mở web app `https://<web>/app/`, đăng nhập Gmail, bấm *Lấy mã liên kết*, rồi **nhắn riêng** cho acc bot đúng mã 6 số đó (hoặc `/lienket 123456`). Bot trả lời "Đã liên kết…". Sau đó bấm *Kết nối Google Lịch* trong app.
+**Mỗi người nhận lịch làm một lần:** mở web app (link chủ hệ thống gửi, vd `https://iforgotmywayhome.vercel.app/`), đăng nhập Gmail, bấm *Lấy mã liên kết*, rồi **nhắn riêng** cho acc bot đúng mã 6 số đó (hoặc `/lienket 123456`). Bot trả lời "Đã liên kết…". Sau đó bấm *Kết nối Google Lịch* trong app.
 
 **Trong nhóm** (người được phép theo `ASSIGN_ALLOWED`, mặc định chỉ chủ bot):
 
