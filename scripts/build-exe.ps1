@@ -10,7 +10,7 @@ $python = Join-Path $root ".venv\Scripts\python.exe"
 if (-not (Test-Path $python)) { throw "Missing .venv. See README.md, section 'Cai dat'." }
 
 Write-Host "== Installing build dependencies"
-& $python -m pip install --quiet -e "$root[desktop,build]"
+& $python -m pip install --quiet -e "$root[desktop,build,personal]"
 if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
 
 Write-Host "== Running PyInstaller (takes a few minutes)"

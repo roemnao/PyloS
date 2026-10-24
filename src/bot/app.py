@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -154,6 +156,9 @@ class Bot:
 
         prompt = self._addressed_prompt(msg)
         if prompt is None:
+            if self.settings.group_context and msg.is_group:
+                # Không gọi bot nhưng vẫn lưu làm ngữ cảnh: lúc được gọi, bot biết nhóm đang nói chuyện gì.
+                self.history.append(msg.chat_id, "user", (msg.text or "").strip(), uid=msg.from_id, name=msg.from_name)
             return
         if not prompt:
             await self._send(msg.chat_id, EMPTY_PROMPT_REPLY)
@@ -186,7 +191,34 @@ class Bot:
         if mode == MODE_ALL and not self._over_budget():
             stripped = self._strip_trigger(text)
             return stripped if stripped is not None else text
-        return self._strip_trigger(text)
+        stripped = self._strip_trigger(text)
+        if stripped is not None:
+            return stripped
+        if self._calls_bot(msg, text):
+            return self._strip_self_mention(text)
+        return None
+
+    def _self_identity(self) -> tuple[str, str]:
+        """(id, tên) của acc bot; chỉ có khi chạy trên acc Zalo cá nhân."""
+        return str(getattr(self.zalo, "self_id", "") or ""), str(getattr(self.zalo, "self_name", "") or "")
+
+    def _calls_bot(self, msg: IncomingMessage, text: str) -> bool:
+        """Tin @tag acc bot, hoặc nhắc tới tên bot (BOT_NAMES, tên acc Zalo), không phân biệt hoa thường/dấu."""
+        self_id, self_name = self._self_identity()
+        if self_id and self_id in msg.mentions:
+            return True
+        folded = _fold(text)
+        names = [*self.settings.bot_names, self_name]
+        return any(
+            re.search(rf"(?<!\w){re.escape(_fold(name))}(?!\w)", folded) for name in names if name and name.strip()
+        )
+
+    def _strip_self_mention(self, text: str) -> str:
+        _, self_name = self._self_identity()
+        tag = f"@{self_name}" if self_name else ""
+        if tag and text.lower().startswith(tag.lower()):
+            return text[len(tag):].lstrip(" ,:;-\t\n")
+        return text
 
     def _strip_trigger(self, text: str) -> str | None:
         lowered = text.lower()
@@ -287,3 +319,9 @@ class Bot:
         self.failed.add(chat_id, text, last_error)
         self.stats.incr("errors")
         log.error("Bỏ cuộc gửi tin tới chat %s, đã lưu vào failed.txt", chat_id)
+
+
+def _fold(text: str) -> str:
+    """Chữ thường, bỏ dấu tiếng Việt: "Trợ Lý" -> "tro ly"."""
+    text = text.lower().replace("đ", "d")
+    return "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")

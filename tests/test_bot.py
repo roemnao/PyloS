@@ -23,7 +23,7 @@ async def test_owner_allow_then_default_mode_only_answers_trigger(make_bot, zalo
     assert "Đã cho phép" in zalo.texts(GROUP)[-1]
     assert bot.groups.get(GROUP).mode == "default"
 
-    await send(bot, event("chuyện phiếm không gọi bot"))
+    await send(bot, event("chuyện phiếm không gọi ai"))
     assert len(agent.calls) == 0
 
     await send(bot, event("/bot thủ đô Úc là gì?", name="Bình"))
@@ -104,7 +104,7 @@ async def test_allow_all_chats_answers_everywhere_but_deny_still_blocks(make_bot
     await send(bot, event("/bot lại được", chat_id="new-group"))
     assert len(agent.calls) == 3
 
-    await send(bot, event("tin thường không gọi bot", chat_id="other-group"))
+    await send(bot, event("tin thường không gọi ai", chat_id="other-group"))
     assert len(agent.calls) == 3  # chế độ default vẫn áp dụng
 
 
@@ -263,7 +263,7 @@ async def test_budget_exceeded_turns_all_into_default_and_notifies_once(make_bot
     await send(bot, event("tin 2"))  # vượt hạn mức sau tin này
     assert zalo.texts(GROUP).count(BUDGET_NOTICE) == 1
 
-    await send(bot, event("tin 3 không gọi bot"))
+    await send(bot, event("tin 3 không gọi ai"))
     assert len(agent.calls) == 2
     await send(bot, event("/bot vẫn gọi được"))
     assert len(agent.calls) == 3
@@ -309,3 +309,52 @@ async def test_garbage_payload_is_ignored(make_bot, agent):
 
 def test_now_ms_is_milliseconds():
     assert now_ms() > 1_600_000_000_000
+
+
+# ---------- gọi bot bằng tên / @tag, ngữ cảnh nhóm ----------
+
+async def test_mentioning_bot_name_answers_without_trigger(make_bot, agent):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP, BOT_NAMES="bot,Trợ lý")
+    await send(bot, event("Bot ơi mai trời có mưa không?"))
+    await send(bot, event("hỏi tro ly giúp mình với"))  # không dấu vẫn nhận
+    await send(bot, event("robot hút bụi nào tốt?"))  # "bot" nằm trong từ khác: không gọi
+    assert [c[1][-1].text for c in agent.calls] == ["Bot ơi mai trời có mưa không?", "hỏi tro ly giúp mình với"]
+
+
+async def test_empty_bot_names_disables_name_calls(make_bot, agent):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP, BOT_NAMES="")
+    await send(bot, event("bot ơi"))
+    assert agent.calls == []
+
+
+async def test_tagging_personal_account_answers_and_strips_tag(tmp_path, agent):
+    from bot.agent import PromptBuilder
+    from bot.app import Bot
+    from bot.zalo.personal import to_incoming
+
+    from conftest import FakeZalo, make_settings
+
+    class PersonalFake(FakeZalo):
+        self_id, self_name = "me-1", "Mèo Ú"
+
+    settings = make_settings(tmp_path, ALLOWED_CHAT_IDS=GROUP, BOT_NAMES="")
+    bot = Bot(settings, PersonalFake(), agent, PromptBuilder(settings.workspace_dir), retry_delay=0)
+    obj = {"dName": "An", "ts": str(now_ms() + 1000), "mentions": [{"uid": "me-1", "pos": 0, "len": 6}]}
+    await bot.handle_message(to_incoming("m1", "u1", "@Mèo Ú tóm tắt giúp", obj, GROUP, True, "me-1"))
+    # Tên acc Zalo của bot cũng được tính là tên gọi, kể cả khi không @tag.
+    await bot.handle_message(to_incoming("m2", "u1", "meo u nghĩ sao?", {"ts": str(now_ms() + 1000)}, GROUP, True, "me-1"))
+    await bot.drain()
+    assert [c[1][-1].text for c in agent.calls] == ["tóm tắt giúp", "meo u nghĩ sao?"]
+
+
+async def test_group_context_keeps_unaddressed_messages(make_bot, agent):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    await send(bot, event("tối nay đi ăn lẩu nhé", name="Bình"))
+    await send(bot, event("ok 7h", name="An"))
+    await send(bot, event("/bot chốt lại giúp"))
+    _, turns, _ = agent.calls[0]
+    assert [(t.name, t.text) for t in turns] == [("Bình", "tối nay đi ăn lẩu nhé"), ("An", "ok 7h"), ("An", "chốt lại giúp")]
+
+    off = make_bot(ALLOWED_CHAT_IDS="other", GROUP_CONTEXT="false")
+    await send(off, event("không lưu", chat_id="other"))
+    assert off.history.recent("other", 10) == []

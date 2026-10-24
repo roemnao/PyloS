@@ -128,7 +128,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             if not settings.zalo_session_file.is_file():
                 alerts.append("Chưa đăng nhập acc Zalo cá nhân: vào Cài đặt → Đăng nhập bằng mã QR.")
         elif not info["zalo_token_set"]:
-            alerts.append("Chưa đặt ZALO_BOT_TOKEN (trang Cài đặt).")
+            alerts.append("Chưa kết nối Zalo: đặt ZALO_BOT_TOKEN, hoặc dùng acc Zalo cá nhân "
+                          "(Cài đặt → Đăng nhập bằng mã QR).")
         if not info["gemini_key_set"]:
             alerts.append("Chưa đặt GEMINI_API_KEY (trang Cài đặt).")
         if not info["owner_set"]:
@@ -263,6 +264,9 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "RECEIVE_MODE": settings.receive_mode, "LOG_LEVEL": settings.log_level,
             "ADMIN_SHOW_HISTORY": "true" if settings.admin_show_history else "false",
             "ALLOW_ALL_CHATS": "true" if settings.allow_all_chats else "false",
+            "SCHEDULE_OWNER_ONLY": "true",
+            "BOT_NAMES": ",".join(settings.bot_names),
+            "GROUP_CONTEXT": "true" if settings.group_context else "false",
         }
         return {
             "fields": [

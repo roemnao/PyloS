@@ -30,6 +30,8 @@ class IncomingMessage:
     message_id: str | None
     date_ms: int | None
     raw: dict[str, Any] = field(repr=False, compare=False, default_factory=dict)
+    # ID những người được @tag trong tin (chỉ acc Zalo cá nhân mới có thông tin này)
+    mentions: tuple[str, ...] = ()
 
     @property
     def is_group(self) -> bool:

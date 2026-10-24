@@ -20,6 +20,8 @@ hiddenimports = (
     collect_submodules("bot")
     + collect_submodules("uvicorn")
     + collect_submodules("google.genai")
+    # Chế độ acc Zalo cá nhân (đăng nhập QR) import zlapi lúc chạy nên PyInstaller không tự thấy.
+    + collect_submodules("zlapi")
     + ["webview.platforms.edgechromium", "webview.platforms.winforms", "pystray._win32"]
 )
 

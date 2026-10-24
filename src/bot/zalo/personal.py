@@ -90,7 +90,20 @@ def to_incoming(
         message_id=str(mid) if mid not in (None, "") else None,
         date_ms=date_ms,
         raw={"personal": True},
+        mentions=_mention_ids(get("mentions")),
     )
+
+
+def _mention_ids(value: Any) -> tuple[str, ...]:
+    """Tin nhóm có @tag: message_object.mentions = [{"uid", "pos", "len", "type"}, ...]."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return ()
+    if not isinstance(value, list):
+        return ()
+    return tuple(str(m.get("uid")) for m in value if hasattr(m, "get") and m.get("uid") not in (None, ""))
 
 
 def _import_zlapi():
