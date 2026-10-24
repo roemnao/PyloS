@@ -128,7 +128,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             if not settings.zalo_session_file.is_file():
                 alerts.append("Chưa đăng nhập acc Zalo cá nhân: vào Cài đặt → Đăng nhập bằng mã QR.")
         elif not info["zalo_token_set"]:
-            alerts.append("Chưa đặt ZALO_BOT_TOKEN (trang Cài đặt).")
+            alerts.append("Chưa kết nối Zalo: đặt ZALO_BOT_TOKEN, hoặc dùng acc Zalo cá nhân "
+                          "(Cài đặt → Đăng nhập bằng mã QR).")
         if not info["gemini_key_set"]:
             alerts.append("Chưa đặt GEMINI_API_KEY (trang Cài đặt).")
         if not info["owner_set"]:
