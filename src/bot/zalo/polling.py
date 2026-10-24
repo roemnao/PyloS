@@ -11,7 +11,7 @@ import logging
 from typing import Any, Awaitable, Callable
 
 from bot.storage import StateStore
-from bot.timeutil import now_ms
+from bot.core.timeutil import now_ms
 from bot.zalo import ZaloClient, ZaloError
 
 log = logging.getLogger(__name__)

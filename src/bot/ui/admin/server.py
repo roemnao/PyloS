@@ -24,8 +24,8 @@ from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot import gateway
-from bot.admin import envfile
+from bot.system import gateway
+from bot.ui.admin import envfile
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from bot.config import ConfigError, Settings
 from bot.storage import (
@@ -39,8 +39,8 @@ from bot.storage import (
     UsageStore,
     atomic_write_text,
 )
-from bot.text import split_message
-from bot.timeutil import now_ms, now_vn
+from bot.core.text import split_message
+from bot.core.timeutil import now_ms, now_vn
 from bot.zalo import ZaloClient, ZaloError
 
 log = logging.getLogger(__name__)
@@ -325,7 +325,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.post("/api/update")
     def update_app() -> dict[str, Any]:
-        from bot import updater
+        from bot.system import updater
 
         reason = updater.unavailable_reason()
         if reason:

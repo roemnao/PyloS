@@ -5,11 +5,11 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from bot import gateway
-from bot.admin import envfile
-from bot.admin.server import AdminContext, create_app
+from bot.system import gateway
+from bot.ui.admin import envfile
+from bot.ui.admin.server import AdminContext, create_app
 from bot.storage import FailedStore, GroupStore, HistoryStore, JsonObjectFile
-from bot.timeutil import today_vn
+from bot.core.timeutil import today_vn
 
 ADMIN_TOKEN = "admin-token-123456"
 ZALO_TOKEN = "999:zalo-secret-token"
@@ -201,7 +201,7 @@ def test_logs_group_tracebacks_and_filter(client, tmp_path):
     (tmp_path / "logs").mkdir()
     (tmp_path / "logs" / "bot.log").write_text(
         "2026-10-22 07:00:00,001 INFO bot: khởi động\n"
-        "2026-10-22 07:00:01,001 ERROR bot.app: hỏng\nTraceback (most recent call last):\n  File x\n"
+        "2026-10-22 07:00:01,001 ERROR bot.core.app: hỏng\nTraceback (most recent call last):\n  File x\n"
         "2026-10-22 07:00:02,001 WARNING bot: cảnh báo\n",
         encoding="utf-8",
     )
@@ -294,7 +294,7 @@ def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_
 
 
 def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, monkeypatch):
-    from bot import updater
+    from bot.system import updater
 
     (tmp_path / "data").mkdir(exist_ok=True)
     (tmp_path / "data" / "update.txt").write_text("3", encoding="utf-8")

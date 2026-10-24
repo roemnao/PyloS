@@ -19,7 +19,7 @@ from typing import Any
 from bot.config import LOADED_FROM_DOTENV, PROJECT_ROOT, Settings, is_frozen
 from bot.storage import FailedStore, GroupStore, StateStore, StatsStore, UsageStore
 from bot.storage.lock import AlreadyRunning, InstanceLock
-from bot.timeutil import now_ms
+from bot.core.timeutil import now_ms
 
 
 @dataclass(frozen=True)
@@ -262,7 +262,7 @@ def restart(settings: Settings, service: Service = BOT) -> Result:
 def _registry_autostart() -> bool:
     """Mục "Khởi động cùng Windows" của ứng dụng quản lý (khay hệ thống)."""
     try:
-        from bot.desktop import autostart
+        from bot.ui.desktop import autostart
 
         return autostart.is_enabled()
     except Exception:  # noqa: BLE001 - không phải Windows hoặc thiếu quyền đọc registry

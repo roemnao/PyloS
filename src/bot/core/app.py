@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bot.agent import Agent, PromptBuilder, ToolContext, Turn
-from bot.commands import CommandHandler, parse_command
+from bot.core.commands import CommandHandler, parse_command
 from bot.config import Settings
-from bot.filter import Decision, MessageFilter
-from bot.mentions import add_tags
-from bot.ratelimit import RateLimiter
+from bot.core.filter import Decision, MessageFilter
+from bot.core.mentions import add_tags
+from bot.core.ratelimit import RateLimiter
 from bot.storage import (
     MODE_ALL,
     ActivityStore,
@@ -26,8 +26,8 @@ from bot.storage import (
     StatsStore,
     UsageStore,
 )
-from bot.text import split_message, to_plain_text
-from bot.timeutil import now_ms
+from bot.core.text import split_message, to_plain_text
+from bot.core.timeutil import now_ms
 from bot.zalo import IncomingMessage, ZaloError, parse_updates
 
 log = logging.getLogger(__name__)

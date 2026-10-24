@@ -12,7 +12,7 @@ from bot.config import APP_HOME, Settings, is_frozen
 
 log = logging.getLogger(__name__)
 
-TEMPLATES = Path(__file__).parent / "templates"
+TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
 
 # (file mẫu trong exe, đích trong APP_HOME)
 _FILES = (
@@ -49,7 +49,7 @@ def ensure_admin_token(settings: Settings, env_path: Path | None = None) -> tupl
     """
     if settings.admin_token:
         return settings, False
-    from bot.admin import envfile
+    from bot.ui.admin import envfile
 
     token = secrets.token_urlsafe(32)
     envfile.update(env_path or APP_HOME / ".env", {"ADMIN_TOKEN": token})

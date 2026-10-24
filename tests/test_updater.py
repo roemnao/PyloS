@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from bot import updater
+from bot.system import updater
 
 
 def git(cwd, *args):

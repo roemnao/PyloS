@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from bot.config import ConfigError, Settings
-from bot.logging_setup import RedactFilter
-from bot.sources.webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
+from bot.system.logging_setup import RedactFilter
+from bot.zalo.webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
 from bot.zalo import ZaloClient, ZaloError
 
 TOKEN = "123456:SECRET-TOKEN"

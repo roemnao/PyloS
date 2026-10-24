@@ -41,7 +41,7 @@ def unavailable_reason() -> str | None:
 
 
 def _run(*args: str, timeout: float = 120) -> str:
-    from bot.gateway import run_hidden  # ẩn cửa sổ cmd khi chạy từ pythonw / exe
+    from bot.system.gateway import run_hidden  # ẩn cửa sổ cmd khi chạy từ pythonw / exe
 
     try:
         done = run_hidden(list(args), timeout=timeout, cwd=PROJECT_ROOT)

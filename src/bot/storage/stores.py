@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from bot.storage.txtfile import JsonLinesFile, JsonObjectFile
-from bot.timeutil import now_ms, today_vn
+from bot.core.timeutil import now_ms, today_vn
 
 MODE_ALL = "all"
 MODE_DEFAULT = "default"

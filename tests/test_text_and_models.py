@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from bot.commands import parse_command
-from bot.text import split_message, to_plain_text, utf16_len
+from bot.core.commands import parse_command
+from bot.core.text import split_message, to_plain_text, utf16_len
 from bot.zalo import parse_updates
 
 

@@ -4,7 +4,7 @@ import asyncio
 
 import httpx
 
-from bot.sources import polling
+from bot.zalo import polling
 from bot.storage import StateStore
 from bot.zalo import ZaloClient
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from conftest import GROUP, OWNER, event
 
-from bot.app import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
-from bot.timeutil import now_ms
+from bot.core.app import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
+from bot.core.timeutil import now_ms
 
 
 async def send(bot, payload) -> None:
@@ -348,7 +348,7 @@ async def test_empty_bot_names_disables_name_calls(make_bot, agent):
 
 async def test_tagging_personal_account_answers_and_strips_tag(tmp_path, agent):
     from bot.agent import PromptBuilder
-    from bot.app import Bot
+    from bot.core.app import Bot
     from bot.zalo.personal import to_incoming
 
     from conftest import FakeZalo, make_settings

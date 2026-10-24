@@ -9,7 +9,9 @@ from pathlib import Path
 import pytest
 from conftest import make_settings
 
-from bot import bootstrap, config, gateway
+from bot.system import bootstrap, gateway
+
+from bot import config
 from bot.agent.tools import discover
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,7 +77,7 @@ def test_no_visible_subprocess_calls_left_in_source():
             if re.search(r"subprocess\.(run|call|check_output|check_call)\(", line):
                 offenders.append(path.relative_to(ROOT).as_posix())
     # đúng một chỗ được phép: bên trong run_hidden
-    assert offenders == ["src/bot/gateway.py"]
+    assert offenders == ["src/bot/system/gateway.py"]
 
 
 def test_frozen_child_gets_its_own_unpack_dir(monkeypatch):
@@ -184,7 +186,7 @@ def test_gateway_stops_bot_gracefully_with_flag(tmp_path):
 # ---------- linh tinh ----------
 
 def test_logging_without_console(monkeypatch, tmp_path):
-    from bot.logging_setup import setup_logging
+    from bot.system.logging_setup import setup_logging
 
     monkeypatch.setattr(sys, "stderr", None)
     setup_logging("INFO", tmp_path, ["secret-value"], filename="gui.log")
@@ -197,7 +199,7 @@ def test_logging_without_console(monkeypatch, tmp_path):
 
 
 def test_free_port_skips_busy_port():
-    from bot.desktop.app import _free_port
+    from bot.ui.desktop.app import _free_port
 
     with socket.socket() as busy:
         busy.bind(("127.0.0.1", 0))
@@ -206,7 +208,7 @@ def test_free_port_skips_busy_port():
 
 
 def test_autostart_command(monkeypatch):
-    from bot.desktop import autostart
+    from bot.ui.desktop import autostart
 
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", r"D:\app\ZaloBot.exe")
@@ -217,7 +219,7 @@ def test_autostart_command(monkeypatch):
 
 @pytest.mark.skipif(sys.platform != "win32", reason="registry chỉ có trên Windows")
 def test_autostart_registry_roundtrip(monkeypatch):
-    from bot.desktop import autostart
+    from bot.ui.desktop import autostart
 
     monkeypatch.setattr(autostart, "VALUE_NAME", "ZaloAssistantBot-pytest")  # không đụng mục thật
     try:
@@ -230,7 +232,7 @@ def test_autostart_registry_roundtrip(monkeypatch):
 
 
 def test_desktop_bot_actions_report_to_tray(monkeypatch, tmp_path):
-    from bot.desktop.app import Desktop
+    from bot.ui.desktop.app import Desktop
 
     settings = make_settings(tmp_path)
     desktop = Desktop(settings, tray_only=True, start_bot=False)
@@ -252,7 +254,7 @@ def test_desktop_bot_actions_report_to_tray(monkeypatch, tmp_path):
 
 
 def test_icons(tmp_path):
-    from bot.desktop.icons import make_icon, write_ico
+    from bot.ui.desktop.icons import make_icon, write_ico
 
     assert make_icon("running").size == (64, 64)
     assert make_icon().getpixel((32, 4))[3] == 255

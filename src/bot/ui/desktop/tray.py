@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 import pystray
 
 from bot.config import APP_NAME
-from bot.desktop import autostart
-from bot.desktop.icons import make_icon
+from bot.ui.desktop import autostart
+from bot.ui.desktop.icons import make_icon
 
 if TYPE_CHECKING:
-    from bot.desktop.app import Desktop
+    from bot.ui.desktop.app import Desktop
 
 log = logging.getLogger(__name__)
 

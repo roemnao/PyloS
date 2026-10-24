@@ -6,7 +6,7 @@ import logging
 import re
 from pathlib import Path
 
-from bot.timeutil import now_vn
+from bot.core.timeutil import now_vn
 
 log = logging.getLogger(__name__)
 

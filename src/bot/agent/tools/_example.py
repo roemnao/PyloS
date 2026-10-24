@@ -5,7 +5,7 @@ khởi động lại bot, tool sẽ tự được đăng ký.
 """
 
 from bot.agent.tools import Tool, ToolContext
-from bot.timeutil import now_vn
+from bot.core.timeutil import now_vn
 
 
 def _current_time(args: dict, ctx: ToolContext) -> dict:

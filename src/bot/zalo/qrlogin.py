@@ -29,7 +29,7 @@ from typing import Any, Callable
 import requests
 
 from bot.storage import atomic_write_text
-from bot.timeutil import now_ms
+from bot.core.timeutil import now_ms
 
 log = logging.getLogger(__name__)
 
@@ -264,7 +264,7 @@ def save_qr_png(image_b64: str, path: Path) -> None:
 
 def apply_session(session: ZaloSession, session_path: Path, env_path: Path) -> None:
     """Lưu phiên vừa đăng nhập và bật RECEIVE_MODE=personal trong .env."""
-    from bot.admin import envfile
+    from bot.ui.admin import envfile
 
     session.save(session_path)
     if envfile.read_values(env_path).get("RECEIVE_MODE") != "personal":

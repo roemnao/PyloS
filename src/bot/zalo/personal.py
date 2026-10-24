@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from bot.config import ConfigError, Settings
-from bot.mentions import build_mentions
+from bot.core.mentions import build_mentions
 from bot.storage import ActivityStore, MemoryDataStore, StateStore
-from bot.timeutil import now_ms
+from bot.core.timeutil import now_ms
 from bot.zalo.client import ZaloError
 from bot.zalo.models import TEXT_EVENT, IncomingMessage
 

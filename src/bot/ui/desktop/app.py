@@ -19,13 +19,13 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
-from bot import gateway
-from bot.bootstrap import ensure_admin_token, ensure_home
+from bot.system import gateway
+from bot.system.bootstrap import ensure_admin_token, ensure_home
 from bot.config import APP_HOME, ConfigError, Settings
-from bot.logging_setup import setup_logging
+from bot.system.logging_setup import setup_logging
 from bot.storage.lock import AlreadyRunning, InstanceLock
 
-log = logging.getLogger("bot.desktop")
+log = logging.getLogger("bot.ui.desktop")
 
 TITLE = "Quản lý Bot Zalo"
 
@@ -85,7 +85,7 @@ class Desktop:
 
         import uvicorn
 
-        from bot.admin.server import AdminContext, create_app
+        from bot.ui.admin.server import AdminContext, create_app
 
         self.port = _free_port(self.settings.admin_port)
         app = create_app(AdminContext(APP_HOME / ".env", APP_HOME), self.port)
@@ -154,7 +154,7 @@ class Desktop:
 
     def settings_now(self) -> Settings:
         """Đọc lại .env (có thể vừa sửa ở trang Cài đặt)."""
-        from bot.admin.server import AdminContext
+        from bot.ui.admin.server import AdminContext
 
         return AdminContext(APP_HOME / ".env", APP_HOME).settings()
 
@@ -181,7 +181,7 @@ class Desktop:
     # ---------- cập nhật (chạy từ mã nguồn) ----------
 
     def check_updates(self) -> None:
-        from bot import updater
+        from bot.system import updater
 
         try:
             self.updates_pending = updater.pending_commits()
@@ -198,7 +198,7 @@ class Desktop:
         threading.Thread(target=self._update_app, name="update", daemon=True).start()
 
     def _update_app(self) -> None:
-        from bot import updater
+        from bot.system import updater
 
         if self.busy:
             return
@@ -263,7 +263,7 @@ class Desktop:
 
     @property
     def can_update(self) -> bool:
-        from bot import updater
+        from bot.system import updater
 
         return updater.unavailable_reason() is None
 
@@ -311,10 +311,10 @@ class Desktop:
 
     def run(self) -> int:
         self.start_admin_server()
-        from bot.desktop import autostart
+        from bot.ui.desktop import autostart
 
         autostart.migrate()
-        from bot.desktop.tray import Tray
+        from bot.ui.desktop.tray import Tray
 
         self.tray = Tray(self)
         threading.Thread(target=self.tray.run, name="tray", daemon=True).start()

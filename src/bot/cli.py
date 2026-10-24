@@ -27,12 +27,12 @@ from pathlib import Path
 from typing import Any
 
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, discover
-from bot.app import Bot
+from bot.core.app import Bot
 from bot.config import PROJECT_ROOT, ConfigError, Settings, is_frozen
-from bot.logging_setup import setup_logging
+from bot.system.logging_setup import setup_logging
 from bot.storage import StateStore
 from bot.storage.lock import AlreadyRunning, InstanceLock
-from bot.timeutil import now_ms
+from bot.core.timeutil import now_ms
 from bot.zalo import ZaloClient, ZaloError
 
 log = logging.getLogger("bot")
@@ -101,7 +101,7 @@ async def _run(settings: Settings) -> int:
     # Token đã qua kiểm tra (hoặc chỉ lỗi mạng tạm thời): báo cho `gateway start` biết bot đã sẵn sàng.
     bot.state.update(ready_at=now_ms())
 
-    from bot import gateway
+    from bot.system import gateway
 
     flag = gateway.stop_flag(settings)
     flag.unlink(missing_ok=True)  # cờ cũ còn sót lại không được làm bot tắt ngay khi vừa bật
@@ -111,7 +111,7 @@ async def _run(settings: Settings) -> int:
         if settings.receive_mode == "webhook":
             import uvicorn
 
-            from bot.sources.webhook import WEBHOOK_PATH, create_app
+            from bot.zalo.webhook import WEBHOOK_PATH, create_app
 
             app = create_app(settings.webhook_secret, bot.handle_payload, bot.state)
             log.info("Webhook lắng nghe tại http://%s:%d%s", settings.webhook_host, settings.webhook_port, WEBHOOK_PATH)
@@ -126,7 +126,7 @@ async def _run(settings: Settings) -> int:
             def request_stop() -> None:
                 stop.set()
         else:
-            from bot.sources.polling import run_polling
+            from bot.zalo.polling import run_polling
 
             main_task = asyncio.create_task(run_polling(zalo, bot.handle_payload, bot.state, stop))
 
@@ -230,7 +230,7 @@ def _health(settings: Settings, max_age_seconds: int) -> int:
 def _zalo_login(settings: Settings, open_image: bool) -> int:
     import webbrowser
 
-    from bot import gateway
+    from bot.system import gateway
     from bot.zalo.qrlogin import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
 
     qr_path = settings.data_dir / "zalo_qr.png"
@@ -269,7 +269,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     if session.user_id:
         print(f"ID của acc phụ: {session.user_id}")
     if gateway.is_running(settings):
-        from bot.admin import envfile
+        from bot.ui.admin import envfile
 
         # Đọc lại .env: RECEIVE_MODE vừa đổi, còn os.environ vẫn giữ giá trị cũ.
         fresh = Settings.from_env({**os.environ, **envfile.read_values(PROJECT_ROOT / ".env")})
@@ -282,7 +282,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
 
 
 def _update(settings: Settings) -> int:
-    from bot import gateway, updater
+    from bot.system import gateway, updater
 
     try:
         result = updater.update()
@@ -302,8 +302,8 @@ def _update(settings: Settings) -> int:
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     import webbrowser
 
-    from bot import gateway
-    from bot.bootstrap import ensure_admin_token
+    from bot.system import gateway
+    from bot.system.bootstrap import ensure_admin_token
 
     env_path = PROJECT_ROOT / ".env"
     if action in ("run", "start", "restart"):
@@ -341,7 +341,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
 
         import uvicorn
 
-        from bot.admin.server import AdminContext, create_app
+        from bot.ui.admin.server import AdminContext, create_app
 
         app = create_app(AdminContext(env_path, PROJECT_ROOT), settings.admin_port)
         print(f"Giao diện quản lý: {url}\nMã truy cập: ADMIN_TOKEN trong {env_path}\nCtrl+C để dừng.", flush=True)
@@ -420,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
     # Bấm đúp ZaloBot.exe (không tham số) thì mở ứng dụng quản lý; `python -m bot` vẫn chạy bot như trước.
     command = args.command or ("gui" if is_frozen() else "run")
     if command == "gui":
-        from bot.desktop.app import run_gui
+        from bot.ui.desktop.app import run_gui
 
         return run_gui(tray_only=getattr(args, "tray", False), start_bot=getattr(args, "start_bot", False),
                        after_update=getattr(args, "after_update", False))
@@ -452,7 +452,7 @@ def main(argv: list[str] | None = None) -> int:
         return _update(settings)
 
     if command == "gateway":
-        from bot import gateway
+        from bot.system import gateway
 
         try:
             if args.action == "status":
@@ -498,7 +498,7 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_ALREADY_RUNNING
     exit_code = 0
     if command == "run":
-        from bot import gateway
+        from bot.system import gateway
 
         gateway.write_pid(settings)
     try:
@@ -518,7 +518,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("Đã dừng bot")
     finally:
         if command == "run":
-            from bot import gateway
+            from bot.system import gateway
 
             gateway.clear_pid(settings)
         lock.release()
