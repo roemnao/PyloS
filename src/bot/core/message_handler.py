@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bot.agent import Agent, PromptBuilder, ToolContext, Turn
-from bot.core.commands import CommandHandler, parse_command
+from bot.core.owner_commands import CommandHandler, parse_command
 from bot.config import Settings
-from bot.core.filter import Decision, MessageFilter
-from bot.core.mentions import add_tags
-from bot.core.ratelimit import RateLimiter
+from bot.core.message_filter import Decision, MessageFilter
+from bot.core.mention_tags import add_tags
+from bot.core.rate_limiter import RateLimiter
 from bot.storage import (
     MODE_ALL,
     ActivityStore,
@@ -26,9 +26,20 @@ from bot.storage import (
     StatsStore,
     UsageStore,
 )
-from bot.core.text import split_message, to_plain_text
-from bot.core.timeutil import now_ms
+from bot.core.reply_formatting import split_message, to_plain_text
+from bot.core.vietnam_time import now_ms
 from bot.zalo import IncomingMessage, ZaloError, parse_updates
+from bot.userdata_paths import (
+    BOT_STATUS_FILE,
+    CHAT_ACTIVITY_FILE,
+    DAILY_STATS_FILE,
+    FAILED_REPLIES_FILE,
+    GROUP_SETTINGS_FILE,
+    MEMORYDATA_DIR,
+    PROCESSED_IDS_FILE,
+    SESSION_HISTORY_DIR,
+    TOKEN_USAGE_FILE,
+)
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +48,7 @@ NON_TEXT_REPLY = "Hiện mình chỉ đọc được tin nhắn chữ."
 EMPTY_PROMPT_REPLY = "Bạn cần mình giúp gì?"
 NO_OWNER_HINT = (
     "Bot chưa có chủ. Nếu bạn là người cài bot, hãy điền OWNER_ZALO_ID={user_id} "
-    "vào userdata/config/.env (hoặc trang Cài đặt) rồi khởi động lại bot."
+    "vào userdata/config/settings.env (hoặc trang Cài đặt) rồi khởi động lại bot."
 )
 BUDGET_NOTICE = (
     "Đã dùng hết hạn mức token hôm nay. Đến hết ngày, mình chỉ trả lời "
@@ -76,15 +87,15 @@ class Bot:
         self.retry_delay = retry_delay
 
         data = settings.data_dir
-        self.groups = GroupStore(data / "groups.txt", settings.allowed_chat_ids)
-        self.seen = SeenStore(settings.system_dir / "seen.txt")
-        self.history = HistoryStore(data / "history", keep=max(200, settings.history_turns * 4))
-        self.state = StateStore(settings.system_dir / "state.txt")
-        self.usage = UsageStore(data / "usage.txt")
-        self.failed = FailedStore(data / "failed.txt")
-        self.stats = StatsStore(data / "stats.txt")
-        self.activity = ActivityStore(data / "activity.txt")
-        self.memory = MemoryDataStore(data / "memorydata", keep=settings.memorydata_keep)
+        self.groups = GroupStore(data / GROUP_SETTINGS_FILE, settings.allowed_chat_ids)
+        self.seen = SeenStore(settings.system_dir / PROCESSED_IDS_FILE)
+        self.history = HistoryStore(data / SESSION_HISTORY_DIR, keep=max(200, settings.history_turns * 4))
+        self.state = StateStore(settings.system_dir / BOT_STATUS_FILE)
+        self.usage = UsageStore(data / TOKEN_USAGE_FILE)
+        self.failed = FailedStore(data / FAILED_REPLIES_FILE)
+        self.stats = StatsStore(data / DAILY_STATS_FILE)
+        self.activity = ActivityStore(data / CHAT_ACTIVITY_FILE)
+        self.memory = MemoryDataStore(data / MEMORYDATA_DIR, keep=settings.memorydata_keep)
         self.filter = MessageFilter(settings, agent, self._self_identity)
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
@@ -131,7 +142,7 @@ class Bot:
             self._warned_no_owner.add(msg.from_id)
             log.warning(
                 "OWNER_ZALO_ID chưa đặt. Tin từ from_id=%s (%s), chat_id=%s (%s). "
-                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong userdata/config/.env rồi khởi động lại.",
+                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong userdata/config/settings.env rồi khởi động lại.",
                 msg.from_id, msg.from_name, msg.chat_id, msg.chat_type,
             )
 

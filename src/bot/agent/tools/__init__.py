@@ -111,7 +111,7 @@ def discover(external_dir: Path | None = None) -> ToolRegistry:
             registry.register(tool)
     if external_dir is None:
         from bot.config import APP_HOME
-        from bot.paths import TOOLS_REL
+        from bot.userdata_paths import TOOLS_REL
 
         external_dir = APP_HOME / TOOLS_REL
     if external_dir.is_dir():

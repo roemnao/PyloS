@@ -5,11 +5,11 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.system import gateway
-from bot.ui.admin import envfile
-from bot.ui.admin.server import AdminContext, create_app
+from bot.system import bot_process
+from bot.ui.admin import settings_file
+from bot.ui.admin.admin_web_server import AdminContext, create_app
 from bot.storage import FailedStore, GroupStore, HistoryStore, JsonObjectFile
-from bot.core.timeutil import today_vn
+from bot.core.vietnam_time import today_vn
 
 ADMIN_TOKEN = "admin-token-123456"
 ZALO_TOKEN = "999:zalo-secret-token"
@@ -78,7 +78,7 @@ def test_static_page_has_security_headers(client):
     assert page.status_code == 200 and "Quản lý Bot Zalo" in page.text
     assert "script-src 'self'" in page.headers["content-security-policy"]
     assert page.headers["x-frame-options"] == "DENY"
-    assert client.get("/static/app.js").status_code == 200
+    assert client.get("/static/admin_page.js").status_code == 200
 
 
 def test_secrets_never_leave_the_server(client):
@@ -129,17 +129,17 @@ def test_secret_is_write_only(client, env_path):
 def test_envfile_appends_missing_keys(tmp_path):
     path = tmp_path / ".env"
     path.write_text("# a\nA=1\n", encoding="utf-8")
-    envfile.update(path, {"B": "2", "A": "3"})
+    settings_file.update(path, {"B": "2", "A": "3"})
     assert path.read_text(encoding="utf-8") == "# a\nA=3\nB=2\n"
     fresh = tmp_path / "new.env"
-    envfile.update(fresh, {"ADMIN_TOKEN": "t"})
+    settings_file.update(fresh, {"ADMIN_TOKEN": "t"})
     assert fresh.read_text(encoding="utf-8") == "ADMIN_TOKEN=t\n"
 
 
 # ---------- nhóm: giao diện và bot cùng ghi groups.txt ----------
 
 def test_group_changes_reach_running_bot_without_clobbering(client, tmp_path):
-    bot_store = GroupStore(tmp_path / "data" / "groups.txt")  # bản bot đang giữ trong RAM
+    bot_store = GroupStore(tmp_path / "data" / "group_settings.txt")  # bản bot đang giữ trong RAM
     assert not bot_store.get("g1").allowed
 
     res = client.patch("/api/groups/g1", json={"allowed": True, "mode": "all", "label": "Nhà mình"}, headers=AUTH)
@@ -148,14 +148,14 @@ def test_group_changes_reach_running_bot_without_clobbering(client, tmp_path):
     assert state.allowed and state.mode == "all" and state.label == "Nhà mình"
 
     bot_store.set_mode("g2", "all")  # bot ghi sau: không được làm mất thay đổi của giao diện
-    again = GroupStore(tmp_path / "data" / "groups.txt")
+    again = GroupStore(tmp_path / "data" / "group_settings.txt")
     assert again.get("g1").label == "Nhà mình" and again.get("g2").mode == "all"
 
     assert client.patch("/api/groups/g1", json={"mode": "loud"}, headers=AUTH).status_code == 400
 
 
 def test_groups_list_includes_seen_but_not_allowed_chats(client, tmp_path):
-    JsonObjectFile(tmp_path / "data" / "activity.txt").write({
+    JsonObjectFile(tmp_path / "data" / "chat_activity.txt").write({
         "new-group": {"type": "GROUP", "last_seen": 2, "last_name": "An"},
         "owner": {"type": "PRIVATE", "last_seen": 1, "last_name": "Chủ"},
     })
@@ -167,7 +167,7 @@ def test_groups_list_includes_seen_but_not_allowed_chats(client, tmp_path):
 # ---------- hội thoại ----------
 
 def test_history_view_and_toggle(client, env_path, tmp_path):
-    HistoryStore(tmp_path / "data" / "history").append("g1", "user", "xin chào", uid="u", name="An")
+    HistoryStore(tmp_path / "data" / "session_history").append("g1", "user", "xin chào", uid="u", name="An")
     data = client.get("/api/history/g1", headers=AUTH).json()
     assert data["messages"][0]["text"] == "xin chào" and data["messages"][0]["name"] == "An"
     for evil in ("..%2F..%2F.env", "..%5C..%5C.env", "....env"):
@@ -201,7 +201,7 @@ def test_logs_group_tracebacks_and_filter(client, tmp_path):
     (tmp_path / "logs").mkdir()
     (tmp_path / "logs" / "bot.log").write_text(
         "2026-10-22 07:00:00,001 INFO bot: khởi động\n"
-        "2026-10-22 07:00:01,001 ERROR bot.core.app: hỏng\nTraceback (most recent call last):\n  File x\n"
+        "2026-10-22 07:00:01,001 ERROR bot.core.message_handler: hỏng\nTraceback (most recent call last):\n  File x\n"
         "2026-10-22 07:00:02,001 WARNING bot: cảnh báo\n",
         encoding="utf-8",
     )
@@ -214,7 +214,7 @@ def test_logs_group_tracebacks_and_filter(client, tmp_path):
 
 
 def test_failed_list_and_dismiss(client, tmp_path):
-    store = FailedStore(tmp_path / "data" / "failed.txt")
+    store = FailedStore(tmp_path / "data" / "failed_replies.txt")
     store.add("g1", "câu trả lời", "[500] lỗi")
     [item] = client.get("/api/failed", headers=AUTH).json()["items"]
     assert item["text"] == "câu trả lời"
@@ -227,7 +227,7 @@ def test_failed_list_and_dismiss(client, tmp_path):
 def test_playground_uses_echo_without_key_and_keeps_group_history_clean(client, tmp_path):
     res = client.post("/api/playground", json={"messages": [{"role": "user", "text": "chào bot"}]}, headers=AUTH).json()
     assert res["ok"] and res["echo"] and "chào bot" in res["reply"]
-    assert not (tmp_path / "data" / "history").exists()
+    assert not (tmp_path / "data" / "session_history").exists()
     assert client.post("/api/playground", json={"messages": []}, headers=AUTH).status_code == 400
 
 
@@ -240,17 +240,17 @@ def test_bot_control_uses_gateway(client, monkeypatch):
 
     def fake_start(settings, service):
         calls.append(service.name)
-        return gateway.Result(0, "Đã bật bot")
+        return bot_process.Result(0, "Đã bật bot")
 
-    monkeypatch.setattr(gateway, "start", fake_start)
+    monkeypatch.setattr(bot_process, "start", fake_start)
     assert client.post("/api/bot/start", headers=AUTH).json() == {"ok": True, "message": "Đã bật bot"}
     assert calls == ["bot"]
     assert client.post("/api/bot/explode", headers=AUTH).status_code == 404
 
 
 def test_status_reports_alerts_and_stats(client, tmp_path):
-    JsonObjectFile(tmp_path / "data" / "stats.txt").write({today_vn(): {"received": 3, "replied": 2, "tokens": 1500}})
-    JsonObjectFile(tmp_path / "data" / "usage.txt").write({"day": today_vn(), "tokens": 1500})
+    JsonObjectFile(tmp_path / "data" / "daily_stats.txt").write({today_vn(): {"received": 3, "replied": 2, "tokens": 1500}})
+    JsonObjectFile(tmp_path / "data" / "token_usage.txt").write({"day": today_vn(), "tokens": 1500})
     data = client.get("/api/status", headers=AUTH).json()
     assert data["today"]["received"] == 3 and data["tokens_today"] == 1500
     assert any("GEMINI_API_KEY" in a for a in data["alerts"])
@@ -263,23 +263,23 @@ def test_status_reports_alerts_and_stats(client, tmp_path):
 def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_path, monkeypatch):
     import time
 
-    from bot.zalo import qrlogin
+    from bot.zalo import qr_login
 
     class FakeLogin:
         def __init__(self, *args, **kwargs):
-            self.status = qrlogin.QrStatus(state=qrlogin.WAITING_SCAN, image="UE5H", message="Quét mã")
+            self.status = qr_login.QrStatus(state=qr_login.WAITING_SCAN, image="UE5H", message="Quét mã")
 
         def report(self, state, message="", **extra):
-            self.status = qrlogin.QrStatus(state=state, message=message, display_name=extra.get("display_name", ""))
+            self.status = qr_login.QrStatus(state=state, message=message, display_name=extra.get("display_name", ""))
 
         def run(self):
-            self.report(qrlogin.SUCCESS, "Đã kết nối acc An.", display_name="An")
-            return qrlogin.ZaloSession(cookies={"zpw_sek": "x"}, imei="imei-1", display_name="An")
+            self.report(qr_login.SUCCESS, "Đã kết nối acc An.", display_name="An")
+            return qr_login.ZaloSession(cookies={"zpw_sek": "x"}, imei="imei-1", display_name="An")
 
         def cancel(self):
             pass
 
-    monkeypatch.setattr(qrlogin, "QrLogin", FakeLogin)
+    monkeypatch.setattr(qr_login, "QrLogin", FakeLogin)
     assert client.get("/api/zalo-login", headers=AUTH).json()["state"] == "idle"
     assert client.post("/api/zalo-login/start", headers=AUTH).status_code == 200
     for _ in range(50):
@@ -290,22 +290,22 @@ def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_
     assert data["state"] == "success" and data["session"]["exists"] and data["session"]["display_name"] == "An"
     assert "imei-1" not in str(data) and "zpw_sek" not in str(data)  # không lộ phiên đăng nhập ra API
     assert "RECEIVE_MODE=personal" in env_path.read_text(encoding="utf-8")
-    assert json.loads((tmp_path / "userdata" / "config" / "zalo_session.json").read_text(encoding="utf-8"))["imei"] == "imei-1"
+    assert json.loads((tmp_path / "userdata" / "config" / "zalo_login_session.json").read_text(encoding="utf-8"))["imei"] == "imei-1"
 
 
 def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, monkeypatch):
-    from bot.system import updater
+    from bot.system import auto_update
 
     (tmp_path / "userdata" / "system").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "userdata" / "system" / "update.txt").write_text("3", encoding="utf-8")
+    (tmp_path / "userdata" / "system" / "pending_updates.txt").write_text("3", encoding="utf-8")
     assert client.get("/api/status", headers=AUTH).json()["updates_pending"] == 3
 
-    monkeypatch.setattr(updater, "unavailable_reason", lambda: None)
-    monkeypatch.setattr(gateway, "gui_running", lambda settings: True)
+    monkeypatch.setattr(auto_update, "unavailable_reason", lambda: None)
+    monkeypatch.setattr(bot_process, "gui_running", lambda settings: True)
     res = client.post("/api/update", headers=AUTH).json()
-    assert res["ok"] and (tmp_path / "userdata" / "system" / "gui.update").exists()
+    assert res["ok"] and (tmp_path / "userdata" / "system" / "update.request").exists()
 
-    monkeypatch.setattr(updater, "unavailable_reason", lambda: "Đang chạy ZaloBot.exe")
+    monkeypatch.setattr(auto_update, "unavailable_reason", lambda: "Đang chạy ZaloBot.exe")
     assert client.post("/api/update", headers=AUTH).json() == {"ok": False, "message": "Đang chạy ZaloBot.exe"}
 
 

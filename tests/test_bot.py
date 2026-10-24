@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from conftest import GROUP, OWNER, event
 
-from bot.core.app import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
-from bot.core.timeutil import now_ms
+from bot.core.message_handler import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
+from bot.core.vietnam_time import now_ms
 
 
 async def send(bot, payload) -> None:
@@ -260,7 +260,7 @@ async def test_send_is_retried_then_dead_lettered(make_bot, zalo, tmp_path):
 
     zalo.fail_times = 99
     await send(bot, event("/bot hi again"))
-    failed = (tmp_path / "data" / "failed.txt").read_text(encoding="utf-8")
+    failed = (tmp_path / "data" / "failed_replies.txt").read_text(encoding="utf-8")
     assert "trả lời" in failed
 
 
@@ -348,8 +348,8 @@ async def test_empty_bot_names_disables_name_calls(make_bot, agent):
 
 async def test_tagging_personal_account_answers_and_strips_tag(tmp_path, agent):
     from bot.agent import PromptBuilder
-    from bot.core.app import Bot
-    from bot.zalo.personal import to_incoming
+    from bot.core.message_handler import Bot
+    from bot.zalo.personal_account import to_incoming
 
     from conftest import FakeZalo, make_settings
 

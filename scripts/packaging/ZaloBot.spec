@@ -9,7 +9,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 ROOT = Path(SPECPATH).parents[1]  # scripts/packaging/ -> thư mục dự án
 sys.path.insert(0, str(ROOT / "src"))
 
-from bot.ui.desktop.icons import write_ico  # noqa: E402
+from bot.ui.desktop.icon_images import write_ico  # noqa: E402
 
 icon = write_ico(ROOT / "build" / "zalobot.ico")
 

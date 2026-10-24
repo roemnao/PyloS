@@ -693,7 +693,7 @@ async function renderSettings(main) {
   state.dirty = () => Object.keys(changed()).length > 0;
 
   const banner = h("div", { class: "banner", hidden: true },
-    h("span", { text: "Đã lưu vào userdata/config/.env. Khởi động lại bot để áp dụng. " }),
+    h("span", { text: "Đã lưu vào userdata/config/settings.env. Khởi động lại bot để áp dụng. " }),
     h("button", { class: "btn small", type: "button", text: "Khởi động lại bot", onclick: async () => {
       await controlBot("restart", "Đang khởi động lại");
       banner.hidden = true;
@@ -735,7 +735,7 @@ async function renderSettings(main) {
     ...[...groups].map(([name, fields]) => h("div", { class: "card stack" }, h("h2", { text: name }), ...fields)),
     h("div", { class: "row", style: "margin-bottom:1rem" }, h("button", { class: "btn primary", type: "button", text: "Lưu cài đặt", onclick: save })),
     h("div", { class: "card stack" }, h("h2", { text: "Khóa bí mật" }),
-      h("p", { class: "muted small", text: "Giá trị hiện tại không bao giờ được hiển thị. Chỉ có thể đặt giá trị mới. ADMIN_TOKEN, cổng giao diện và thư mục dữ liệu chỉ sửa trực tiếp trong file userdata/config/.env." }),
+      h("p", { class: "muted small", text: "Giá trị hiện tại không bao giờ được hiển thị. Chỉ có thể đặt giá trị mới. ADMIN_TOKEN, cổng giao diện và thư mục dữ liệu chỉ sửa trực tiếp trong file userdata/config/settings.env." }),
       ...secrets));
 }
 

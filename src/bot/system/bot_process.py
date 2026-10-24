@@ -18,8 +18,16 @@ from typing import Any
 
 from bot.config import LOADED_FROM_DOTENV, PROJECT_ROOT, Settings, is_frozen
 from bot.storage import FailedStore, GroupStore, StateStore, StatsStore, UsageStore
-from bot.storage.lock import AlreadyRunning, InstanceLock
-from bot.core.timeutil import now_ms
+from bot.storage.process_lock import AlreadyRunning, InstanceLock
+from bot.core.vietnam_time import now_ms
+from bot.userdata_paths import (
+    BOT_STATUS_FILE,
+    DAILY_STATS_FILE,
+    FAILED_REPLIES_FILE,
+    GROUP_SETTINGS_FILE,
+    GUI_LOCK_FILE,
+    TOKEN_USAGE_FILE,
+)
 
 
 @dataclass(frozen=True)
@@ -85,7 +93,7 @@ def is_running(settings: Settings, service: Service = BOT) -> bool:
 
 def gui_running(settings: Settings) -> bool:
     """True nếu ứng dụng quản lý (cửa sổ + khay) đang mở."""
-    lock = InstanceLock(settings.system_dir / "gui.lock")
+    lock = InstanceLock(settings.system_dir / GUI_LOCK_FILE)
     try:
         lock.acquire()
     except AlreadyRunning:
@@ -209,7 +217,7 @@ def start(settings: Settings, service: Service = BOT) -> Result:
         # Chờ bot báo sẵn sàng (ready_at, sau khi kiểm tra token) hoặc thoát sớm (token sai, thiếu cấu hình...).
         def ready() -> bool:
             return child.poll() is not None or int(
-                StateStore(settings.system_dir / "state.txt").data.get("ready_at") or 0
+                StateStore(settings.system_dir / BOT_STATUS_FILE).data.get("ready_at") or 0
             ) >= started
 
         _wait(ready, 40)
@@ -262,9 +270,9 @@ def restart(settings: Settings, service: Service = BOT) -> Result:
 def _registry_autostart() -> bool:
     """Mục "Khởi động cùng Windows" của ứng dụng quản lý (khay hệ thống)."""
     try:
-        from bot.ui.desktop import autostart
+        from bot.ui.desktop import windows_autostart
 
-        return autostart.is_enabled()
+        return windows_autostart.is_enabled()
     except Exception:  # noqa: BLE001 - không phải Windows hoặc thiếu quyền đọc registry
         return False
 
@@ -272,8 +280,8 @@ def _registry_autostart() -> bool:
 def status_info(settings: Settings) -> dict[str, Any]:
     """Trạng thái bot dạng dữ liệu, dùng cho `gateway status` và trang Tổng quan."""
     running = is_running(settings, BOT)
-    state = StateStore(settings.system_dir / "state.txt").data
-    groups = GroupStore(settings.data_dir / "groups.txt").all()
+    state = StateStore(settings.system_dir / BOT_STATUS_FILE).data
+    groups = GroupStore(settings.data_dir / GROUP_SETTINGS_FILE).all()
     return {
         "running": running,
         "pid": read_pid(settings, BOT) if running else None,
@@ -282,12 +290,12 @@ def status_info(settings: Settings) -> dict[str, Any]:
         "started_at": state.get("started_at") if running else None,
         "last_poll_at": state.get("last_poll_at"),
         "last_message_at": state.get("last_message_at"),
-        "tokens_today": UsageStore(settings.data_dir / "usage.txt").used_today(),
+        "tokens_today": UsageStore(settings.data_dir / TOKEN_USAGE_FILE).used_today(),
         "token_budget": settings.daily_token_budget,
-        "today": StatsStore(settings.data_dir / "stats.txt").today(),
+        "today": StatsStore(settings.data_dir / DAILY_STATS_FILE).today(),
         "owner_set": bool(settings.owner_zalo_id),
         "allowed_groups": [{"chat_id": g.chat_id, "mode": g.mode, "label": g.label} for g in groups if g.allowed],
-        "failed_pending": len(FailedStore(settings.data_dir / "failed.txt").pending()),
+        "failed_pending": len(FailedStore(settings.data_dir / FAILED_REPLIES_FILE).pending()),
         "task_installed": task_installed(BOT),
         "autostart": _registry_autostart(),
         "zalo_token_set": bool(settings.zalo_bot_token),

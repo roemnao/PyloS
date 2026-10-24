@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from bot.agent import GeminiAgent, PromptBuilder, Tool, ToolContext, ToolRegistry, Turn, discover
-from bot.agent.runner import EMPTY_REPLY, TOO_MANY_STEPS
+from bot.agent.gemini_agent import EMPTY_REPLY, TOO_MANY_STEPS
 
 CTX = ToolContext("g", "u", "An", is_owner=False)
 

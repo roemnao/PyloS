@@ -1,4 +1,4 @@
-"""Các kho dữ liệu của bot, tất cả nằm trong data/*.txt.
+"""Các kho dữ liệu của bot (tên file: xem bot/userdata_paths.py), nằm trong userdata/data và userdata/system.
 
 Bot và giao diện quản lý (tiến trình riêng) cùng đọc/ghi các file này. Kho nào
 cả hai bên cùng ghi thì luôn đọc lại file ngay trước khi sửa (đọc-sửa-ghi),
@@ -14,8 +14,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from bot.storage.txtfile import JsonLinesFile, JsonObjectFile
-from bot.core.timeutil import now_ms, today_vn
+from bot.userdata_paths import done_file
+from bot.storage.text_files import JsonLinesFile, JsonObjectFile
+from bot.core.vietnam_time import now_ms, today_vn
 
 MODE_ALL = "all"
 MODE_DEFAULT = "default"
@@ -39,7 +40,7 @@ def _mtime(path: Path) -> float | None:
 
 
 class GroupStore:
-    """data/groups.txt: mỗi dòng một nhóm {chat_id, allowed, mode, label, updated_at}.
+    """group_settings.txt: mỗi dòng một nhóm {chat_id, allowed, mode, label, updated_at}.
 
     Tự nạp lại khi file bị sửa từ bên ngoài (giao diện quản lý), và đọc lại
     trước mỗi lần ghi để không ghi đè thay đổi của tiến trình kia.
@@ -115,7 +116,7 @@ class GroupStore:
 
 
 class SeenStore:
-    """data/seen.txt: khóa các tin đã xử lý, chỉ giữ `keep` khóa gần nhất."""
+    """processed_message_ids.txt (userdata/system): khóa các tin đã xử lý, chỉ giữ `keep` khóa gần nhất."""
 
     def __init__(self, path: Path, keep: int = 2000) -> None:
         self._file = JsonLinesFile(path)
@@ -151,7 +152,7 @@ def safe_name(chat_id: str) -> str:
 
 
 class HistoryStore:
-    """data/history/<chat_id>.txt: mỗi lượt một dòng {role, uid, name, text, t}."""
+    """session_history/<chat_id>.txt: mỗi lượt một dòng {role, uid, name, text, t}."""
 
     def __init__(self, directory: Path, keep: int = 200) -> None:
         self._dir = directory
@@ -174,7 +175,7 @@ class HistoryStore:
 
 
 class MemoryDataStore:
-    """data/memorydata/<chat_id>.txt: MỌI tin của hội thoại (kể cả tin bộ lọc chặn), mỗi dòng một JSON.
+    """memorydata/<chat_id>.txt: MỌI tin của hội thoại (kể cả tin bộ lọc chặn), mỗi dòng một JSON.
 
     {"t", "role": "user"|"model", "msg_id", "uid", "name", "type": "text"|"other", "text",
      "filter": {"passed", "stage", "reason"}}   (câu trả lời của bot không có "filter")
@@ -210,7 +211,7 @@ class MemoryDataStore:
 
 
 class StateStore:
-    """data/state.txt: thời điểm khởi động, lần poll cuối, tin cuối (để healthcheck)."""
+    """bot_status.txt (userdata/system): thời điểm khởi động, lần poll cuối, tin cuối (để healthcheck)."""
 
     def __init__(self, path: Path) -> None:
         self._file = JsonObjectFile(path)
@@ -222,7 +223,7 @@ class StateStore:
 
 
 class UsageStore:
-    """data/usage.txt: số token Gemini đã dùng trong ngày (giờ Việt Nam).
+    """token_usage.txt: số token Gemini đã dùng trong ngày (giờ Việt Nam).
 
     Không giữ số trong RAM: mỗi lần đọc/ghi đều đọc file, để bot và trang
     "Chat thử" của giao diện cùng cộng token mà không mất số của nhau.
@@ -257,7 +258,7 @@ class UsageStore:
 
 
 class StatsStore:
-    """data/stats.txt: số liệu theo ngày {"2026-10-22": {"received", "replied", "errors", "tokens", ...}}."""
+    """daily_stats.txt: số liệu theo ngày {"2026-10-22": {"received", "replied", "errors", "tokens", ...}}."""
 
     # filter_pass / filter_block: số tin trong nhóm bộ lọc cho qua / chặn
     FIELDS = ("received", "replied", "errors", "tokens", "filter_pass", "filter_block")
@@ -289,7 +290,7 @@ class StatsStore:
 
 
 class ActivityStore:
-    """data/activity.txt: lần nhắn cuối của mỗi chat {chat_id: {type, last_seen, last_name}}.
+    """chat_activity.txt: lần nhắn cuối của mỗi chat {chat_id: {type, last_seen, last_name}}.
 
     Zalo không gửi tên nhóm, nên giao diện dùng thông tin này (cùng nhãn tự đặt)
     để bạn nhận ra nhóm nào là nhóm nào, kể cả nhóm chưa được cho phép.
@@ -308,15 +309,15 @@ class ActivityStore:
 
 
 class FailedStore:
-    """data/failed.txt: tin không gửi được sau khi đã thử lại (dead-letter).
+    """failed_replies.txt: tin không gửi được sau khi đã thử lại (dead-letter).
 
-    Chỉ nối thêm (bot ghi). Tin đã gửi lại/bỏ qua được ghi id vào data/failed_done.txt
+    Chỉ nối thêm (bot ghi). Tin đã gửi lại/bỏ qua được ghi id vào failed_replies_done.txt
     (giao diện ghi), nên hai tiến trình không bao giờ ghi đè file của nhau.
     """
 
     def __init__(self, path: Path) -> None:
         self._file = JsonLinesFile(path)
-        self._done = JsonLinesFile(path.with_name("failed_done.txt"))
+        self._done = JsonLinesFile(path.with_name(done_file(path.name)))
 
     def add(self, chat_id: str, text: str, error: str) -> None:
         stamp = now_ms()

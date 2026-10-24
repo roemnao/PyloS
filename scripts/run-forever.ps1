@@ -23,7 +23,7 @@ while ($true) {
     Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] exited with code $code"
     if ($code -eq 2) {
         # Config error (missing token/key): restarting will not help.
-        Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] config error, stopping. Fix userdata\config\.env then restart the task."
+        Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] config error, stopping. Fix userdata\config\settings.env then restart the task."
         exit 2
     }
     if ($code -eq 3) {

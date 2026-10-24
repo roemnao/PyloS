@@ -1,4 +1,4 @@
-"""Chuẩn bị userdata/ ở lần chạy đầu: tạo thư mục và file mẫu còn thiếu, không ghi đè (xem bot/paths.py)."""
+"""Chuẩn bị userdata/ ở lần chạy đầu: tạo thư mục và file mẫu còn thiếu, không ghi đè (xem bot/userdata_paths.py)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 from bot.config import APP_HOME, ENV_FILE, Settings
-from bot.paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
+from bot.userdata_paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
 
 log = logging.getLogger(__name__)
 
@@ -47,8 +47,8 @@ def ensure_admin_token(settings: Settings, env_path: Path | None = None) -> tupl
     """
     if settings.admin_token:
         return settings, False
-    from bot.ui.admin import envfile
+    from bot.ui.admin import settings_file
 
     token = secrets.token_urlsafe(32)
-    envfile.update(env_path or ENV_FILE, {"ADMIN_TOKEN": token})
+    settings_file.update(env_path or ENV_FILE, {"ADMIN_TOKEN": token})
     return dataclasses.replace(settings, admin_token=token), True

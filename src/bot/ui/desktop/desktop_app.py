@@ -19,11 +19,18 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
-from bot.system import gateway
-from bot.system.bootstrap import ensure_admin_token, ensure_home
+from bot.system import bot_process
+from bot.system.first_run_setup import ensure_admin_token, ensure_home
 from bot.config import APP_HOME, ENV_FILE, ConfigError, Settings
-from bot.system.logging_setup import setup_logging
-from bot.storage.lock import AlreadyRunning, InstanceLock
+from bot.system.log_files import setup_logging
+from bot.storage.process_lock import AlreadyRunning, InstanceLock
+from bot.userdata_paths import (
+    APP_WINDOW_PROFILE_DIR,
+    GUI_LOCK_FILE,
+    PENDING_UPDATES_FILE,
+    SHOW_WINDOW_REQUEST,
+    UPDATE_REQUEST,
+)
 
 log = logging.getLogger("bot.ui.desktop")
 
@@ -73,7 +80,7 @@ class Desktop:
     # ---------- server giao diện ----------
 
     def start_admin_server(self) -> None:
-        lock = gateway.lock_for(self.settings, gateway.ADMIN)
+        lock = bot_process.lock_for(self.settings, bot_process.ADMIN)
         try:
             lock.acquire()
         except AlreadyRunning:
@@ -81,11 +88,11 @@ class Desktop:
             log.info("Giao diện quản lý đã chạy sẵn ở cổng %d, dùng lại", self.settings.admin_port)
             return
         self.admin_lock = lock
-        gateway.write_pid(self.settings, gateway.ADMIN)
+        bot_process.write_pid(self.settings, bot_process.ADMIN)
 
         import uvicorn
 
-        from bot.ui.admin.server import AdminContext, create_app
+        from bot.ui.admin.admin_web_server import AdminContext, create_app
 
         self.port = _free_port(self.settings.admin_port)
         app = create_app(AdminContext(ENV_FILE, APP_HOME), self.port)
@@ -128,8 +135,8 @@ class Desktop:
         self.busy = True
         self.refresh_tray()
         try:
-            func = {"start": gateway.start, "stop": gateway.stop, "restart": gateway.restart}[action]
-            result = func(self.settings_now(), gateway.BOT)
+            func = {"start": bot_process.start, "stop": bot_process.stop, "restart": bot_process.restart}[action]
+            result = func(self.settings_now(), bot_process.BOT)
             message = result.message.splitlines()[0]
         except ConfigError as exc:
             message = f"Thiếu cấu hình: {exc}"
@@ -154,13 +161,13 @@ class Desktop:
 
     def settings_now(self) -> Settings:
         """Đọc lại .env (có thể vừa sửa ở trang Cài đặt)."""
-        from bot.ui.admin.server import AdminContext
+        from bot.ui.admin.admin_web_server import AdminContext
 
         return AdminContext(ENV_FILE, APP_HOME).settings()
 
     def update_status(self) -> None:
         try:
-            info = gateway.status_info(self.settings_now())
+            info = bot_process.status_info(self.settings_now())
         except Exception:  # noqa: BLE001
             log.exception("Không đọc được trạng thái bot")
             return
@@ -181,11 +188,11 @@ class Desktop:
     # ---------- cập nhật (chạy từ mã nguồn) ----------
 
     def check_updates(self) -> None:
-        from bot.system import updater
+        from bot.system import auto_update
 
         try:
-            self.updates_pending = updater.pending_commits()
-        except updater.UpdateError as exc:
+            self.updates_pending = auto_update.pending_commits()
+        except auto_update.UpdateError as exc:
             log.info("Không kiểm tra được bản mới: %s", exc)
             return
         update_flag_file(self.settings).write_text(str(self.updates_pending), encoding="utf-8")
@@ -198,7 +205,7 @@ class Desktop:
         threading.Thread(target=self._update_app, name="update", daemon=True).start()
 
     def _update_app(self) -> None:
-        from bot.system import updater
+        from bot.system import auto_update
 
         if self.busy:
             return
@@ -207,8 +214,8 @@ class Desktop:
         if self.tray is not None:
             self.tray.notify("Đang cập nhật…")
         try:
-            result = updater.update()
-        except updater.UpdateError as exc:
+            result = auto_update.update()
+        except auto_update.UpdateError as exc:
             self.busy = False
             self.refresh_tray()
             if self.tray is not None:
@@ -224,10 +231,10 @@ class Desktop:
             return
         settings = self.settings_now()
         # Bot và giao diện chạy riêng (nếu có) phải khởi động lại mới dùng code mới.
-        if gateway.is_running(settings, gateway.BOT):
-            gateway.restart(settings, gateway.BOT)
-        if self.admin_lock is None and gateway.is_running(settings, gateway.ADMIN):
-            gateway.restart(settings, gateway.ADMIN)
+        if bot_process.is_running(settings, bot_process.BOT):
+            bot_process.restart(settings, bot_process.BOT)
+        if self.admin_lock is None and bot_process.is_running(settings, bot_process.ADMIN):
+            bot_process.restart(settings, bot_process.ADMIN)
         if self.tray is not None:
             self.tray.notify(result.message.splitlines()[0] + " Đang mở lại ứng dụng…")
         # Mở bản mới (nó chờ bản này thoát để nhận khoá), rồi thoát bản này.
@@ -241,9 +248,9 @@ class Desktop:
     # ---------- vòng nền ----------
 
     def _background(self) -> None:
-        show_flag = self.settings.system_dir / "gui.show"
+        show_flag = self.settings.system_dir / SHOW_WINDOW_REQUEST
         # Trang Tổng quan (bấm "Cập nhật") ghi file này để nhờ ứng dụng tự cập nhật và mở lại.
-        update_request = self.settings.system_dir / "gui.update"
+        update_request = self.settings.system_dir / UPDATE_REQUEST
         last_status = 0.0
         next_update_check = time.monotonic() + 20
         while not self._stopped.is_set():
@@ -263,12 +270,12 @@ class Desktop:
 
     @property
     def can_update(self) -> bool:
-        from bot.system import updater
+        from bot.system import auto_update
 
-        return updater.unavailable_reason() is None
+        return auto_update.unavailable_reason() is None
 
     def _auto_start_bot(self) -> None:
-        if gateway.is_running(self.settings, gateway.BOT):
+        if bot_process.is_running(self.settings, bot_process.BOT):
             return
         try:
             self.settings_now().require(zalo=True, gemini=True)
@@ -301,7 +308,7 @@ class Desktop:
             self.busy = True
             self.refresh_tray()
             try:
-                gateway.stop(self.settings_now(), gateway.BOT)
+                bot_process.stop(self.settings_now(), bot_process.BOT)
             finally:
                 self.quit()
 
@@ -311,10 +318,10 @@ class Desktop:
 
     def run(self) -> int:
         self.start_admin_server()
-        from bot.ui.desktop import autostart
+        from bot.ui.desktop import windows_autostart
 
-        autostart.migrate()
-        from bot.ui.desktop.tray import Tray
+        windows_autostart.migrate()
+        from bot.ui.desktop.tray_icon import Tray
 
         self.tray = Tray(self)
         threading.Thread(target=self.tray.run, name="tray", daemon=True).start()
@@ -341,7 +348,7 @@ class Desktop:
             webview.start(
                 gui="edgechromium" if os.name == "nt" else None,
                 private_mode=False,  # giữ mã đăng nhập giữa các lần mở
-                storage_path=str(self.settings.system_dir / "webview"),
+                storage_path=str(self.settings.system_dir / APP_WINDOW_PROFILE_DIR),
             )
         except Exception:  # noqa: BLE001 - thiếu WebView2: dùng trình duyệt, ứng dụng vẫn chạy ở khay
             log.exception("Không mở được cửa sổ WebView2, chuyển sang trình duyệt")
@@ -357,21 +364,21 @@ class Desktop:
             if self.server is not None:
                 self.server.should_exit = True
             if self.admin_lock is not None:
-                gateway.clear_pid(self.settings, gateway.ADMIN)
+                bot_process.clear_pid(self.settings, bot_process.ADMIN)
                 self.admin_lock.release()
         return 0
 
 
 def update_flag_file(settings: Settings) -> Path:
     """data/update.txt: số thay đổi mới chưa cập nhật, để trang Tổng quan hiện nút Cập nhật."""
-    return settings.system_dir / "update.txt"
+    return settings.system_dir / PENDING_UPDATES_FILE
 
 
 def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool = False) -> int:
-    from bot import paths
+    from bot import userdata_paths
 
     # Vừa cập nhật và chuyển dữ liệu sang userdata/: bot cũ đã tắt trong lúc chuyển, bật lại luôn.
-    start_bot = start_bot or (after_update and bool(paths.LAST_MIGRATED))
+    start_bot = start_bot or (after_update and bool(userdata_paths.LAST_MIGRATED))
     try:
         ensure_home()
         settings = Settings.from_env()
@@ -381,14 +388,14 @@ def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool
         return 2
     setup_logging(settings.log_level, settings.log_dir, settings.secrets, filename="gui.log")
 
-    lock = InstanceLock(settings.system_dir / "gui.lock")
+    lock = InstanceLock(settings.system_dir / GUI_LOCK_FILE)
     try:
         # Mở lại sau khi cập nhật: chờ bản cũ thoát hẳn rồi mới nhận khoá.
         lock.acquire(wait=30.0 if after_update else 0.0)
     except AlreadyRunning:
         # Đã có một bản đang chạy: nhờ nó hiện cửa sổ rồi thoát.
         if not tray_only:
-            (settings.system_dir / "gui.show").write_text("1", encoding="utf-8")
+            (settings.system_dir / SHOW_WINDOW_REQUEST).write_text("1", encoding="utf-8")
         return 0
     try:
         log.info("Mở ứng dụng quản lý (thư mục dữ liệu: %s)", APP_HOME)

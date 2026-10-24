@@ -1,5 +1,7 @@
 # Kế hoạch: Server Bot Zalo chạy Agent (AI)
 
+> Đây là tài liệu thiết kế ban đầu, tên file trong đây là tên cũ. Bố cục và tên file hiện tại: xem mục **Thư mục** trong README.
+
 > Mục tiêu: một server nhận tin nhắn từ Zalo (webhook), chuyển cho **agent AI** xử lý (có thể gọi công cụ), rồi gửi câu trả lời lại cho người dùng trên Zalo.
 > Đã đối chiếu với tài liệu chính thức của **Zalo Bot Platform** (bot.zapps.me/docs) ngày 2026-10-21. Phần **Zalo OA** chưa kiểm chứng được từ nguồn chính thức, được đánh dấu rõ bên dưới.
 

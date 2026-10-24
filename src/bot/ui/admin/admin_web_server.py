@@ -24,8 +24,8 @@ from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import gateway
-from bot.ui.admin import envfile
+from bot.system import bot_process
+from bot.ui.admin import settings_file
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from bot.config import ConfigError, Settings
 from bot.storage import (
@@ -39,9 +39,20 @@ from bot.storage import (
     UsageStore,
     atomic_write_text,
 )
-from bot.core.text import split_message
-from bot.core.timeutil import now_ms, now_vn
+from bot.core.reply_formatting import split_message
+from bot.core.vietnam_time import now_ms, now_vn
 from bot.zalo import ZaloClient, ZaloError
+from bot.userdata_paths import (
+    CHAT_ACTIVITY_FILE,
+    DAILY_STATS_FILE,
+    FAILED_REPLIES_FILE,
+    GROUP_SETTINGS_FILE,
+    MEMORYDATA_DIR,
+    PENDING_UPDATES_FILE,
+    SESSION_HISTORY_DIR,
+    TOKEN_USAGE_FILE,
+    UPDATE_REQUEST,
+)
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +82,7 @@ class AdminContext:
         self.base_dir = base_dir
 
     def settings(self) -> Settings:
-        return Settings.from_env({**os.environ, **envfile.read_values(self.env_path)}, base_dir=self.base_dir)
+        return Settings.from_env({**os.environ, **settings_file.read_values(self.env_path)}, base_dir=self.base_dir)
 
 
 def _error(status: int, message: str) -> JSONResponse:
@@ -123,7 +134,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.get("/api/status")
     def status() -> dict[str, Any]:
         settings = ctx.settings()
-        info = gateway.status_info(settings)
+        info = bot_process.status_info(settings)
         alerts = []
         if settings.personal:
             if not settings.zalo_session_file.is_file():
@@ -136,7 +147,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if not info["owner_set"]:
             alerts.append("Chưa đặt OWNER_ZALO_ID: chưa ai dùng được lệnh /allow, /mode trên Zalo.")
         try:
-            info["updates_pending"] = int((settings.system_dir / "update.txt").read_text(encoding="utf-8").strip() or 0)
+            info["updates_pending"] = int((settings.system_dir / PENDING_UPDATES_FILE).read_text(encoding="utf-8").strip() or 0)
         except (OSError, ValueError):
             info["updates_pending"] = 0
         if info["failed_pending"]:
@@ -149,7 +160,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         return {
             **info,
             "alerts": alerts,
-            "days": StatsStore(settings.data_dir / "stats.txt").days(14),
+            "days": StatsStore(settings.data_dir / DAILY_STATS_FILE).days(14),
             "show_history": settings.admin_show_history,
             "now": now_ms(),
         }
@@ -157,11 +168,11 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.post("/api/bot/{action}")
     def control(action: str) -> dict[str, Any]:
         settings = ctx.settings()
-        actions = {"start": gateway.start, "stop": gateway.stop, "restart": gateway.restart}
+        actions = {"start": bot_process.start, "stop": bot_process.stop, "restart": bot_process.restart}
         if action not in actions:
             raise HTTPException(404, "Không có thao tác này")
         try:
-            result = actions[action](settings, gateway.BOT)
+            result = actions[action](settings, bot_process.BOT)
         except ConfigError as exc:
             return {"ok": False, "message": f"Lỗi cấu hình: {exc}"}
         return {"ok": result.ok, "message": result.message}
@@ -169,14 +180,14 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     # ---------- nhóm ----------
 
     def _groups(settings: Settings) -> GroupStore:
-        return GroupStore(settings.data_dir / "groups.txt")
+        return GroupStore(settings.data_dir / GROUP_SETTINGS_FILE)
 
     @app.get("/api/groups")
     def list_groups() -> dict[str, Any]:
         settings = ctx.settings()
         store = _groups(settings)
         groups = {g.chat_id: g for g in store.all()}
-        activity = ActivityStore(settings.data_dir / "activity.txt").all()
+        activity = ActivityStore(settings.data_dir / CHAT_ACTIVITY_FILE).all()
         rows = []
         for chat_id in set(groups) | set(activity):
             g = groups.get(chat_id)
@@ -215,7 +226,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.delete("/api/groups/{chat_id}/history")
     def clear_history(chat_id: str) -> dict[str, Any]:
-        HistoryStore(ctx.settings().data_dir / "history").clear(chat_id)
+        HistoryStore(ctx.settings().data_dir / SESSION_HISTORY_DIR).clear(chat_id)
         return {"ok": True}
 
     @app.get("/api/history/{chat_id}")
@@ -223,7 +234,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = HistoryStore(settings.data_dir / "history").recent(chat_id, max(1, min(n, 500)))
+        records = HistoryStore(settings.data_dir / SESSION_HISTORY_DIR).recent(chat_id, max(1, min(n, 500)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t")}
             for r in records
@@ -235,7 +246,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = MemoryDataStore(settings.data_dir / "memorydata").recent(chat_id, max(1, min(n, 2000)))
+        records = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR).recent(chat_id, max(1, min(n, 2000)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t"),
              "type": r.get("type", "text"), "filter": r.get("filter")}
@@ -275,7 +286,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.get("/api/settings")
     def read_settings() -> dict[str, Any]:
-        values = envfile.read_values(ctx.env_path)
+        values = settings_file.read_values(ctx.env_path)
         settings = ctx.settings()
         defaults = {
             "GEMINI_MODEL": settings.gemini_model, "BOT_TRIGGERS": ",".join(settings.bot_triggers),
@@ -293,9 +304,9 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "fields": [
                 {"key": f.key, "label": f.label, "help": f.help, "kind": f.kind, "choices": list(f.choices),
                  "group": f.group, "value": values.get(f.key) or defaults.get(f.key, "")}
-                for f in envfile.FIELDS
+                for f in settings_file.FIELDS
             ],
-            "secrets": [{"key": k, "label": label, "set": bool(values.get(k))} for k, label in envfile.SECRETS.items()],
+            "secrets": [{"key": k, "label": label, "set": bool(values.get(k))} for k, label in settings_file.SECRETS.items()],
         }
 
     @app.put("/api/settings")
@@ -303,47 +314,47 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         changes = body.get("values")
         if not isinstance(changes, dict) or not changes:
             raise HTTPException(400, "Không có gì để lưu")
-        unknown = set(changes) - envfile.FIELD_KEYS
+        unknown = set(changes) - settings_file.FIELD_KEYS
         if unknown:
             raise HTTPException(400, f"Không được sửa: {', '.join(sorted(unknown))}")
-        cleaned = envfile.validate(ctx.env_path, {k: str(v) for k, v in changes.items()}, ctx.base_dir)
-        envfile.update(ctx.env_path, cleaned)
+        cleaned = settings_file.validate(ctx.env_path, {k: str(v) for k, v in changes.items()}, ctx.base_dir)
+        settings_file.update(ctx.env_path, cleaned)
         return {"ok": True, "message": "Đã lưu. Khởi động lại bot để áp dụng."}
 
     @app.put("/api/secrets/{key}")
     def write_secret(key: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
-        if key not in envfile.SECRETS:
+        if key not in settings_file.SECRETS:
             raise HTTPException(404, "Không có khóa này")
         value = body.get("value")
         if not isinstance(value, str) or not value.strip():
             raise HTTPException(400, "Giá trị trống")
-        cleaned = envfile.validate(ctx.env_path, {key: value}, ctx.base_dir)
-        envfile.update(ctx.env_path, cleaned)
+        cleaned = settings_file.validate(ctx.env_path, {key: value}, ctx.base_dir)
+        settings_file.update(ctx.env_path, cleaned)
         return {"ok": True, "set": True, "message": f"Đã đặt {key}. Khởi động lại bot để áp dụng."}
 
     # ---------- cập nhật (chạy từ mã nguồn) ----------
 
     @app.post("/api/update")
     def update_app() -> dict[str, Any]:
-        from bot.system import updater
+        from bot.system import auto_update
 
-        reason = updater.unavailable_reason()
+        reason = auto_update.unavailable_reason()
         if reason:
             return {"ok": False, "message": reason}
         settings = ctx.settings()
-        if gateway.gui_running(settings):
+        if bot_process.gui_running(settings):
             # Ứng dụng quản lý tự cập nhật, khởi động lại bot và mở lại chính nó (có thể đang chứa trang này).
-            atomic_write_text(settings.system_dir / "gui.update", "1")
+            atomic_write_text(settings.system_dir / UPDATE_REQUEST, "1")
             return {"ok": True, "message": "Đang cập nhật. Ứng dụng sẽ tự đóng và mở lại sau ít giây."}
         try:
-            result = updater.update()
-        except updater.UpdateError as exc:
+            result = auto_update.update()
+        except auto_update.UpdateError as exc:
             return {"ok": False, "message": f"Cập nhật lỗi: {exc}"}
-        (settings.system_dir / "update.txt").unlink(missing_ok=True)
+        (settings.system_dir / PENDING_UPDATES_FILE).unlink(missing_ok=True)
         message = result.message
         if result.changed:
-            if gateway.is_running(settings, gateway.BOT):
-                message += "\n" + gateway.restart(settings, gateway.BOT).message
+            if bot_process.is_running(settings, bot_process.BOT):
+                message += "\n" + bot_process.restart(settings, bot_process.BOT).message
             message += "\nKhởi động lại giao diện (python -m bot admin restart) để dùng giao diện mới."
         return {"ok": True, "message": message}
 
@@ -374,37 +385,37 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.post("/api/zalo-login/start")
     def zalo_login_start() -> dict[str, Any]:
         try:
-            from bot.zalo import qrlogin
+            from bot.zalo import qr_login
         except ImportError:
             raise HTTPException(400, "Thiếu thư viện. Cài bằng: pip install -e \".[personal]\"") from None
         current = qr["login"]
-        if current is not None and current.status.state not in qrlogin.FINISHED:
+        if current is not None and current.status.state not in qr_login.FINISHED:
             return qr_payload()
         settings = ctx.settings()
-        login = qr["login"] = qrlogin.QrLogin()
+        login = qr["login"] = qr_login.QrLogin()
 
         def work() -> None:
             try:
                 session = login.run()
-            except qrlogin.QrLoginError:
+            except qr_login.QrLoginError:
                 return  # trạng thái lỗi/hết hạn/huỷ đã được ghi vào login.status
             except Exception as exc:  # noqa: BLE001
                 log.exception("Đăng nhập QR lỗi")
-                login.report(qrlogin.ERROR, f"Lỗi không mong đợi: {exc}")
+                login.report(qr_login.ERROR, f"Lỗi không mong đợi: {exc}")
                 return
             try:
-                qrlogin.apply_session(session, settings.zalo_session_file, ctx.env_path)
+                qr_login.apply_session(session, settings.zalo_session_file, ctx.env_path)
                 message = login.status.message + " Đã bật chế độ acc cá nhân (RECEIVE_MODE=personal)."
                 fresh = ctx.settings()
-                if gateway.is_running(fresh):
-                    message += " " + gateway.restart(fresh).message
+                if bot_process.is_running(fresh):
+                    message += " " + bot_process.restart(fresh).message
                 else:
                     message += " Bấm Bật bot ở trang Tổng quan."
-                login.report(qrlogin.SUCCESS, message, display_name=session.display_name)
+                login.report(qr_login.SUCCESS, message, display_name=session.display_name)
                 log.info("Đã đăng nhập acc Zalo cá nhân %s bằng QR", session.display_name)
             except Exception as exc:  # noqa: BLE001
                 log.exception("Lưu phiên Zalo lỗi")
-                login.report(qrlogin.ERROR, f"Đăng nhập được nhưng lưu phiên lỗi: {exc}")
+                login.report(qr_login.ERROR, f"Đăng nhập được nhưng lưu phiên lỗi: {exc}")
 
         threading.Thread(target=work, name="zalo-qr-login", daemon=True).start()
         return qr_payload()
@@ -418,7 +429,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     # ---------- log ----------
 
     def _log_path(settings: Settings, source: str) -> Path:
-        service = {"bot": gateway.BOT, "admin": gateway.ADMIN}.get(source)
+        service = {"bot": bot_process.BOT, "admin": bot_process.ADMIN}.get(source)
         if service is None:
             raise HTTPException(404, "Nguồn log phải là bot hoặc admin")
         return settings.log_dir / service.log_file
@@ -472,7 +483,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     # ---------- tin lỗi ----------
 
     def _failed(settings: Settings) -> FailedStore:
-        return FailedStore(settings.data_dir / "failed.txt")
+        return FailedStore(settings.data_dir / FAILED_REPLIES_FILE)
 
     @app.get("/api/failed")
     def failed() -> dict[str, Any]:
@@ -534,8 +545,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             log.exception("Chat thử lỗi")
             return {"ok": False, "reply": "", "tokens": 0, "message": f"Gemini lỗi: {type(exc).__name__}: {exc}"}
         # Token là chi phí thật nên vẫn tính vào hạn mức ngày, nhưng không ghi vào lịch sử nhóm nào.
-        UsageStore(settings.data_dir / "usage.txt").add(reply.tokens)
-        StatsStore(settings.data_dir / "stats.txt").incr("tokens", reply.tokens)
+        UsageStore(settings.data_dir / TOKEN_USAGE_FILE).add(reply.tokens)
+        StatsStore(settings.data_dir / DAILY_STATS_FILE).incr("tokens", reply.tokens)
         return {"ok": True, "reply": reply.text, "tokens": reply.tokens, "echo": not settings.gemini_api_key}
 
     @app.get("/api/tools")

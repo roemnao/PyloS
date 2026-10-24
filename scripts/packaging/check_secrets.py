@@ -1,7 +1,7 @@
 """Kiểm tra bản build không chứa bí mật: chạy sau PyInstaller, trước khi dùng/chia sẻ exe.
 
 - Không có file .env / userdata/ / data/ / workspace/ / logs/ nào bị đóng gói.
-- Không có giá trị bí mật nào (đọc từ .env) xuất hiện trong exe (kể cả phần đã nén) hay thư mục build.
+- Không có giá trị bí mật nào (đọc từ userdata/config/settings.env) xuất hiện trong exe (kể cả phần đã nén) hay thư mục build.
 
 Mã thoát 0 = sạch, 1 = có vấn đề.
 """
@@ -33,7 +33,7 @@ def check_exe(exe: Path, secrets: list[bytes]) -> list[str]:
     reader = CArchiveReader(str(exe))
     for name in reader.toc:
         lowered = name.replace("\\", "/").lower()
-        if lowered == ".env" or lowered.endswith("/.env") or any(lowered.startswith(p.replace("\\", "/")) for p in FORBIDDEN_NAMES[1:]):
+        if lowered in (".env", "settings.env") or lowered.endswith(("/.env", "/settings.env")) or any(lowered.startswith(p.replace("\\", "/")) for p in FORBIDDEN_NAMES[1:]):
             problems.append(f"exe chứa file không được đóng gói: {name}")
         try:
             data = reader.extract(name)
@@ -61,7 +61,7 @@ def main() -> int:
     root = Path(__file__).resolve().parents[2]  # scripts/packaging/ -> thư mục dự án
     exe = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "dist" / "ZaloBot.exe"
     build_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else root / "build"
-    env = root / "userdata" / "config" / ".env"
+    env = root / "userdata" / "config" / "settings.env"
     secrets = secrets_from_env(env if env.is_file() else root / ".env")
     problems = check_exe(exe, secrets)
     if build_dir.is_dir():

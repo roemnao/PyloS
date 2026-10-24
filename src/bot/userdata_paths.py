@@ -1,8 +1,10 @@
 """Thư mục của ứng dụng. Mọi thứ của riêng người dùng nằm trong APP_HOME/userdata/:
 
-    userdata/config/   (1) khoá & thông số người dùng nhập: .env, zalo_session.json
-    userdata/data/     (2) dữ liệu bot: memorydata/, history/, workspace/, tools/, groups.txt...
-    userdata/system/   (3) bot tự quản lý: logs/, *.lock, *.pid, state.txt, seen.txt, webview/...
+    userdata/config/   (1) khoá & thông số người dùng nhập: settings.env, zalo_login_session.json
+    userdata/data/     (2) dữ liệu bot: memorydata/, session_history/, workspace/, custom_tools/, *.txt
+    userdata/system/   (3) bot tự quản lý: logs/, *.lock, *.pid, bot_status.txt, processed_message_ids.txt...
+
+Tên từng file và ý nghĩa: xem các hằng số bên dưới (GROUP_SETTINGS_FILE, ...).
 
 Chuyển máy chỉ cần chép userdata/. Bản cũ để .env, data/, logs/, workspace/, tools/ ngay ở APP_HOME:
 migrate_legacy() chuyển sang bố cục này ở lần chạy đầu.
@@ -21,16 +23,36 @@ log = logging.getLogger(__name__)
 
 APP_NAME = "ZaloAssistantBot"
 
-# Đường dẫn tương đối tính từ APP_HOME (biến DATA_DIR, LOG_DIR... trong .env vẫn ghi đè được).
+# Đường dẫn tương đối tính từ APP_HOME (biến DATA_DIR, LOG_DIR... trong settings.env vẫn ghi đè được).
 USERDATA = "userdata"
 CONFIG_REL = "userdata/config"
-ENV_REL = "userdata/config/.env"
-SESSION_REL = "userdata/config/zalo_session.json"
+ENV_REL = "userdata/config/settings.env"            # khoá API và mọi cài đặt (trang Cài đặt ghi vào đây)
+SESSION_REL = "userdata/config/zalo_login_session.json"  # phiên đăng nhập acc Zalo cá nhân (quét QR)
 DATA_REL = "userdata/data"
-WORKSPACE_REL = "userdata/data/workspace"
-TOOLS_REL = "userdata/data/tools"
+WORKSPACE_REL = "userdata/data/workspace"           # SYSTEM.md (tính cách), MEMORY.md (ghi nhớ)
+TOOLS_REL = "userdata/data/custom_tools"            # tool người dùng tự viết (.py)
 SYSTEM_REL = "userdata/system"
 LOGS_REL = "userdata/system/logs"
+
+# ---------- tên file/thư mục bên trong userdata/data (Settings.data_dir) ----------
+GROUP_SETTINGS_FILE = "group_settings.txt"    # nhóm nào được phép, chế độ all/default, nhãn tự đặt
+CHAT_ACTIVITY_FILE = "chat_activity.txt"      # lần nhắn cuối của từng cuộc trò chuyện (để nhận ra nhóm)
+DAILY_STATS_FILE = "daily_stats.txt"          # số tin nhận/trả lời/lỗi/token theo ngày (trang Tổng quan)
+TOKEN_USAGE_FILE = "token_usage.txt"          # token Gemini đã dùng mỗi ngày (hạn mức ngày)
+FAILED_REPLIES_FILE = "failed_replies.txt"    # câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
+MEMORYDATA_DIR = "memorydata"                 # mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc
+SESSION_HISTORY_DIR = "session_history"       # session: tin qua bộ lọc + câu trả lời (gửi cho Gemini)
+CONSOLE_TEST_DIR = "console_test"             # dữ liệu riêng của chế độ chat thử `python -m bot console`
+
+# ---------- tên file/thư mục bên trong userdata/system (Settings.system_dir) ----------
+BOT_STATUS_FILE = "bot_status.txt"                 # lúc khởi động, lần nhận tin cuối (để biết bot còn sống)
+PROCESSED_IDS_FILE = "processed_message_ids.txt"   # id tin đã xử lý, chống trả lời trùng
+PENDING_UPDATES_FILE = "pending_updates.txt"       # số thay đổi mới trên GitHub chưa cập nhật
+APP_WINDOW_PROFILE_DIR = "app_window_profile"      # hồ sơ của cửa sổ ứng dụng (giữ đăng nhập giao diện)
+ZALO_LOGIN_QR_FILE = "zalo_login_qr.png"           # ảnh mã QR tạm khi đăng nhập Zalo bằng dòng lệnh
+GUI_LOCK_FILE = "gui.lock"                         # chỉ một ứng dụng quản lý chạy cùng lúc
+SHOW_WINDOW_REQUEST = "show_window.request"        # nhờ ứng dụng đang chạy hiện cửa sổ
+UPDATE_REQUEST = "update.request"                  # nhờ ứng dụng đang chạy tự cập nhật (nút trên Tổng quan)
 
 
 def is_frozen() -> bool:
@@ -54,7 +76,7 @@ def app_home() -> Path:
 
     - Biến môi trường ZALOBOT_HOME nếu có.
     - Chạy từ exe: thư mục chứa exe; nếu không ghi được (ví dụ C:\\Program Files) thì %LOCALAPPDATA%\\ZaloAssistantBot.
-    - Chạy từ mã nguồn: thư mục dự án (src/bot/paths.py -> lên 2 cấp).
+    - Chạy từ mã nguồn: thư mục dự án (src/bot/userdata_paths.py -> lên 2 cấp).
     """
     override = os.environ.get("ZALOBOT_HOME", "").strip()
     if override:
@@ -71,27 +93,33 @@ APP_HOME = app_home()
 ENV_FILE = APP_HOME / ENV_REL
 
 
+def done_file(name: str) -> str:
+    """failed_replies.txt -> failed_replies_done.txt (các tin lỗi đã gửi lại/bỏ qua)."""
+    stem, dot, ext = name.rpartition(".")
+    return f"{stem}_done.{ext}" if dot else f"{name}_done"
+
+
 # ---------- chuyển từ bố cục cũ ----------
 
 # (đường dẫn cũ so với APP_HOME, đường dẫn mới, chép thay vì chuyển)
 _LEGACY_MOVES: tuple[tuple[str, str, bool], ...] = (
     (".env", ENV_REL, False),
-    (".env.bak", CONFIG_REL + "/.env.bak", False),
+    (".env.bak", ENV_REL + ".bak", False),
     ("data/zalo_session.json", SESSION_REL, False),
     ("data/zalo_cookies.json", SESSION_REL, False),
-    ("data/memorydata", DATA_REL + "/memorydata", False),
-    ("data/history", DATA_REL + "/history", False),
-    ("data/console", DATA_REL + "/console", False),
-    ("data/groups.txt", DATA_REL + "/groups.txt", False),
-    ("data/stats.txt", DATA_REL + "/stats.txt", False),
-    ("data/usage.txt", DATA_REL + "/usage.txt", False),
-    ("data/failed.txt", DATA_REL + "/failed.txt", False),
-    ("data/failed_done.txt", DATA_REL + "/failed_done.txt", False),
-    ("data/activity.txt", DATA_REL + "/activity.txt", False),
-    ("data/state.txt", SYSTEM_REL + "/state.txt", False),
-    ("data/seen.txt", SYSTEM_REL + "/seen.txt", False),
-    ("data/webview", SYSTEM_REL + "/webview", False),
-    ("data/update.txt", SYSTEM_REL + "/update.txt", False),
+    ("data/memorydata", f"{DATA_REL}/{MEMORYDATA_DIR}", False),
+    ("data/history", f"{DATA_REL}/{SESSION_HISTORY_DIR}", False),
+    ("data/console", f"{DATA_REL}/{CONSOLE_TEST_DIR}", False),
+    ("data/groups.txt", f"{DATA_REL}/{GROUP_SETTINGS_FILE}", False),
+    ("data/stats.txt", f"{DATA_REL}/{DAILY_STATS_FILE}", False),
+    ("data/usage.txt", f"{DATA_REL}/{TOKEN_USAGE_FILE}", False),
+    ("data/failed.txt", f"{DATA_REL}/{FAILED_REPLIES_FILE}", False),
+    ("data/failed_done.txt", f"{DATA_REL}/{done_file(FAILED_REPLIES_FILE)}", False),
+    ("data/activity.txt", f"{DATA_REL}/{CHAT_ACTIVITY_FILE}", False),
+    ("data/state.txt", f"{SYSTEM_REL}/{BOT_STATUS_FILE}", False),
+    ("data/seen.txt", f"{SYSTEM_REL}/{PROCESSED_IDS_FILE}", False),
+    ("data/webview", f"{SYSTEM_REL}/{APP_WINDOW_PROFILE_DIR}", False),
+    ("data/update.txt", f"{SYSTEM_REL}/{PENDING_UPDATES_FILE}", False),
     ("logs", LOGS_REL, False),
     ("workspace/MEMORY.md", WORKSPACE_REL + "/MEMORY.md", False),
     ("workspace/notes", WORKSPACE_REL + "/notes", False),
@@ -112,7 +140,7 @@ def needs_migration(home: Path = APP_HOME) -> bool:
 
 
 def _old_version_running(home: Path) -> bool:
-    from bot.storage.lock import AlreadyRunning, InstanceLock
+    from bot.storage.process_lock import AlreadyRunning, InstanceLock
 
     for rel in _LEGACY_LOCKS:
         if not (home / rel).exists():
@@ -155,7 +183,7 @@ def _restore_git_defaults(home: Path) -> None:
     "Cập nhật" sau gỡ được workspace/, tools/ mà git không từ chối vì có thay đổi ở máy."""
     if not (home / ".git").exists():
         return
-    from bot.system.gateway import run_hidden
+    from bot.system.bot_process import run_hidden
 
     tracked = [rel for rel in _GIT_TRACKED_DEFAULTS if (home / rel).exists()]
     if not tracked:
@@ -179,7 +207,7 @@ def migrate_legacy(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
     """
     if not needs_migration(home):
         return []
-    from bot.storage.lock import AlreadyRunning, InstanceLock
+    from bot.storage.process_lock import AlreadyRunning, InstanceLock
 
     guard = InstanceLock(home / ".migrate.lock")
     try:

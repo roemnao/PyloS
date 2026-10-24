@@ -13,8 +13,8 @@ $script = Join-Path $PSScriptRoot "run-forever.ps1"
 if (-not (Test-Path (Join-Path $root ".venv\Scripts\python.exe"))) {
     throw "Missing .venv. See README.md, section 'Cai dat'."
 }
-if (-not (Test-Path (Join-Path $root "userdata\config\.env"))) {
-    throw "Missing userdata\config\.env. Open the app once (ZaloBot.cmd) to create it, then fill in your keys on the Settings page."
+if (-not (Test-Path (Join-Path $root "userdata\config\settings.env"))) {
+    throw "Missing userdata\config\settings.env. Open the app once (ZaloBot.cmd) to create it, then fill in your keys on the Settings page."
 }
 
 function Register-BotTask([string]$TaskName, [string]$Command, [string]$Description) {

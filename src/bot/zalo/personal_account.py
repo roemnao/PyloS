@@ -1,7 +1,7 @@
 """Chạy bot trên một tài khoản Zalo cá nhân (acc phụ) qua thư viện không chính thức zlapi.
 
 Khác Zalo Bot Platform: không có token. Bot đăng nhập bằng phiên (IMEI + cookies) có được
-khi quét mã QR (bot/zalo/qrlogin.py), nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
+khi quét mã QR (bot/zalo/qr_login.py), nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
 Cách này không được Zalo hỗ trợ chính thức: acc có thể bị khoá, thư viện có thể hỏng
 khi Zalo đổi giao thức. Chỉ dùng acc phụ.
 
@@ -21,11 +21,12 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from bot.config import ConfigError, Settings
-from bot.core.mentions import build_mentions
+from bot.core.mention_tags import build_mentions
 from bot.storage import ActivityStore, MemoryDataStore, StateStore
-from bot.core.timeutil import now_ms
-from bot.zalo.client import ZaloError
-from bot.zalo.models import TEXT_EVENT, IncomingMessage
+from bot.core.vietnam_time import now_ms
+from bot.zalo.bot_platform_api import ZaloError
+from bot.zalo.incoming_message import TEXT_EVENT, IncomingMessage
+from bot.userdata_paths import CHAT_ACTIVITY_FILE, MEMORYDATA_DIR
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ def load_session(path: Path, imei: str = "") -> tuple[dict[str, str], str, str]:
     if not isinstance(raw, dict) or not raw:
         raise ConfigError(f"File phiên Zalo {path} rỗng hoặc sai định dạng")
     if not imei:
-        raise ConfigError("Thiếu IMEI: đăng nhập lại bằng mã QR, hoặc điền ZALO_IMEI trong userdata/config/.env.")
+        raise ConfigError("Thiếu IMEI: đăng nhập lại bằng mã QR, hoặc điền ZALO_IMEI trong userdata/config/settings.env.")
     return {str(k): str(v) for k, v in raw.items()}, imei, user_agent
 
 
@@ -148,11 +149,11 @@ class PersonalZalo:
         self._message_cls: Any = None
         self._thread_type_cls: Any = None
         # Zalo cá nhân gửi tin nhóm và tin riêng bằng hai API khác nhau, nên phải biết chat_id là loại nào.
-        self._activity = ActivityStore(settings.data_dir / "activity.txt")
+        self._activity = ActivityStore(settings.data_dir / CHAT_ACTIVITY_FILE)
         self._connected = False
         self._handler: Callable[[IncomingMessage], Awaitable[None]] | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        self._memory = MemoryDataStore(settings.data_dir / "memorydata")
+        self._memory = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR)
         self._group_members: dict[str, tuple[float, dict[str, str]]] = {}  # chat_id -> (lúc lấy, {uid: tên})
         self._learned: dict[str, dict[str, str]] = {}  # chat_id -> {uid: tên} đọc từ các @tag người khác gửi
         self.self_id = ""

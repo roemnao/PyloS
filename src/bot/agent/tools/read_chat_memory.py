@@ -11,9 +11,10 @@ from datetime import datetime
 from typing import Any
 
 from bot.agent.tools import Tool, ToolContext
-from bot.core.filter import fold
+from bot.core.message_filter import fold
 from bot.storage import MemoryDataStore
-from bot.core.timeutil import VN_TZ
+from bot.core.vietnam_time import VN_TZ
+from bot.userdata_paths import MEMORYDATA_DIR
 
 MAX_LINES = 200
 SCAN_LINES = 5000  # tìm từ khoá trong tối đa từng này dòng gần nhất
@@ -27,7 +28,7 @@ def _read(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
     except (TypeError, ValueError):
         limit = 50
     keyword = fold(str(args.get("tu_khoa") or "").strip())
-    store = MemoryDataStore(ctx.data_dir / "memorydata")
+    store = MemoryDataStore(ctx.data_dir / MEMORYDATA_DIR)
     records = store.recent(ctx.chat_id, SCAN_LINES if keyword else limit)
     if keyword:
         records = [r for r in records if keyword in fold(f"{r.get('name', '')} {r.get('text', '')}")]

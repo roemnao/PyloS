@@ -1,4 +1,4 @@
-from bot.storage.stores import (
+from bot.storage.data_stores import (
     MODE_ALL,
     MODE_DEFAULT,
     MODES,
@@ -14,7 +14,7 @@ from bot.storage.stores import (
     UsageStore,
     safe_name,
 )
-from bot.storage.txtfile import JsonLinesFile, JsonObjectFile, atomic_write_text
+from bot.storage.text_files import JsonLinesFile, JsonObjectFile, atomic_write_text
 
 __all__ = [
     "ActivityStore",

@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 import pystray
 
 from bot.config import APP_NAME
-from bot.ui.desktop import autostart
-from bot.ui.desktop.icons import make_icon
+from bot.ui.desktop import windows_autostart
+from bot.ui.desktop.icon_images import make_icon
 
 if TYPE_CHECKING:
-    from bot.ui.desktop.app import Desktop
+    from bot.ui.desktop.desktop_app import Desktop
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class Tray:
                 pystray.Menu.SEPARATOR,
                 item(lambda _: f"Cập nhật ({desktop.updates_pending} thay đổi mới)" if desktop.updates_pending else "Cập nhật",
                      desktop.update_app, enabled=lambda _: desktop.can_update and not desktop.busy),
-                item("Khởi động cùng Windows", self.toggle_autostart, checked=lambda _: autostart.is_enabled()),
+                item("Khởi động cùng Windows", self.toggle_autostart, checked=lambda _: windows_autostart.is_enabled()),
                 item("Mở thư mục dữ liệu", desktop.open_folder),
                 pystray.Menu.SEPARATOR,
                 item("Thoát (bot vẫn chạy)", desktop.quit),
@@ -74,9 +74,9 @@ class Tray:
         self.icon.update_menu()
 
     def toggle_autostart(self, *_: object) -> None:
-        enable = not autostart.is_enabled()
+        enable = not windows_autostart.is_enabled()
         try:
-            autostart.set_enabled(enable)
+            windows_autostart.set_enabled(enable)
         except OSError as exc:
             self.notify(f"Không đổi được: {exc}")
             return

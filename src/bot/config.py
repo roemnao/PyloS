@@ -8,7 +8,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from bot.paths import (  # noqa: F401 - các tên này được import từ bot.config ở nhiều nơi
+from bot.userdata_paths import (  # noqa: F401 - các tên này được import từ bot.config ở nhiều nơi
     APP_HOME,
     APP_NAME,
     DATA_REL,
@@ -89,24 +89,24 @@ class Settings:
     admin_port: int = 8081
     admin_show_history: bool = True
     allow_all_chats: bool = False
-    # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal.py)
+    # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal_account.py)
     zalo_imei: str = ""
     # Tên gọi bot: tin trong nhóm nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, không cần /bot
     bot_names: tuple[str, ...] = ("bot",)
-    # Bộ lọc tin nhóm (bot/filter.py) và memorydata (mọi tin của từng hội thoại)
+    # Bộ lọc tin nhóm (bot/core/message_filter.py) và memorydata (mọi tin của từng hội thoại)
     filter_ai: bool = True
     filter_model: str = ""
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
     schedule_api_key: str = ""
     zalo_session_file: Path = Path(SESSION_REL)
-    # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/paths.py)
+    # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
         if env is None:
-            # Chỉ đọc userdata/config/.env: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
+            # Chỉ đọc userdata/config/settings.env: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
             # tìm .env theo thư mục làm việc có thể đọc nhầm file của chương trình khác.
             candidate = APP_HOME / ENV_REL
             if candidate.is_file():
@@ -173,7 +173,7 @@ class Settings:
         """Dừng với thông báo rõ ràng nếu thiếu bí mật cần cho lệnh đang chạy."""
         missing = []
         if zalo and self.personal:
-            from bot.zalo.personal import load_session
+            from bot.zalo.personal_account import load_session
 
             load_session(self.zalo_session_file, self.zalo_imei)  # ném ConfigError nếu chưa đăng nhập bằng QR
         elif zalo and not self.zalo_bot_token:
@@ -183,7 +183,7 @@ class Settings:
         if missing:
             raise ConfigError(
                 "Thiếu biến môi trường: " + ", ".join(missing)
-                + ". Hãy điền vào userdata/config/.env (hoặc trang Cài đặt của ứng dụng quản lý)."
+                + ". Hãy điền vào userdata/config/settings.env (hoặc trang Cài đặt của ứng dụng quản lý)."
             )
         if zalo and self.receive_mode == "webhook" and not (8 <= len(self.webhook_secret) <= 256):
             raise ConfigError("RECEIVE_MODE=webhook cần WEBHOOK_SECRET dài 8–256 ký tự.")

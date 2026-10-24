@@ -27,13 +27,18 @@ from pathlib import Path
 from typing import Any
 
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, discover
-from bot.core.app import Bot
+from bot.core.message_handler import Bot
 from bot.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
-from bot.system.logging_setup import setup_logging
+from bot.system.log_files import setup_logging
 from bot.storage import StateStore
-from bot.storage.lock import AlreadyRunning, InstanceLock
-from bot.core.timeutil import now_ms
+from bot.storage.process_lock import AlreadyRunning, InstanceLock
+from bot.core.vietnam_time import now_ms
 from bot.zalo import ZaloClient, ZaloError
+from bot.userdata_paths import (
+    BOT_STATUS_FILE,
+    CONSOLE_TEST_DIR,
+    ZALO_LOGIN_QR_FILE,
+)
 
 log = logging.getLogger("bot")
 
@@ -59,7 +64,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
 
 async def _run(settings: Settings) -> int:
     if settings.personal:
-        from bot.zalo.personal import PersonalZalo
+        from bot.zalo.personal_account import PersonalZalo
 
         zalo = PersonalZalo(settings)
     else:
@@ -101,9 +106,9 @@ async def _run(settings: Settings) -> int:
     # Token đã qua kiểm tra (hoặc chỉ lỗi mạng tạm thời): báo cho `gateway start` biết bot đã sẵn sàng.
     bot.state.update(ready_at=now_ms())
 
-    from bot.system import gateway
+    from bot.system import bot_process
 
-    flag = gateway.stop_flag(settings)
+    flag = bot_process.stop_flag(settings)
     flag.unlink(missing_ok=True)  # cờ cũ còn sót lại không được làm bot tắt ngay khi vừa bật
     stopping = False
 
@@ -111,7 +116,7 @@ async def _run(settings: Settings) -> int:
         if settings.receive_mode == "webhook":
             import uvicorn
 
-            from bot.zalo.webhook import WEBHOOK_PATH, create_app
+            from bot.zalo.receive_webhook import WEBHOOK_PATH, create_app
 
             app = create_app(settings.webhook_secret, bot.handle_payload, bot.state)
             log.info("Webhook lắng nghe tại http://%s:%d%s", settings.webhook_host, settings.webhook_port, WEBHOOK_PATH)
@@ -126,7 +131,7 @@ async def _run(settings: Settings) -> int:
             def request_stop() -> None:
                 stop.set()
         else:
-            from bot.zalo.polling import run_polling
+            from bot.zalo.receive_polling import run_polling
 
             main_task = asyncio.create_task(run_polling(zalo, bot.handle_payload, bot.state, stop))
 
@@ -214,7 +219,7 @@ async def _zalo_call(settings: Settings, method: str, **params: Any) -> Any:
 
 
 def _health(settings: Settings, max_age_seconds: int) -> int:
-    state = StateStore(settings.system_dir / "state.txt").data
+    state = StateStore(settings.system_dir / BOT_STATUS_FILE).data
     last = int(state.get("last_poll_at") or 0)
     if settings.receive_mode == "webhook":
         print("Chế độ webhook: dùng GET /health trên server để kiểm tra.")
@@ -230,10 +235,10 @@ def _health(settings: Settings, max_age_seconds: int) -> int:
 def _zalo_login(settings: Settings, open_image: bool) -> int:
     import webbrowser
 
-    from bot.system import gateway
-    from bot.zalo.qrlogin import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
+    from bot.system import bot_process
+    from bot.zalo.qr_login import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
 
-    qr_path = settings.system_dir / "zalo_qr.png"
+    qr_path = settings.system_dir / ZALO_LOGIN_QR_FILE
 
     def on_update(status) -> None:
         if status.state == WAITING_SCAN:
@@ -265,36 +270,36 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
         qr_path.unlink(missing_ok=True)
 
     apply_session(session, settings.zalo_session_file, ENV_FILE)
-    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong userdata/config/.env.")
+    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong userdata/config/settings.env.")
     if session.user_id:
         print(f"ID của acc phụ: {session.user_id}")
-    if gateway.is_running(settings):
-        from bot.ui.admin import envfile
+    if bot_process.is_running(settings):
+        from bot.ui.admin import settings_file
 
         # Đọc lại .env: RECEIVE_MODE vừa đổi, còn os.environ vẫn giữ giá trị cũ.
-        fresh = Settings.from_env({**os.environ, **envfile.read_values(ENV_FILE)})
-        print(gateway.restart(fresh).message)
+        fresh = Settings.from_env({**os.environ, **settings_file.read_values(ENV_FILE)})
+        print(bot_process.restart(fresh).message)
     else:
         print("Chạy bot: python -m bot run (hoặc gateway start).")
     if not settings.owner_zalo_id:
-        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong userdata/config/.env.")
+        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong userdata/config/settings.env.")
     return 0
 
 
 def _update(settings: Settings) -> int:
-    from bot.system import gateway, updater
+    from bot.system import bot_process, auto_update
 
     try:
-        result = updater.update()
-    except updater.UpdateError as exc:
+        result = auto_update.update()
+    except auto_update.UpdateError as exc:
         print(f"Cập nhật lỗi: {exc}", file=sys.stderr)
         return 1
     print(result.message)
     if result.changed:
-        for service in (gateway.BOT, gateway.ADMIN):
-            if gateway.is_running(settings, service):
-                print(gateway.restart(settings, service).message)
-        if gateway.gui_running(settings):
+        for service in (bot_process.BOT, bot_process.ADMIN):
+            if bot_process.is_running(settings, service):
+                print(bot_process.restart(settings, service).message)
+        if bot_process.gui_running(settings):
             print("Nếu ứng dụng quản lý (cửa sổ/khay) đang mở, thoát và mở lại để dùng giao diện mới.")
     return 0
 
@@ -302,8 +307,8 @@ def _update(settings: Settings) -> int:
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     import webbrowser
 
-    from bot.system import gateway
-    from bot.system.bootstrap import ensure_admin_token
+    from bot.system import bot_process
+    from bot.system.first_run_setup import ensure_admin_token
 
     env_path = ENV_FILE
     if action in ("run", "start", "restart"):
@@ -314,19 +319,19 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     login_url = f"{url}#token={settings.admin_token}"
 
     if action == "status":
-        running = gateway.is_running(settings, gateway.ADMIN)
+        running = bot_process.is_running(settings, bot_process.ADMIN)
         print(f"Giao diện quản lý: {'ĐANG CHẠY tại ' + url if running else 'DỪNG'}")
         return 0 if running else 1
     if action in ("start", "stop", "restart"):
-        result = {"start": gateway.start, "stop": gateway.stop, "restart": gateway.restart}[action](settings, gateway.ADMIN)
+        result = {"start": bot_process.start, "stop": bot_process.stop, "restart": bot_process.restart}[action](settings, bot_process.ADMIN)
         print(result.message)
         if result.ok and action != "stop":
-            print(f"Mở {url} và nhập ADMIN_TOKEN trong userdata/config/.env (hoặc chạy lại với --open).")
+            print(f"Mở {url} và nhập ADMIN_TOKEN trong userdata/config/settings.env (hoặc chạy lại với --open).")
             if open_browser:
                 webbrowser.open(login_url)
         return result.code
 
-    lock = gateway.lock_for(settings, gateway.ADMIN)
+    lock = bot_process.lock_for(settings, bot_process.ADMIN)
     try:
         lock.acquire(wait=2.0)
     except AlreadyRunning:
@@ -334,14 +339,14 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
         if open_browser:
             webbrowser.open(login_url)
         return EXIT_ALREADY_RUNNING
-    gateway.write_pid(settings, gateway.ADMIN)
+    bot_process.write_pid(settings, bot_process.ADMIN)
     setup_logging(settings.log_level, settings.log_dir, settings.secrets, filename="admin.log")
     try:
         import threading
 
         import uvicorn
 
-        from bot.ui.admin.server import AdminContext, create_app
+        from bot.ui.admin.admin_web_server import AdminContext, create_app
 
         app = create_app(AdminContext(env_path, PROJECT_ROOT), settings.admin_port)
         print(f"Giao diện quản lý: {url}\nMã truy cập: ADMIN_TOKEN trong {env_path}\nCtrl+C để dừng.", flush=True)
@@ -351,7 +356,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     except KeyboardInterrupt:
         pass
     finally:
-        gateway.clear_pid(settings, gateway.ADMIN)
+        bot_process.clear_pid(settings, bot_process.ADMIN)
         lock.release()
     return 0
 
@@ -362,12 +367,12 @@ def _prepare_home(command: str) -> str | None:
     Trả về thông báo lỗi nếu chưa chuyển được vì bản cũ còn chạy (không được tạo userdata/ mới lúc đó,
     kẻo dữ liệu cũ bị bỏ lại).
     """
-    from bot import paths
-    from bot.system.bootstrap import ensure_home
+    from bot import userdata_paths
+    from bot.system.first_run_setup import ensure_home
 
     # Sau khi bấm Cập nhật, bản cũ của ứng dụng cần vài giây để thoát: ứng dụng mới chờ lâu hơn bot.
-    paths.migrate_legacy(wait_old=30.0 if command == "gui" else 5.0)
-    if paths.needs_migration():
+    userdata_paths.migrate_legacy(wait_old=30.0 if command == "gui" else 5.0)
+    if userdata_paths.needs_migration():
         return (
             "Bản cũ của bot hoặc ứng dụng quản lý vẫn đang chạy nên chưa chuyển được dữ liệu sang thư mục userdata.\n"
             "Thoát hẳn bản cũ (chuột phải biểu tượng Z ở khay → Thoát và tắt bot) rồi mở lại."
@@ -442,14 +447,14 @@ def main(argv: list[str] | None = None) -> int:
     blocked = _prepare_home(command)
     if blocked:
         if command == "gui":
-            from bot.ui.desktop.app import _message_box
+            from bot.ui.desktop.desktop_app import _message_box
 
             _message_box(blocked)
         else:
             print(blocked, file=sys.stderr)
         return EXIT_CONFIG
     if command == "gui":
-        from bot.ui.desktop.app import run_gui
+        from bot.ui.desktop.desktop_app import run_gui
 
         return run_gui(tray_only=getattr(args, "tray", False), start_bot=getattr(args, "start_bot", False),
                        after_update=getattr(args, "after_update", False))
@@ -463,7 +468,7 @@ def main(argv: list[str] | None = None) -> int:
         if command in ("me", "set-webhook", "delete-webhook", "webhook-info") and settings.personal:
             raise ConfigError(f"Lệnh {command} chỉ dùng với Zalo Bot (token), không dùng với RECEIVE_MODE=personal.")
         if command == "set-webhook" and not (8 <= len(settings.webhook_secret) <= 256):
-            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong userdata/config/.env.")
+            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong userdata/config/settings.env.")
     except ConfigError as exc:
         print(f"Lỗi cấu hình: {exc}", file=sys.stderr)
         return EXIT_CONFIG
@@ -481,19 +486,19 @@ def main(argv: list[str] | None = None) -> int:
         return _update(settings)
 
     if command == "gateway":
-        from bot.system import gateway
+        from bot.system import bot_process
 
         try:
             if args.action == "status":
-                info = gateway.status_info(settings)
-                print(gateway.format_status(info))
+                info = bot_process.status_info(settings)
+                print(bot_process.format_status(info))
                 return 0 if info["running"] else 1
             if args.action == "logs":
                 if args.follow:
-                    return gateway.follow_log(settings, args.lines)
-                print(gateway.tail_log(settings, args.lines))
+                    return bot_process.follow_log(settings, args.lines)
+                print(bot_process.tail_log(settings, args.lines))
                 return 0
-            result = {"start": gateway.start, "stop": gateway.stop, "restart": gateway.restart}[args.action](settings)
+            result = {"start": bot_process.start, "stop": bot_process.stop, "restart": bot_process.restart}[args.action](settings)
             print(result.message)
             return result.code
         except ConfigError as exc:
@@ -518,7 +523,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    lock_dir = settings.data_dir / "console" if command == "console" else settings.system_dir
+    lock_dir = settings.data_dir / CONSOLE_TEST_DIR if command == "console" else settings.system_dir
     lock = InstanceLock(Path(lock_dir) / "bot.lock")
     try:
         lock.acquire(wait=2.0)
@@ -527,17 +532,17 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_ALREADY_RUNNING
     exit_code = 0
     if command == "run":
-        from bot.system import gateway
+        from bot.system import bot_process
 
-        gateway.write_pid(settings)
+        bot_process.write_pid(settings)
     try:
         if command == "console":
             user_id = args.user_id or settings.owner_zalo_id or "console-user"
             # Dữ liệu chat thử để riêng, không lẫn với bot thật; chưa có chủ bot thì coi bạn là chủ.
             console_settings = dataclasses.replace(
                 settings,
-                data_dir=settings.data_dir / "console",
-                system_dir=settings.data_dir / "console" / "system",  # không lẫn state/seen với bot thật
+                data_dir=settings.data_dir / CONSOLE_TEST_DIR,
+                system_dir=settings.data_dir / CONSOLE_TEST_DIR / "system",  # không lẫn state/seen với bot thật
                 owner_zalo_id=settings.owner_zalo_id or user_id,
             )
             asyncio.run(_console(console_settings, args.chat_id, user_id, args.name, not args.private))
@@ -548,8 +553,8 @@ def main(argv: list[str] | None = None) -> int:
         log.info("Đã dừng bot")
     finally:
         if command == "run":
-            from bot.system import gateway
+            from bot.system import bot_process
 
-            gateway.clear_pid(settings)
+            bot_process.clear_pid(settings)
         lock.release()
     return exit_code

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from bot.core.filter import MessageFilter, is_chatter
-from bot.zalo.personal import to_incoming
-from bot.core.timeutil import now_ms
+from bot.core.message_filter import MessageFilter, is_chatter
+from bot.zalo.personal_account import to_incoming
+from bot.core.vietnam_time import now_ms
 
 from conftest import FakeAgent, make_settings
 
