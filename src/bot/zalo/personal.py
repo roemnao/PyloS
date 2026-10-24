@@ -16,11 +16,12 @@ import asyncio
 import json
 import logging
 import threading
+import time
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from bot.config import ConfigError, Settings
-from bot.storage import ActivityStore, StateStore
+from bot.storage import ActivityStore, MemoryDataStore, StateStore
 from bot.timeutil import now_ms
 from bot.zalo.client import ZaloError
 from bot.zalo.models import TEXT_EVENT, IncomingMessage
@@ -30,6 +31,7 @@ log = logging.getLogger(__name__)
 # Sự kiện cho tin không phải chữ (ảnh, sticker, file...): Bot chỉ cần biết nó không phải TEXT_EVENT.
 OTHER_EVENT = "message.other.received"
 HEARTBEAT_SECONDS = 60
+MEMBERS_TTL_SECONDS = 3600  # làm mới danh sách thành viên nhóm mỗi giờ
 RELOGIN_HINT = "Quét mã QR lại: `python -m bot zalo-login` hoặc giao diện quản lý → Cài đặt."
 
 
@@ -106,6 +108,33 @@ def _mention_ids(value: Any) -> tuple[str, ...]:
     return tuple(str(m.get("uid")) for m in value if hasattr(m, "get") and m.get("uid") not in (None, ""))
 
 
+def _utf16_len(text: str) -> int:
+    # Zalo (JavaScript) tính vị trí theo đơn vị UTF-16: emoji ngoài BMP chiếm 2.
+    return len(text.encode("utf-16-le")) // 2
+
+
+def build_mentions(text: str, members: dict[str, str]) -> list[dict[str, Any]]:
+    """Tìm "@Tên" trong câu trả lời, đổi thành mention Zalo [{"pos", "len", "uid", "type"}].
+
+    Chỉ tag tên khớp đúng (không phân biệt hoa thường) một thành viên đã biết, và tên phải
+    kết thúc ở ranh giới từ. Tên dài khớp trước ("Thái Toàn" trước "Thái").
+    """
+    by_name = sorted(((name.strip(), uid) for uid, name in members.items() if name and name.strip()),
+                     key=lambda item: len(item[0]), reverse=True)
+    lowered = text.lower()
+    mentions = []
+    i = text.find("@")
+    while i != -1:
+        for name, uid in by_name:
+            end = i + 1 + len(name)
+            if lowered.startswith(name.lower(), i + 1) and (end >= len(text) or not text[end].isalnum()):
+                mentions.append({"pos": _utf16_len(text[:i]), "len": _utf16_len(text[i:end]), "uid": uid, "type": 0})
+                i = end - 1
+                break
+        i = text.find("@", i + 1)
+    return mentions
+
+
 def _import_zlapi():
     try:
         import zlapi  # noqa: F401
@@ -130,6 +159,8 @@ class PersonalZalo:
         self._connected = False
         self._handler: Callable[[IncomingMessage], Awaitable[None]] | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        self._memory = MemoryDataStore(settings.data_dir / "memorydata")
+        self._group_members: dict[str, tuple[float, dict[str, str]]] = {}  # chat_id -> (lúc lấy, {uid: tên})
         self.self_id = ""
         self.self_name = ""
 
@@ -230,9 +261,53 @@ class PersonalZalo:
         kind = str(self._activity.all().get(chat_id, {}).get("type", "")).upper()
         return self._thread_type_cls.GROUP if kind == "GROUP" else self._thread_type_cls.USER
 
+    # ---------- thành viên nhóm (để tag) ----------
+
+    def _fetch_group_members(self, chat_id: str) -> dict[str, str]:
+        info = self._api.fetchGroupInfo(chat_id)
+        grid = ((info.get("gridInfoMap") or {}) if hasattr(info, "get") else {}).get(str(chat_id)) or {}
+        names: dict[str, str] = {}
+        for member in grid.get("currentMems") or []:
+            if hasattr(member, "get") and member.get("id"):
+                names[str(member["id"])] = str(member.get("dName") or member.get("zaloName") or "")
+        uids = [str(v).split("_")[0] for v in grid.get("memVerList") or []]
+        missing = [uid for uid in uids if not names.get(uid)]
+        for start in range(0, len(missing), 100):
+            profiles = self._api.fetchUserInfo(missing[start:start + 100])
+            changed = (profiles.get("changed_profiles") if hasattr(profiles, "get") else None) or {}
+            for uid, profile in changed.items():
+                if hasattr(profile, "get"):
+                    names[str(uid)] = str(profile.get("displayName") or profile.get("zaloName") or "")
+        return {uid: name for uid, name in names.items() if name}
+
+    def members(self, chat_id: str) -> dict[str, str]:
+        """{uid: tên} của người trong nhóm: danh sách thành viên từ Zalo (lưu 1 giờ) + người đã nhắn gần đây."""
+        known: dict[str, str] = {}
+        cached = self._group_members.get(chat_id)
+        if self._api is not None and self._thread_type(chat_id) == self._thread_type_cls.GROUP:
+            if cached is None or time.monotonic() - cached[0] > MEMBERS_TTL_SECONDS:
+                try:
+                    cached = (time.monotonic(), self._fetch_group_members(chat_id))
+                except Exception as exc:  # noqa: BLE001 - không lấy được thì dùng người đã nhắn
+                    log.info("Không lấy được thành viên nhóm %s: %s", chat_id, exc)
+                    cached = (time.monotonic(), cached[1] if cached else {})
+                self._group_members[chat_id] = cached
+            known.update(cached[1])
+        for record in self._memory.recent(chat_id, 2000):
+            if record.get("role") == "user" and record.get("uid") and record.get("name"):
+                known[str(record["uid"])] = str(record["name"])  # tên mới nhất người đó dùng
+        known.pop(self.self_id, None)
+        return known
+
     async def send_message(self, chat_id: str, text: str) -> Any:
         def send() -> Any:
-            return self._api.send(self._message_cls(text=text), chat_id, self._thread_type(chat_id))
+            thread_type = self._thread_type(chat_id)
+            mention = None
+            if thread_type == self._thread_type_cls.GROUP and "@" in text:
+                found = build_mentions(text, self.members(chat_id))
+                if found:
+                    mention = json.dumps(found)
+            return self._api.send(self._message_cls(text=text, mention=mention), chat_id, thread_type)
 
         try:
             result = await asyncio.to_thread(send)
