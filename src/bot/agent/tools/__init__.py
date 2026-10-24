@@ -26,6 +26,7 @@ class ToolContext:
     user_id: str
     user_name: str
     is_owner: bool
+    data_dir: Path | None = None  # thư mục data/ (cho tool đọc memorydata của chính hội thoại này)
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]

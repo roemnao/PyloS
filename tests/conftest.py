@@ -39,10 +39,21 @@ class FakeAgent:
         self.reply_text = reply
         self.tokens = tokens
         self.calls: list[tuple[str, list[Turn], ToolContext]] = []
+        self.classify_calls: list[str] = []
 
     async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
         self.calls.append((system, turns, ctx))
         return AgentReply(self.reply_text, self.tokens)
+
+    # Bộ lọc AI giả: mặc định "không nhờ bot"; test đặt filter_reply/filter_error để đổi kịch bản.
+    filter_reply = False
+    filter_error: Exception | None = None
+
+    async def classify(self, system: str, text: str, **kwargs: Any) -> tuple[dict[str, Any], int]:
+        self.classify_calls.append(text)
+        if self.filter_error is not None:
+            raise self.filter_error
+        return {"reply": self.filter_reply, "reason": "giả lập"}, 5
 
 
 def make_settings(tmp_path: Path, **overrides: str) -> Settings:

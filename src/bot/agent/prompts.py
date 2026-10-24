@@ -52,6 +52,11 @@ class PromptBuilder:
             "Mỗi tin của người dùng có dạng \"Tên: nội dung\".\n"
             f"- Công cụ hiện có: {', '.join(tool_names) if tool_names else 'không có'}."
         )
+        if is_group and "doc_memorydata" in tool_names:
+            parts[-1] += (
+                "\n- Lịch sử bạn thấy chỉ gồm các tin gọi bạn. Mọi người còn nói chuyện khác trong nhóm; "
+                "khi cần biết (tóm tắt, ai nói gì, hẹn gì), gọi doc_memorydata."
+            )
         memory = self._memory.read()
         if memory:
             parts.append(

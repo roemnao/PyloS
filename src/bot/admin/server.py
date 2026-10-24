@@ -34,6 +34,7 @@ from bot.storage import (
     FailedStore,
     GroupStore,
     HistoryStore,
+    MemoryDataStore,
     StatsStore,
     UsageStore,
     atomic_write_text,
@@ -228,6 +229,19 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             for r in records
         ]}
 
+    @app.get("/api/memorydata/{chat_id}")
+    def memorydata(chat_id: str, n: int = 200) -> dict[str, Any]:
+        """Mọi tin của hội thoại kèm kết quả bộ lọc (khác /api/history: chỉ session)."""
+        settings = ctx.settings()
+        if not settings.admin_show_history:
+            raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
+        records = MemoryDataStore(settings.data_dir / "memorydata").recent(chat_id, max(1, min(n, 2000)))
+        return {"chat_id": chat_id, "messages": [
+            {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t"),
+             "type": r.get("type", "text"), "filter": r.get("filter")}
+            for r in records
+        ]}
+
     # ---------- chỉ dẫn (workspace .md) ----------
 
     def _workspace_path(settings: Settings, name: str) -> Path:
@@ -270,7 +284,10 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "ALLOW_ALL_CHATS": "true" if settings.allow_all_chats else "false",
             "SCHEDULE_OWNER_ONLY": "true",
             "BOT_NAMES": ",".join(settings.bot_names),
-            "GROUP_CONTEXT": "true" if settings.group_context else "false",
+            "FILTER_AI": "true" if settings.filter_ai else "false",
+            "FILTER_MODEL": settings.filter_model or settings.gemini_model,
+            "FILTER_CONTEXT_LINES": str(settings.filter_context_lines),
+            "MEMORYDATA_KEEP": str(settings.memorydata_keep),
         }
         return {
             "fields": [

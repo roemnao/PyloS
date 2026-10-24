@@ -95,7 +95,7 @@ def test_stats_activity_and_failed_stores(tmp_path):
     stats.incr("received")
     stats.incr("tokens", 30)
     stats.incr("bogus")
-    assert stats.today() == {"received": 1, "replied": 0, "errors": 0, "tokens": 30}
+    assert stats.today() == {"received": 1, "replied": 0, "errors": 0, "tokens": 30, "filter_pass": 0, "filter_block": 0}
     assert stats.days(14)[-1]["tokens"] == 30
 
     activity = ActivityStore(tmp_path / "activity.txt")

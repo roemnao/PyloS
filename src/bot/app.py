@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
-import unicodedata
 from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bot.agent import Agent, PromptBuilder, ToolContext, Turn
 from bot.commands import CommandHandler, parse_command
 from bot.config import Settings
+from bot.filter import Decision, MessageFilter
 from bot.ratelimit import RateLimiter
 from bot.storage import (
     MODE_ALL,
@@ -19,6 +18,7 @@ from bot.storage import (
     FailedStore,
     GroupStore,
     HistoryStore,
+    MemoryDataStore,
     SeenStore,
     StateStore,
     StatsStore,
@@ -51,7 +51,6 @@ class ZaloSender(Protocol):
 @dataclass(frozen=True)
 class Job:
     msg: IncomingMessage
-    prompt: str
 
 
 class Bot:
@@ -83,6 +82,8 @@ class Bot:
         self.failed = FailedStore(data / "failed.txt")
         self.stats = StatsStore(data / "stats.txt")
         self.activity = ActivityStore(data / "activity.txt")
+        self.memory = MemoryDataStore(data / "memorydata", keep=settings.memorydata_keep)
+        self.filter = MessageFilter(settings, agent, self._self_identity)
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
             allow_all=settings.allow_all_chats,
@@ -149,26 +150,8 @@ class Bot:
                 await self._send(msg.chat_id, NO_OWNER_HINT.format(user_id=msg.from_id))
             return
 
-        if not msg.is_text:
-            if not msg.is_group:
-                await self._send(msg.chat_id, NON_TEXT_REPLY)
-            return
-
-        prompt = self._addressed_prompt(msg)
-        if prompt is None:
-            if self.settings.group_context and msg.is_group:
-                # Không gọi bot nhưng vẫn lưu làm ngữ cảnh: lúc được gọi, bot biết nhóm đang nói chuyện gì.
-                self.history.append(msg.chat_id, "user", (msg.text or "").strip(), uid=msg.from_id, name=msg.from_name)
-            return
-        if not prompt:
-            await self._send(msg.chat_id, EMPTY_PROMPT_REPLY)
-            return
-
-        if not self.user_limiter.allow(f"{msg.chat_id}:{msg.from_id}") or not self.chat_limiter.allow(msg.chat_id):
-            log.warning("Vượt giới hạn tần suất: chat=%s user=%s", msg.chat_id, msg.from_id)
-            return
-
-        self._enqueue(Job(msg, prompt))
+        # Bộ lọc (có thể gọi AI) chạy trong hàng đợi của từng chat: không làm chậm chat khác, giữ đúng thứ tự tin.
+        self._enqueue(Job(msg))
 
     def _is_owner(self, user_id: str) -> bool:
         return bool(self.settings.owner_zalo_id) and user_id == self.settings.owner_zalo_id
@@ -182,53 +165,9 @@ class Bot:
         budget = self.settings.daily_token_budget
         return budget > 0 and self.usage.used_today() >= budget
 
-    def _addressed_prompt(self, msg: IncomingMessage) -> str | None:
-        """Nội dung cần trả lời, hoặc None nếu theo chế độ hiện tại thì không trả lời."""
-        text = (msg.text or "").strip()
-        if not msg.is_group:
-            return text
-        mode = self.groups.get(msg.chat_id).mode
-        if mode == MODE_ALL and not self._over_budget():
-            stripped = self._strip_trigger(text)
-            return stripped if stripped is not None else text
-        stripped = self._strip_trigger(text)
-        if stripped is not None:
-            return stripped
-        if self._calls_bot(msg, text):
-            return self._strip_self_mention(text)
-        return None
-
     def _self_identity(self) -> tuple[str, str]:
         """(id, tên) của acc bot; chỉ có khi chạy trên acc Zalo cá nhân."""
         return str(getattr(self.zalo, "self_id", "") or ""), str(getattr(self.zalo, "self_name", "") or "")
-
-    def _calls_bot(self, msg: IncomingMessage, text: str) -> bool:
-        """Tin @tag acc bot, hoặc nhắc tới tên bot (BOT_NAMES, tên acc Zalo), không phân biệt hoa thường/dấu."""
-        self_id, self_name = self._self_identity()
-        if self_id and self_id in msg.mentions:
-            return True
-        folded = _fold(text)
-        names = [*self.settings.bot_names, self_name]
-        return any(
-            re.search(rf"(?<!\w){re.escape(_fold(name))}(?!\w)", folded) for name in names if name and name.strip()
-        )
-
-    def _strip_self_mention(self, text: str) -> str:
-        _, self_name = self._self_identity()
-        tag = f"@{self_name}" if self_name else ""
-        if tag and text.lower().startswith(tag.lower()):
-            return text[len(tag):].lstrip(" ,:;-\t\n")
-        return text
-
-    def _strip_trigger(self, text: str) -> str | None:
-        lowered = text.lower()
-        for trigger in self.settings.bot_triggers:
-            t = trigger.lower()
-            if lowered == t:
-                return ""
-            if lowered.startswith(t) and not lowered[len(t)].isalnum():
-                return text[len(t):].lstrip(" ,:;-\t\n")
-        return None
 
     # ---------- hàng đợi theo chat ----------
 
@@ -266,15 +205,58 @@ class Bot:
 
     async def _process(self, job: Job) -> None:
         msg = job.msg
+        decision = await self._decide(msg)
+        self.memory.add_user(msg.chat_id, msg_id=msg.message_id, uid=msg.from_id, name=msg.from_name,
+                             text=msg.text, is_text=msg.is_text, decision=decision.as_record())
+        if msg.is_group:
+            self.stats.incr("filter_pass" if decision.passed else "filter_block")
+        log.debug("Lọc tin chat=%s: %s (%s) %s", msg.chat_id, decision.passed, decision.stage, decision.reason)
+
+        if not decision.passed:
+            if not msg.is_text and not msg.is_group:
+                await self._say(msg.chat_id, NON_TEXT_REPLY)
+            return
+        prompt = decision.prompt or ""
+        if not prompt:
+            await self._say(msg.chat_id, EMPTY_PROMPT_REPLY)
+            return
+        if not self.user_limiter.allow(f"{msg.chat_id}:{msg.from_id}") or not self.chat_limiter.allow(msg.chat_id):
+            log.warning("Vượt giới hạn tần suất: chat=%s user=%s", msg.chat_id, msg.from_id)
+            return
+        await self._reply(msg, prompt)
+
+    async def _decide(self, msg: IncomingMessage) -> Decision:
+        try:
+            decision = await self.filter.decide(
+                msg,
+                mode=self.groups.get(msg.chat_id).mode if msg.is_group else "",
+                over_budget=self._over_budget(),
+                # Đọc trước khi ghi tin mới: ngữ cảnh là các tin TRƯỚC tin đang xét.
+                recent=self.memory.recent(msg.chat_id, self.settings.filter_context_lines),
+            )
+        except Exception as exc:  # noqa: BLE001 - lỗi bộ lọc: ghi lại, coi như không gọi bot
+            log.exception("Bộ lọc lỗi ở chat %s", msg.chat_id)
+            return Decision(False, "error", f"bộ lọc lỗi: {type(exc).__name__}")
+        if decision.tokens:
+            self.usage.add(decision.tokens)
+            self.stats.incr("tokens", decision.tokens)
+        return decision
+
+    async def _say(self, chat_id: str, text: str) -> None:
+        """Gửi và ghi vào memorydata (không vào session)."""
+        self.memory.add_model(chat_id, text)
+        await self._send(chat_id, text)
+
+    async def _reply(self, msg: IncomingMessage, prompt: str) -> None:
         try:
             await self.zalo.send_chat_action(msg.chat_id, "typing")
         except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
             log.debug("sendChatAction lỗi: %s", exc)
 
-        self.history.append(msg.chat_id, "user", job.prompt, uid=msg.from_id, name=msg.from_name)
+        self.history.append(msg.chat_id, "user", prompt, uid=msg.from_id, name=msg.from_name)
         records = self.history.recent(msg.chat_id, self.settings.history_turns)
         turns = [Turn(r.get("role", "user"), str(r.get("text", "")), str(r.get("name", ""))) for r in records]
-        ctx = ToolContext(msg.chat_id, msg.from_id, msg.from_name, self._is_owner(msg.from_id))
+        ctx = ToolContext(msg.chat_id, msg.from_id, msg.from_name, self._is_owner(msg.from_id), self.settings.data_dir)
         system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names)
 
         was_over = self._over_budget()
@@ -283,19 +265,19 @@ class Bot:
         except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
             self.stats.incr("errors")
-            await self._send(msg.chat_id, ERROR_REPLY)
+            await self._say(msg.chat_id, ERROR_REPLY)
             return
         self.usage.add(reply.tokens)
         self.stats.incr("tokens", reply.tokens)
         self.stats.incr("replied")
         text = to_plain_text(reply.text)
         self.history.append(msg.chat_id, "model", text)
-        await self._send(msg.chat_id, text)
+        await self._say(msg.chat_id, text)
 
         if msg.is_group and not was_over and self._over_budget():
             log.warning("Đã vượt hạn mức token ngày: %d", self.usage.used_today())
             if self.groups.get(msg.chat_id).mode == MODE_ALL and self.usage.mark_notified(msg.chat_id):
-                await self._send(msg.chat_id, BUDGET_NOTICE)
+                await self._say(msg.chat_id, BUDGET_NOTICE)
 
     # ---------- gửi tin ----------
 
@@ -319,9 +301,3 @@ class Bot:
         self.failed.add(chat_id, text, last_error)
         self.stats.incr("errors")
         log.error("Bỏ cuộc gửi tin tới chat %s, đã lưu vào failed.txt", chat_id)
-
-
-def _fold(text: str) -> str:
-    """Chữ thường, bỏ dấu tiếng Việt: "Trợ Lý" -> "tro ly"."""
-    text = text.lower().replace("đ", "d")
-    return "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")

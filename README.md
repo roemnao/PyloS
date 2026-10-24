@@ -209,17 +209,28 @@ Lưu ý:
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
 - Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `data/zalo_session.json` và điền `ZALO_IMEI` trong `.env`.
 
-## Gọi bot trong nhóm bằng tên hoặc @tag
+## Bộ lọc tin nhóm và memorydata
 
-Ở chế độ `default`, ngoài tin bắt đầu bằng `/bot`, bot còn trả lời khi:
-- tin **nhắc tới tên bot**: các tên trong `BOT_NAMES` (mặc định `bot`), không phân biệt hoa thường hay có dấu, ví dụ "Bot ơi mai mấy giờ họp?". Chỉ tính khi đứng thành từ riêng, nên "robot" không làm bot trả lời;
-- (acc Zalo cá nhân) tin **@tag acc bot**, hoặc nhắc tới **tên acc Zalo của bot**.
+Mỗi cuộc trò chuyện (nhóm hoặc chat riêng) đã được cho phép có **hai lớp dữ liệu**:
 
-Muốn tắt, để `BOT_NAMES=` trống. Muốn thêm tên gọi khác, ghi cách nhau dấu phẩy, ví dụ `BOT_NAMES=bot,trợ lý,Pylos`.
+| | Nằm ở | Chứa gì | Dùng để |
+|---|---|---|---|
+| **Memorydata** | `data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
+| **Session** | `data/history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
 
-Với `GROUP_CONTEXT=true` (mặc định), bot **lưu cả những tin không gọi nó** trong nhóm đã được cho phép, làm ngữ cảnh. Nhờ vậy khi được gọi ("bot chốt lại giúp"), bot biết mọi người vừa nói gì. Số tin đưa vào mỗi lần trả lời do `HISTORY_TURNS` quyết định.
+**Bộ lọc** quyết định tin trong nhóm có đang nhờ bot trả lời không (chat riêng thì tin nào cũng qua). Các tầng chạy theo thứ tự:
+1. Nhóm ở chế độ `all`: qua.
+2. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
+3. Sticker, ảnh, hay tin chỉ là cảm thán ("ok", "haha", emoji…): chặn ngay.
+4. Còn lại: hỏi Gemini "tin này có đang nhờ trợ lý không?". Gemini được xem thêm `FILTER_CONTEXT_LINES` tin gần nhất, nên hiểu cả câu hỏi tiếp nối ngay sau khi bot vừa trả lời. Token của bước này cũng tính vào hạn mức ngày. Khi hết hạn mức, hoặc `FILTER_AI=false`, chỉ còn tầng 2 cho qua.
 
-Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
+Tin không qua lọc vẫn nằm trong memorydata. Khi bạn hỏi "bot tóm tắt nhóm nói gì hôm nay" hay "lúc nãy Bình hẹn mấy giờ?", bot tự gọi tool `doc_memorydata` để đọc lại. Tool chỉ đọc được **chính cuộc trò chuyện đó**.
+
+Kiểm tra bộ lọc: giao diện quản lý → **Hội thoại** → chọn **Memorydata (tất cả tin)**. Mỗi tin có nhãn *qua lọc* hoặc *bị chặn*, kèm tầng và lý do. Trang **Tổng quan** đếm số tin qua và bị chặn trong ngày.
+
+Cấu hình (trang Cài đặt → **Bộ lọc & memorydata**): `FILTER_AI`, `FILTER_MODEL` (nên dùng model rẻ), `FILTER_CONTEXT_LINES`, `MEMORYDATA_KEEP` (số tin giữ lại mỗi file). Muốn thêm tên gọi bot, sửa `BOT_NAMES`, ví dụ `bot,trợ lý,Pylos`.
+
+Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Nhóm chưa được phép thì bot không lưu gì. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
 
 ## Nối với web Quản lý thời gian (quanlythoigian)
 
@@ -253,7 +264,9 @@ Tool chỉ dành cho chủ bot thì đặt `owner_only=True`.
 
 | Thư mục | Nội dung |
 |---|---|
-| `data/*.txt` | Trạng thái nhóm, lịch sử hội thoại, token đã dùng, tin gửi lỗi. Mỗi dòng là một JSON. |
+| `data/*.txt` | Trạng thái nhóm, token đã dùng, tin gửi lỗi. Mỗi dòng là một JSON. |
+| `data/history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
+| `data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
 | `workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
 | `workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
 | `logs/` | `bot.log` (xoay vòng 5 × 1 MB) và `supervisor.log`. |

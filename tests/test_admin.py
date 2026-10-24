@@ -231,8 +231,8 @@ def test_playground_uses_echo_without_key_and_keeps_group_history_clean(client, 
     assert client.post("/api/playground", json={"messages": []}, headers=AUTH).status_code == 400
 
 
-def test_tools_list_is_empty_by_default(client):
-    assert client.get("/api/tools", headers=AUTH).json() == {"tools": []}
+def test_tools_list_has_only_builtin_memorydata_by_default(client):
+    assert [t["name"] for t in client.get("/api/tools", headers=AUTH).json()["tools"]] == ["doc_memorydata"]
 
 
 def test_bot_control_uses_gateway(client, monkeypatch):
@@ -307,3 +307,18 @@ def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, mo
 
     monkeypatch.setattr(updater, "unavailable_reason", lambda: "Đang chạy ZaloBot.exe")
     assert client.post("/api/update", headers=AUTH).json() == {"ok": False, "message": "Đang chạy ZaloBot.exe"}
+
+
+def test_memorydata_api_shows_filter_result_and_respects_history_switch(client, env_path, tmp_path):
+    from bot.storage import MemoryDataStore
+
+    store = MemoryDataStore(tmp_path / "data" / "memorydata")
+    store.add_user("g1", msg_id="1", uid="u", name="An", text="tán gẫu", is_text=True,
+                   decision={"passed": False, "stage": "ai", "reason": "nói với nhau"})
+    store.add_model("g1", "chào")
+    data = client.get("/api/memorydata/g1", headers=AUTH).json()
+    assert [(m["role"], m["text"], (m["filter"] or {}).get("passed")) for m in data["messages"]] == [
+        ("user", "tán gẫu", False), ("model", "chào", None)]
+
+    env_path.write_text(ENV_TEXT + "ADMIN_SHOW_HISTORY=false\n", encoding="utf-8")
+    assert client.get("/api/memorydata/g1", headers=AUTH).status_code == 403
