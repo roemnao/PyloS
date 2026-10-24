@@ -1,5 +1,5 @@
 from bot.agent.system_prompt import PromptBuilder
-from bot.agent.gemini_agent import Agent, AgentReply, EchoAgent, GeminiAgent, Turn
+from bot.agent.gemini_agent import Agent, AgentReply, EchoAgent, GeminiAgent, ToolStep, Turn
 from bot.agent.tools import Tool, ToolContext, ToolRegistry, discover
 
 __all__ = [
@@ -11,6 +11,7 @@ __all__ = [
     "Tool",
     "ToolContext",
     "ToolRegistry",
+    "ToolStep",
     "Turn",
     "discover",
 ]

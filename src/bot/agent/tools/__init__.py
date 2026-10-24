@@ -27,6 +27,14 @@ class ToolContext:
     user_name: str
     is_owner: bool
     data_dir: Path | None = None  # thư mục data/ (cho tool đọc memorydata của chính hội thoại này)
+    # Thông tin về tin đang xử lý, cho tool giao lịch biết giao cho ai:
+    is_group: bool = False
+    chat_name: str = ""
+    message_id: str | None = None
+    mentions: tuple[str, ...] = ()  # ID những người được @tag thật trong tin
+    members: dict[str, str] = field(default_factory=dict)  # {uid: tên} thành viên nhóm
+    self_id: str = ""  # ID acc bot (không tự giao lịch cho mình)
+    can_assign: bool = False  # được giao lịch cho người khác không (ASSIGN_ALLOWED)
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]

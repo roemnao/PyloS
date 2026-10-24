@@ -61,12 +61,20 @@ FIELDS: tuple[FieldSpec, ...] = (
               kind="choice", choices=("polling", "webhook", "personal"), group="Kết nối"),
     FieldSpec("WEBHOOK_HOST", "Webhook: địa chỉ lắng nghe", group="Kết nối"),
     FieldSpec("WEBHOOK_PORT", "Webhook: cổng", kind="int", group="Kết nối"),
-    FieldSpec("SCHEDULE_API_URL", "Địa chỉ web quản lý thời gian",
-              "Ví dụ https://quanlythoigian-azure.vercel.app (để trống = địa chỉ này). Cần đặt thêm khoá SCHEDULE_API_KEY bên dưới.",
-              group="Lịch (quanlythoigian)"),
-    FieldSpec("SCHEDULE_OWNER_ONLY", "Chỉ chủ bot được thêm/xem lịch",
-              "Bật: chỉ OWNER_ZALO_ID nhờ bot thêm lịch, xem lịch được. Tắt: ai nhắn bot cũng được.",
-              kind="bool", group="Lịch (quanlythoigian)"),
+    FieldSpec("SCHEDULE_API_URL", "Địa chỉ web iforgotmywayhome",
+              "Ví dụ https://quanlythoigian-azure.vercel.app (để trống = địa chỉ này). Cần đặt thêm khoá SCHEDULE_API_KEY bên dưới. "
+              "Có khoá: bot nhận thông số từ trang Hệ thống của web, gửi nhịp tim, giao lịch cho thành viên.",
+              group="Web iforgotmywayhome"),
+    FieldSpec("SCHEDULE_OWNER_ONLY", "Chỉ chủ bot được thêm/xem lịch riêng",
+              "Lịch riêng của chủ web (them_lich_hen, xem_lich...). Bật: chỉ OWNER_ZALO_ID. Tắt: ai nhắn bot cũng được.",
+              kind="bool", group="Web iforgotmywayhome"),
+    FieldSpec("ASSIGN_ALLOWED", "Ai được giao lịch cho người khác",
+              "owner: chỉ chủ bot nhờ bot giao lịch cho người được tag. all: ai trong nhóm cũng nhờ được.",
+              kind="choice", choices=("owner", "all"), group="Web iforgotmywayhome"),
+    FieldSpec("SESSION_UPLOAD", "Gửi session lên web",
+              "Bật: các bước tin → bộ lọc → agent → tool được gửi lên trang Hệ thống → Session của web để xem lại "
+              "(nội dung chat được lưu trên web có thời hạn). Tắt: không gửi.",
+              kind="bool", group="Web iforgotmywayhome"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )
@@ -76,7 +84,7 @@ SECRETS: dict[str, str] = {
     "ZALO_BOT_TOKEN": "Bot token Zalo",
     "GEMINI_API_KEY": "API key Gemini",
     "WEBHOOK_SECRET": "Webhook secret (8–256 ký tự)",
-    "SCHEDULE_API_KEY": "Khoá agent của web quản lý thời gian",
+    "SCHEDULE_API_KEY": "Khoá agent của web iforgotmywayhome",
 }
 
 _LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=")

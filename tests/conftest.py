@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 
 from bot.agent import AgentReply, PromptBuilder, ToolContext, Turn
@@ -120,3 +122,48 @@ def make_bot(tmp_path: Path, zalo: FakeZalo, agent: FakeAgent):
         return bot
 
     yield factory
+
+
+class FakeWeb:
+    """Web iforgotmywayhome giả (API /api/agent/*): trả lời theo bảng route, ghi lại các yêu cầu."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, str, Any]] = []
+        self.routes: dict[tuple[str, str], Any] = {}
+        self.offline = False
+
+    def on(self, method: str, path: str, reply: Any) -> None:
+        """reply: dict/list (HTTP 200), (mã, dict), hoặc hàm(body) -> một trong hai."""
+        self.routes[(method, path)] = reply
+
+    def bodies(self, method: str, path: str) -> list[Any]:
+        return [b for m, p, b in self.calls if m == method and p == path]
+
+    def handler(self, request: httpx.Request) -> httpx.Response:
+        if self.offline:
+            raise httpx.ConnectError("offline", request=request)
+        if request.headers.get("authorization") != "Bearer k3y":
+            return httpx.Response(401, json={"error": "Sai khoá"})
+        path = request.url.path.removeprefix("/api/agent")
+        body = json.loads(request.content) if request.content else None
+        self.calls.append((request.method, path, body))
+        reply = self.routes.get((request.method, path))
+        if callable(reply):
+            reply = reply(body)
+        if reply is None:
+            return httpx.Response(404, json={"error": "Không có API này"})
+        status, data = reply if isinstance(reply, tuple) else (200, reply)
+        return httpx.Response(status, json=data)
+
+
+@pytest.fixture
+def web(monkeypatch, tmp_path) -> FakeWeb:
+    from bot.system import server_client
+
+    fake = FakeWeb()
+    real = httpx.AsyncClient
+    monkeypatch.setattr(server_client.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(fake.handler), **kw))
+    monkeypatch.setattr("bot.config.APP_HOME", tmp_path)  # không đọc settings.env thật của máy
+    monkeypatch.setenv("SCHEDULE_API_URL", "https://web.example")
+    monkeypatch.setenv("SCHEDULE_API_KEY", "k3y")
+    return fake

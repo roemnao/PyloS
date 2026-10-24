@@ -163,7 +163,7 @@ function render() {
   const main = document.getElementById("main");
   fill(main, );
   const label = PAGES.find(([p]) => p === state.page)[1];
-  document.title = `${label} · Quản lý Bot Zalo`;
+  document.title = `${label} · iforgotmywayhome · Bot Zalo`;
   Promise.resolve(RENDERERS[state.page](main)).catch(reportError);
 }
 
@@ -441,6 +441,10 @@ async function renderWorkspace(main, which = "SYSTEM") {
     h("p", { class: "muted", text: which === "SYSTEM"
       ? "Vai trò, giọng điệu và quy tắc trả lời. Bản cũ được tự sao lưu vào workspace/.backup mỗi lần lưu."
       : "Điều trợ lý cần nhớ lâu dài. Được đưa vào prompt như dữ liệu tham khảo, không phải mệnh lệnh." }),
+    data.managed_by_web
+      ? h("div", { class: "banner", text: `${which}.md đang do chủ hệ thống đặt trên web (Hệ thống → Cấu hình bot). `
+        + "Sửa ở đây sẽ bị ghi đè khi cấu hình trên web thay đổi." })
+      : null,
     h("div", { class: "card stack" }, area,
       h("div", { class: "row between" }, info, h("button", { class: "btn primary", type: "button", text: "Lưu (Ctrl+S)", onclick: save }))));
 }
@@ -685,7 +689,12 @@ async function renderSettings(main) {
     input.dataset.initial = input.value;
     inputs.set(f.key, input);
     if (!groups.has(f.group)) groups.set(f.group, []);
-    groups.get(f.group).push(h("label", { class: "field" }, h("span", { text: f.label }), input,
+    // Thông số chủ hệ thống đặt trên web đè lên giá trị ở đây khi bot chạy.
+    const fromWeb = f.remote !== null && f.remote !== undefined
+      ? h("span", { class: "pill web", title: "Đặt ở trang Hệ thống của web iforgotmywayhome; sửa ở đây không có tác dụng cho tới khi bỏ trên web",
+        text: `Web đang đặt: ${f.remote}` })
+      : null;
+    groups.get(f.group).push(h("label", { class: "field" }, h("span", {}, f.label, fromWeb), input,
       h("small", {}, h("code", { text: f.key }), f.help ? ` · ${f.help}` : "")));
   }
 
@@ -728,9 +737,17 @@ async function renderSettings(main) {
       h("div", { class: "row" }, h("div", { style: "flex:1;min-width:200px" }, input), setBtn));
   });
 
+  const remote = data.remote;
+  const remoteNote = remote && remote.count
+    ? h("div", { class: "banner" }, `Bot đang dùng ${remote.count} thông số do chủ hệ thống đặt trên web (bản ${remote.version}`,
+      remote.fetched_at ? `, lấy lúc ${new Date(remote.fetched_at).toLocaleString("vi-VN")}` : "",
+      "). Các ô có nhãn \"Web đang đặt\" lấy giá trị từ web; sửa trên trang Hệ thống của web.")
+    : null;
+
   fill(main, 
     h("h1", { text: "Cài đặt" }),
     banner,
+    remoteNote,
     zaloLoginCard(),
     ...[...groups].map(([name, fields]) => h("div", { class: "card stack" }, h("h2", { text: name }), ...fields)),
     h("div", { class: "row", style: "margin-bottom:1rem" }, h("button", { class: "btn primary", type: "button", text: "Lưu cài đặt", onclick: save })),

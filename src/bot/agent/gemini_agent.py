@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -25,9 +26,21 @@ class Turn:
 
 
 @dataclass(frozen=True)
+class ToolStep:
+    """Một lần model gọi tool: tên, tham số, kết quả, thời gian chạy (để xem lại trong session)."""
+    name: str
+    args: dict[str, Any]
+    result: dict[str, Any]
+    ms: int = 0
+
+
+@dataclass(frozen=True)
 class AgentReply:
     text: str
     tokens: int
+    steps: tuple[ToolStep, ...] = ()
+    model: str = ""
+    ms: int = 0
 
 
 class Agent(Protocol):
@@ -81,6 +94,16 @@ class GeminiAgent:
         self._timeout = timeout_seconds
         self._classify_thinking = True  # tắt khi model báo không nhận thinking_level
 
+    def configure(self, *, model: str, max_tool_rounds: int, max_output_tokens: int, timeout_seconds: int) -> None:
+        """Đổi model / giới hạn khi bot đang chạy (cấu hình mới từ web), không cần khởi động lại."""
+        if model != self._model:
+            log.info("Đổi model của agent: %s -> %s", self._model, model)
+            self._classify_thinking = True
+        self._model = model
+        self._max_rounds = max_tool_rounds
+        self._max_output_tokens = max_output_tokens
+        self._timeout = timeout_seconds
+
     def _contents(self, turns: list[Turn]) -> list[Any]:
         types = self._types
         contents = []
@@ -119,25 +142,34 @@ class GeminiAgent:
         )
         contents = self._contents(turns)
         tokens = 0
+        steps: list[ToolStep] = []
+        started = time.monotonic()
+        model = self._model
+
+        def done(text: str) -> AgentReply:
+            return AgentReply(text, tokens, tuple(steps), model, int((time.monotonic() - started) * 1000))
+
         for round_number in range(self._max_rounds + 1):
-            response = await self._generate(contents, config)
+            response = await self._generate(contents, config, model=model)
             tokens += _usage_tokens(response)
             calls = response.function_calls or []
             if not calls:
-                return AgentReply((response.text or "").strip() or EMPTY_REPLY, tokens)
+                return done((response.text or "").strip() or EMPTY_REPLY)
             if round_number == self._max_rounds:
                 log.warning("Hết %d vòng tool mà model vẫn muốn gọi tiếp", self._max_rounds)
-                return AgentReply(TOO_MANY_STEPS, tokens)
+                return done(TOO_MANY_STEPS)
             # Giữ nguyên content của model (kể cả thought signature) trước khi trả kết quả tool.
             contents.append(response.candidates[0].content)
             parts = []
             for call in calls:
                 args = dict(call.args or {})
                 log.info("Tool %s(%s)", call.name, args)
+                tool_started = time.monotonic()
                 result = await self._tools.call(call.name, args, ctx)
+                steps.append(ToolStep(call.name, args, result, int((time.monotonic() - tool_started) * 1000)))
                 parts.append(types.Part.from_function_response(name=call.name, response=result))
             contents.append(types.Content(role="user", parts=parts))
-        return AgentReply(TOO_MANY_STEPS, tokens)  # không tới được, để type checker yên tâm
+        return done(TOO_MANY_STEPS)  # không tới được, để type checker yên tâm
 
 
     async def classify(self, system: str, text: str, *, model: str | None = None,

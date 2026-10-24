@@ -51,8 +51,12 @@ class GroupStore:
         self._groups: dict[str, GroupState] = {}
         self._loaded_mtime: float | None = None
         self._load()
-        if any(not self.get(chat_id).allowed for chat_id in seed_allowed):
-            self._update(seed_allowed, lambda s: setattr(s, "allowed", True))
+        self.allow_seed(seed_allowed)
+
+    def allow_seed(self, chat_ids: tuple[str, ...]) -> None:
+        """Cho phép các chat trong ALLOWED_CHAT_IDS (lúc khởi động, hoặc khi danh sách đổi trên web)."""
+        if any(not self.get(chat_id).allowed for chat_id in chat_ids):
+            self._update(chat_ids, lambda s: setattr(s, "allowed", True))
 
     def _load(self) -> None:
         groups: dict[str, GroupState] = {}
@@ -156,7 +160,7 @@ class HistoryStore:
 
     def __init__(self, directory: Path, keep: int = 200) -> None:
         self._dir = directory
-        self._keep = keep
+        self.keep = keep
 
     def _file(self, chat_id: str) -> JsonLinesFile:
         return JsonLinesFile(self._dir / f"{safe_name(chat_id)}.txt")
@@ -164,8 +168,8 @@ class HistoryStore:
     def append(self, chat_id: str, role: str, text: str, uid: str = "", name: str = "") -> None:
         f = self._file(chat_id)
         f.append({"role": role, "uid": uid, "name": name, "text": text, "t": now_ms()})
-        if f.count_lines() > self._keep * 2:
-            f.trim(self._keep)
+        if f.count_lines() > self.keep * 2:
+            f.trim(self.keep)
 
     def recent(self, chat_id: str, n: int) -> list[dict[str, Any]]:
         return self._file(chat_id).tail(n)
@@ -185,7 +189,7 @@ class MemoryDataStore:
 
     def __init__(self, directory: Path, keep: int = 5000) -> None:
         self._dir = directory
-        self._keep = keep
+        self.keep = keep
 
     def path(self, chat_id: str) -> Path:
         return self._dir / f"{safe_name(chat_id)}.txt"
@@ -193,8 +197,8 @@ class MemoryDataStore:
     def _append(self, chat_id: str, record: dict[str, Any]) -> None:
         f = JsonLinesFile(self.path(chat_id))
         f.append(record)
-        if self._keep and f.count_lines() > self._keep * 2:
-            f.trim(self._keep)
+        if self.keep and f.count_lines() > self.keep * 2:
+            f.trim(self.keep)
 
     def add_user(self, chat_id: str, *, msg_id: str | None, uid: str, name: str, text: str | None,
                  is_text: bool, decision: dict[str, Any]) -> None:
