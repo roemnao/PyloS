@@ -1,6 +1,6 @@
 """Kiểm tra bản build không chứa bí mật: chạy sau PyInstaller, trước khi dùng/chia sẻ exe.
 
-- Không có file .env / data/ / workspace/ / logs/ nào bị đóng gói.
+- Không có file .env / userdata/ / data/ / workspace/ / logs/ nào bị đóng gói.
 - Không có giá trị bí mật nào (đọc từ .env) xuất hiện trong exe (kể cả phần đã nén) hay thư mục build.
 
 Mã thoát 0 = sạch, 1 = có vấn đề.
@@ -15,7 +15,7 @@ from dotenv import dotenv_values
 from PyInstaller.archive.readers import CArchiveReader
 
 SECRET_KEYS = ("ZALO_BOT_TOKEN", "GEMINI_API_KEY", "ADMIN_TOKEN", "WEBHOOK_SECRET")
-FORBIDDEN_NAMES = (".env", "data/", "data\\", "workspace/", "workspace\\", "logs/", "logs\\")
+FORBIDDEN_NAMES = (".env", "userdata/", "userdata\\", "data/", "data\\", "workspace/", "workspace\\", "logs/", "logs\\")
 
 
 def secrets_from_env(env_path: Path) -> list[bytes]:
@@ -58,10 +58,11 @@ def check_dir(directory: Path, secrets: list[bytes]) -> list[str]:
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]  # scripts/packaging/ -> thư mục dự án
     exe = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "dist" / "ZaloBot.exe"
     build_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else root / "build"
-    secrets = secrets_from_env(root / ".env")
+    env = root / "userdata" / "config" / ".env"
+    secrets = secrets_from_env(env if env.is_file() else root / ".env")
     problems = check_exe(exe, secrets)
     if build_dir.is_dir():
         problems += check_dir(build_dir, secrets)

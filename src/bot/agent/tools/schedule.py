@@ -33,8 +33,9 @@ TIMEOUT = 30.0
 def _env() -> dict[str, str]:
     # Đọc cả .env vì giao diện quản lý (Chat thử) không nạp .env vào os.environ như bot.
     from bot.config import APP_HOME
+    from bot.paths import ENV_REL
 
-    values = {k: v for k, v in dotenv_values(APP_HOME / ".env").items() if v is not None}
+    values = {k: v for k, v in dotenv_values(APP_HOME / ENV_REL).items() if v is not None}
     return {**values, **os.environ}
 
 

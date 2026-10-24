@@ -1,6 +1,6 @@
 # Build ZaloBot.exe (one file, windowed) with PyInstaller.
 #   powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
-#   -NoCopy : do not copy the exe next to .env/data (project root)
+#   -NoCopy : do not copy the exe to the project root (next to userdata\)
 # (ASCII only on purpose: Windows PowerShell 5.1 reads BOM-less files as ANSI.)
 param([switch]$NoCopy)
 
@@ -15,15 +15,15 @@ if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
 
 Write-Host "== Running PyInstaller (takes a few minutes)"
 & $python -m PyInstaller --noconfirm --clean --log-level WARN `
-    --distpath "$root\dist" --workpath "$root\build\pyinstaller" "$root\packaging\ZaloBot.spec"
+    --distpath "$root\dist" --workpath "$root\build\pyinstaller" "$root\scripts\packaging\ZaloBot.spec"
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
 
 Write-Host "== Checking the build for secrets"
-& $python "$root\packaging\check_secrets.py" "$root\dist\ZaloBot.exe" "$root\build"
+& $python "$root\scripts\packaging\check_secrets.py" "$root\dist\ZaloBot.exe" "$root\build"
 if ($LASTEXITCODE -ne 0) { throw "Secret found in build output. Do NOT use or share this exe." }
 
 if (-not $NoCopy) {
-    # Next to .env / data / workspace so the exe uses your current settings and data.
+    # In the project root, next to userdata\, so the exe uses your current settings and data.
     try {
         Copy-Item "$root\dist\ZaloBot.exe" "$root\ZaloBot.exe" -Force
         Write-Host "== Done: $root\ZaloBot.exe"

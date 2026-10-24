@@ -28,7 +28,7 @@ from typing import Any
 
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, discover
 from bot.core.app import Bot
-from bot.config import PROJECT_ROOT, ConfigError, Settings, is_frozen
+from bot.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
 from bot.system.logging_setup import setup_logging
 from bot.storage import StateStore
 from bot.storage.lock import AlreadyRunning, InstanceLock
@@ -214,7 +214,7 @@ async def _zalo_call(settings: Settings, method: str, **params: Any) -> Any:
 
 
 def _health(settings: Settings, max_age_seconds: int) -> int:
-    state = StateStore(settings.data_dir / "state.txt").data
+    state = StateStore(settings.system_dir / "state.txt").data
     last = int(state.get("last_poll_at") or 0)
     if settings.receive_mode == "webhook":
         print("Chế độ webhook: dùng GET /health trên server để kiểm tra.")
@@ -233,7 +233,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     from bot.system import gateway
     from bot.zalo.qrlogin import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
 
-    qr_path = settings.data_dir / "zalo_qr.png"
+    qr_path = settings.system_dir / "zalo_qr.png"
 
     def on_update(status) -> None:
         if status.state == WAITING_SCAN:
@@ -264,20 +264,20 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     finally:
         qr_path.unlink(missing_ok=True)
 
-    apply_session(session, settings.zalo_session_file, PROJECT_ROOT / ".env")
-    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong .env.")
+    apply_session(session, settings.zalo_session_file, ENV_FILE)
+    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong userdata/config/.env.")
     if session.user_id:
         print(f"ID của acc phụ: {session.user_id}")
     if gateway.is_running(settings):
         from bot.ui.admin import envfile
 
         # Đọc lại .env: RECEIVE_MODE vừa đổi, còn os.environ vẫn giữ giá trị cũ.
-        fresh = Settings.from_env({**os.environ, **envfile.read_values(PROJECT_ROOT / ".env")})
+        fresh = Settings.from_env({**os.environ, **envfile.read_values(ENV_FILE)})
         print(gateway.restart(fresh).message)
     else:
         print("Chạy bot: python -m bot run (hoặc gateway start).")
     if not settings.owner_zalo_id:
-        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong .env.")
+        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong userdata/config/.env.")
     return 0
 
 
@@ -305,7 +305,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     from bot.system import gateway
     from bot.system.bootstrap import ensure_admin_token
 
-    env_path = PROJECT_ROOT / ".env"
+    env_path = ENV_FILE
     if action in ("run", "start", "restart"):
         settings, created = ensure_admin_token(settings, env_path)
         if created:
@@ -321,7 +321,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
         result = {"start": gateway.start, "stop": gateway.stop, "restart": gateway.restart}[action](settings, gateway.ADMIN)
         print(result.message)
         if result.ok and action != "stop":
-            print(f"Mở {url} và nhập ADMIN_TOKEN trong .env (hoặc chạy lại với --open).")
+            print(f"Mở {url} và nhập ADMIN_TOKEN trong userdata/config/.env (hoặc chạy lại với --open).")
             if open_browser:
                 webbrowser.open(login_url)
         return result.code
@@ -354,6 +354,26 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
         gateway.clear_pid(settings, gateway.ADMIN)
         lock.release()
     return 0
+
+
+def _prepare_home(command: str) -> str | None:
+    """Chuyển dữ liệu bản cũ vào userdata/ (một lần) rồi tạo thư mục/file mẫu còn thiếu.
+
+    Trả về thông báo lỗi nếu chưa chuyển được vì bản cũ còn chạy (không được tạo userdata/ mới lúc đó,
+    kẻo dữ liệu cũ bị bỏ lại).
+    """
+    from bot import paths
+    from bot.system.bootstrap import ensure_home
+
+    # Sau khi bấm Cập nhật, bản cũ của ứng dụng cần vài giây để thoát: ứng dụng mới chờ lâu hơn bot.
+    paths.migrate_legacy(wait_old=30.0 if command == "gui" else 5.0)
+    if paths.needs_migration():
+        return (
+            "Bản cũ của bot hoặc ứng dụng quản lý vẫn đang chạy nên chưa chuyển được dữ liệu sang thư mục userdata.\n"
+            "Thoát hẳn bản cũ (chuột phải biểu tượng Z ở khay → Thoát và tắt bot) rồi mở lại."
+        )
+    ensure_home()
+    return None
 
 
 def _utf8_console() -> None:
@@ -419,6 +439,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     # Bấm đúp ZaloBot.exe (không tham số) thì mở ứng dụng quản lý; `python -m bot` vẫn chạy bot như trước.
     command = args.command or ("gui" if is_frozen() else "run")
+    blocked = _prepare_home(command)
+    if blocked:
+        if command == "gui":
+            from bot.ui.desktop.app import _message_box
+
+            _message_box(blocked)
+        else:
+            print(blocked, file=sys.stderr)
+        return EXIT_CONFIG
     if command == "gui":
         from bot.ui.desktop.app import run_gui
 
@@ -434,7 +463,7 @@ def main(argv: list[str] | None = None) -> int:
         if command in ("me", "set-webhook", "delete-webhook", "webhook-info") and settings.personal:
             raise ConfigError(f"Lệnh {command} chỉ dùng với Zalo Bot (token), không dùng với RECEIVE_MODE=personal.")
         if command == "set-webhook" and not (8 <= len(settings.webhook_secret) <= 256):
-            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong .env.")
+            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong userdata/config/.env.")
     except ConfigError as exc:
         print(f"Lỗi cấu hình: {exc}", file=sys.stderr)
         return EXIT_CONFIG
@@ -489,7 +518,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
-    lock_dir = settings.data_dir / "console" if command == "console" else settings.data_dir
+    lock_dir = settings.data_dir / "console" if command == "console" else settings.system_dir
     lock = InstanceLock(Path(lock_dir) / "bot.lock")
     try:
         lock.acquire(wait=2.0)
@@ -508,6 +537,7 @@ def main(argv: list[str] | None = None) -> int:
             console_settings = dataclasses.replace(
                 settings,
                 data_dir=settings.data_dir / "console",
+                system_dir=settings.data_dir / "console" / "system",  # không lẫn state/seen với bot thật
                 owner_zalo_id=settings.owner_zalo_id or user_id,
             )
             asyncio.run(_console(console_settings, args.chat_id, user_id, args.name, not args.private))

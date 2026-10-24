@@ -19,3 +19,7 @@ __pycache__/
 build/
 dist/
 /ZaloBot.exe
+
+# Dữ liệu của người dùng: khoá, phiên Zalo, lịch sử, log (xem src/bot/paths.py)
+userdata/
+.migrate.lock

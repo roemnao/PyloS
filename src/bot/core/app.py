@@ -37,7 +37,7 @@ NON_TEXT_REPLY = "Hiện mình chỉ đọc được tin nhắn chữ."
 EMPTY_PROMPT_REPLY = "Bạn cần mình giúp gì?"
 NO_OWNER_HINT = (
     "Bot chưa có chủ. Nếu bạn là người cài bot, hãy điền OWNER_ZALO_ID={user_id} "
-    "vào file .env rồi khởi động lại bot."
+    "vào userdata/config/.env (hoặc trang Cài đặt) rồi khởi động lại bot."
 )
 BUDGET_NOTICE = (
     "Đã dùng hết hạn mức token hôm nay. Đến hết ngày, mình chỉ trả lời "
@@ -77,9 +77,9 @@ class Bot:
 
         data = settings.data_dir
         self.groups = GroupStore(data / "groups.txt", settings.allowed_chat_ids)
-        self.seen = SeenStore(data / "seen.txt")
+        self.seen = SeenStore(settings.system_dir / "seen.txt")
         self.history = HistoryStore(data / "history", keep=max(200, settings.history_turns * 4))
-        self.state = StateStore(data / "state.txt")
+        self.state = StateStore(settings.system_dir / "state.txt")
         self.usage = UsageStore(data / "usage.txt")
         self.failed = FailedStore(data / "failed.txt")
         self.stats = StatsStore(data / "stats.txt")
@@ -131,7 +131,7 @@ class Bot:
             self._warned_no_owner.add(msg.from_id)
             log.warning(
                 "OWNER_ZALO_ID chưa đặt. Tin từ from_id=%s (%s), chat_id=%s (%s). "
-                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong .env rồi khởi động lại.",
+                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong userdata/config/.env rồi khởi động lại.",
                 msg.from_id, msg.from_name, msg.chat_id, msg.chat_type,
             )
 

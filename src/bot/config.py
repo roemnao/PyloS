@@ -3,51 +3,27 @@
 from __future__ import annotations
 
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import dotenv_values
 
-APP_NAME = "ZaloAssistantBot"
-
-
-def is_frozen() -> bool:
-    """True khi đang chạy từ ZaloBot.exe (đóng gói bằng PyInstaller)."""
-    return bool(getattr(sys, "frozen", False))
-
-
-def _writable(directory: Path) -> bool:
-    try:
-        directory.mkdir(parents=True, exist_ok=True)
-        probe = directory / f".write-test-{os.getpid()}"
-        probe.write_text("", encoding="utf-8")
-        probe.unlink()
-        return True
-    except OSError:
-        return False
-
-
-def app_home() -> Path:
-    """Thư mục chứa .env, data/, workspace/, logs/, tools/.
-
-    - Biến môi trường ZALOBOT_HOME nếu có.
-    - Chạy từ exe: thư mục chứa exe; nếu không ghi được (ví dụ C:\\Program Files) thì %LOCALAPPDATA%\\ZaloAssistantBot.
-    - Chạy từ mã nguồn: thư mục dự án (src/bot/config.py -> lên 2 cấp).
-    """
-    override = os.environ.get("ZALOBOT_HOME", "").strip()
-    if override:
-        return Path(override).resolve()
-    if is_frozen():
-        beside_exe = Path(sys.executable).resolve().parent
-        if _writable(beside_exe):
-            return beside_exe
-        return Path(os.environ.get("LOCALAPPDATA") or Path.home()) / APP_NAME
-    return Path(__file__).resolve().parents[2]
-
+from bot.paths import (  # noqa: F401 - các tên này được import từ bot.config ở nhiều nơi
+    APP_HOME,
+    APP_NAME,
+    DATA_REL,
+    ENV_FILE,
+    ENV_REL,
+    LOGS_REL,
+    SESSION_REL,
+    SYSTEM_REL,
+    WORKSPACE_REL,
+    app_home,
+    is_frozen,
+)
 
 # Giữ tên PROJECT_ROOT cho code cũ; khi chạy từ exe nó là thư mục chứa exe.
-PROJECT_ROOT = APP_HOME = app_home()
+PROJECT_ROOT = APP_HOME
 
 # Các biến được nạp từ .env (không phải biến môi trường thật). Khi bật tiến trình con,
 # gateway bỏ chúng đi để tiến trình con đọc .env mới nhất thay vì thừa hưởng giá trị cũ.
@@ -123,21 +99,23 @@ class Settings:
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
     schedule_api_key: str = ""
-    zalo_session_file: Path = Path("data/zalo_session.json")
+    zalo_session_file: Path = Path(SESSION_REL)
+    # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/paths.py)
+    system_dir: Path = Path(SYSTEM_REL)
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
         if env is None:
-            # Chỉ đọc .env ở APP_HOME: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
+            # Chỉ đọc userdata/config/.env: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
             # tìm .env theo thư mục làm việc có thể đọc nhầm file của chương trình khác.
-            candidate = APP_HOME / ".env"
+            candidate = APP_HOME / ENV_REL
             if candidate.is_file():
                 for key, value in dotenv_values(candidate).items():
                     if key not in os.environ and value is not None:
                         os.environ[key] = value
                         LOADED_FROM_DOTENV.add(key)
             env = dict(os.environ)
-        # Đường dẫn tương đối (data/, workspace/, logs/) tính từ thư mục dự án, không phụ thuộc nơi chạy.
+        # Đường dẫn tương đối tính từ APP_HOME (thư mục chứa userdata/), không phụ thuộc nơi chạy.
         base = base_dir or PROJECT_ROOT
 
         def path(name: str, default: str) -> Path:
@@ -161,9 +139,10 @@ class Settings:
             webhook_secret=env.get("WEBHOOK_SECRET", "").strip(),
             webhook_host=env.get("WEBHOOK_HOST", "").strip() or "127.0.0.1",
             webhook_port=_int(env, "WEBHOOK_PORT", 8080, minimum=1),
-            data_dir=path("DATA_DIR", "data"),
-            workspace_dir=path("WORKSPACE_DIR", "workspace"),
-            log_dir=path("LOG_DIR", "logs"),
+            data_dir=path("DATA_DIR", DATA_REL),
+            workspace_dir=path("WORKSPACE_DIR", WORKSPACE_REL),
+            log_dir=path("LOG_DIR", LOGS_REL),
+            system_dir=path("SYSTEM_DIR", SYSTEM_REL),
             log_level=env.get("LOG_LEVEL", "").strip().upper() or "INFO",
             history_turns=_int(env, "HISTORY_TURNS", 20, minimum=1),
             max_tool_rounds=_int(env, "MAX_TOOL_ROUNDS", 4),
@@ -183,7 +162,7 @@ class Settings:
             filter_context_lines=_int(env, "FILTER_CONTEXT_LINES", 6),
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
-            zalo_session_file=path("ZALO_SESSION_FILE", "data/zalo_session.json"),
+            zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
         )
 
     @property
@@ -204,7 +183,7 @@ class Settings:
         if missing:
             raise ConfigError(
                 "Thiếu biến môi trường: " + ", ".join(missing)
-                + ". Hãy điền vào file .env (xem .env.example)."
+                + ". Hãy điền vào userdata/config/.env (hoặc trang Cài đặt của ứng dụng quản lý)."
             )
         if zalo and self.receive_mode == "webhook" and not (8 <= len(self.webhook_secret) <= 256):
             raise ConfigError("RECEIVE_MODE=webhook cần WEBHOOK_SECRET dài 8–256 ký tự.")

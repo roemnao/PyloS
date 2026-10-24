@@ -136,7 +136,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if not info["owner_set"]:
             alerts.append("Chưa đặt OWNER_ZALO_ID: chưa ai dùng được lệnh /allow, /mode trên Zalo.")
         try:
-            info["updates_pending"] = int((settings.data_dir / "update.txt").read_text(encoding="utf-8").strip() or 0)
+            info["updates_pending"] = int((settings.system_dir / "update.txt").read_text(encoding="utf-8").strip() or 0)
         except (OSError, ValueError):
             info["updates_pending"] = 0
         if info["failed_pending"]:
@@ -333,13 +333,13 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if gateway.gui_running(settings):
             # Ứng dụng quản lý tự cập nhật, khởi động lại bot và mở lại chính nó (có thể đang chứa trang này).
-            atomic_write_text(settings.data_dir / "gui.update", "1")
+            atomic_write_text(settings.system_dir / "gui.update", "1")
             return {"ok": True, "message": "Đang cập nhật. Ứng dụng sẽ tự đóng và mở lại sau ít giây."}
         try:
             result = updater.update()
         except updater.UpdateError as exc:
             return {"ok": False, "message": f"Cập nhật lỗi: {exc}"}
-        (settings.data_dir / "update.txt").unlink(missing_ok=True)
+        (settings.system_dir / "update.txt").unlink(missing_ok=True)
         message = result.message
         if result.changed:
             if gateway.is_running(settings, gateway.BOT):

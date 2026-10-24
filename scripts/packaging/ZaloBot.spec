@@ -1,19 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
 # Build: powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
-# Một file ZaloBot.exe, dạng cửa sổ (không console). Không bao giờ đóng gói .env, data/, workspace/.
+# Một file ZaloBot.exe, dạng cửa sổ (không console). Không bao giờ đóng gói userdata/ (khoá, dữ liệu, log).
 import sys
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
-ROOT = Path(SPECPATH).parent
+ROOT = Path(SPECPATH).parents[1]  # scripts/packaging/ -> thư mục dự án
 sys.path.insert(0, str(ROOT / "src"))
 
 from bot.ui.desktop.icons import write_ico  # noqa: E402
 
 icon = write_ico(ROOT / "build" / "zalobot.ico")
 
-# File không phải .py trong package: admin/static/*, templates/* (mẫu .env, SYSTEM.md, MEMORY.md, tool mẫu).
+# File không phải .py trong package: ui/admin/static/*, templates/* (mẫu .env, SYSTEM.md, MEMORY.md, tool mẫu).
 datas = collect_data_files("bot")
 
 hiddenimports = (
@@ -26,7 +26,7 @@ hiddenimports = (
 )
 
 a = Analysis(
-    [str(ROOT / "packaging" / "zalobot_entry.py")],
+    [str(ROOT / "scripts" / "packaging" / "zalobot_entry.py")],
     pathex=[str(ROOT / "src")],
     datas=datas,
     hiddenimports=hiddenimports,
@@ -44,7 +44,7 @@ exe = EXE(
     name="ZaloBot",
     console=False,
     icon=str(icon),
-    version=str(ROOT / "packaging" / "version_info.txt"),
+    version=str(ROOT / "scripts" / "packaging" / "version_info.txt"),
     upx=False,  # UPX làm Windows Defender báo nhầm nhiều hơn
     debug=False,
     strip=False,

@@ -2,7 +2,41 @@
 
 Bot chạy trên **Zalo Bot Platform**, trả lời trong nhóm bằng **Gemini**. Bot nhận tin bằng `getUpdates` (polling), nên chạy được trên máy cá nhân, không cần domain. Bot cũng chạy được trên **một acc Zalo cá nhân** (xem [Chạy trên acc Zalo cá nhân](#chạy-trên-acc-zalo-cá-nhân-acc-phụ)).
 
-Kế hoạch và các quyết định thiết kế nằm trong [PLAN.md](PLAN.md). Cách dùng lệnh trong Zalo nằm trong [workspace/README.md](workspace/README.md).
+Kế hoạch và các quyết định thiết kế nằm trong [docs/PLAN.md](docs/PLAN.md). Cách dùng lệnh trong Zalo nằm trong [docs/lenh-zalo.md](docs/lenh-zalo.md). Xem mục [Thư mục](#thư-mục) để biết file nào nằm ở đâu.
+
+## Thư mục
+
+```
+D:\pylosSever\
+├─ ZaloBot.cmd                bấm đúp để mở app
+├─ README.md
+├─ userdata\                  MỌI THỨ CỦA RIÊNG BẠN (không lên GitHub; chuyển máy chỉ cần chép thư mục này)
+│  ├─ config\                 (1) khoá & thông số bạn nhập
+│  │  ├─ .env                 khoá Gemini/Zalo/web lịch và mọi cài đặt (trang Cài đặt ghi vào đây)
+│  │  └─ zalo_session.json    phiên đăng nhập acc Zalo (quét QR), giữ kín như mật khẩu
+│  ├─ data\                   (2) dữ liệu bot
+│  │  ├─ memorydata\          mọi tin của từng cuộc trò chuyện
+│  │  ├─ history\             session: tin qua bộ lọc + câu trả lời của bot
+│  │  ├─ workspace\           SYSTEM.md (tính cách), MEMORY.md (ghi nhớ), .backup\
+│  │  ├─ tools\               tool tự viết (.py)
+│  │  └─ groups.txt, stats.txt, usage.txt, failed.txt, activity.txt
+│  └─ system\                 (3) bot tự quản lý, không cần đụng
+│     ├─ logs\                bot.log, admin.log, gui.log, supervisor.log
+│     └─ *.lock, *.pid, state.txt, seen.txt, webview\, …
+├─ src\bot\                   code
+│  ├─ core\                   xử lý tin: Bot, lệnh, bộ lọc, tag
+│  ├─ agent\                  AI: prompt, gọi Gemini, tool (lịch, memorydata…)
+│  ├─ zalo\                   kết nối Zalo: Zalo Bot, acc cá nhân, đăng nhập QR, polling/webhook
+│  ├─ storage\                đọc/ghi file dữ liệu
+│  ├─ system\                 chạy nền, cập nhật, log, tạo thư mục lần đầu
+│  ├─ ui\                     giao diện: admin (web), desktop (cửa sổ + khay)
+│  └─ config.py, paths.py     đọc cấu hình, đường dẫn userdata
+├─ tests\
+├─ scripts\                   build exe (packaging\), chạy 24/7 bằng Task Scheduler
+└─ docs\                      PLAN.md (thiết kế), lenh-zalo.md (lệnh dùng trong Zalo)
+```
+
+Lần đầu mở bản mới, bot **tự chuyển** dữ liệu của bản cũ (`.env`, `data/`, `logs/`, `workspace/`, tools tự viết trong `tools/`) vào `userdata\`. Bạn không phải làm gì. Hai thư mục `workspace/` và `tools/` còn ở gốc chỉ chứa file mẫu, sẽ được gỡ ở bản cập nhật sau.
 
 ## Cài đặt (Windows)
 
@@ -11,10 +45,10 @@ Cần Python 3.11 trở lên. Mở PowerShell trong thư mục dự án:
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -e ".[dev]"
-Copy-Item .env.example .env
+.venv\Scripts\python.exe -m bot health             # chạy một lệnh bất kỳ để tạo userdata\config\.env
 ```
 
-Sau đó mở `.env` và điền:
+Sau đó mở `userdata\config\.env` (hoặc trang Cài đặt trong app) và điền:
 
 - `ZALO_BOT_TOKEN`: token nhận được khi tạo bot bằng Zalo Bot Creator.
 - `GEMINI_API_KEY`: API key lấy từ Google AI Studio.
@@ -31,7 +65,7 @@ Sau đó mở `.env` và điền:
 
 Ở chế độ `console`:
 - Chưa có `GEMINI_API_KEY` thì bot chỉ lặp lại tin nhắn (echo). Có key thì bot gọi Gemini thật.
-- Dữ liệu chat thử lưu riêng trong `data/console`.
+- Dữ liệu chat thử lưu riêng trong `userdata/data/console`.
 - Gõ `/allow`, rồi `/bot xin chào`, `/mode all`, `/status`... để thử các chế độ.
 
 ## Lần chạy đầu tiên với Zalo
@@ -49,11 +83,11 @@ Sau đó mở `.env` và điền:
    ```
 
 3. Thêm bot vào nhóm và nhắn `/id` trong nhóm. Khi `OWNER_ZALO_ID` còn trống, bot trả lời cho bất kỳ ai, và log in `from_id` của mọi người nhắn tới.
-4. Điền `user_id` của bạn vào `OWNER_ZALO_ID` trong `.env`, rồi khởi động lại bot (Ctrl+C rồi chạy lại lệnh ở bước 2).
+4. Điền `user_id` của bạn vào `OWNER_ZALO_ID` trong `userdata\config\.env`, rồi khởi động lại bot (Ctrl+C rồi chạy lại lệnh ở bước 2).
 5. Trong nhóm, gõ `/allow`. Từ đây:
    - Bot trả lời tin bắt đầu bằng `/bot` (chế độ `default`).
    - `/mode all` để bot tự nhận ra cả những câu nhờ nó mà không gọi tên (bộ lọc AI, xem mục "Bộ lọc tin nhóm và memorydata").
-6. Xem `logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
+6. Xem `userdata/system/logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
 
 ## Mở ứng dụng bằng ZaloBot.cmd (khuyên dùng)
 
@@ -84,16 +118,16 @@ Bấm đúp `D:\pylosSever\ZaloBot.exe`. Một cửa sổ "Quản lý Bot Zalo" 
 - **Màu chấm trên biểu tượng**: xanh = bot đang chạy, cam = đang chạy nhưng có cảnh báo, xám = đã dừng.
 - **Khởi động cùng Windows**: tích trong menu khay. Khi đăng nhập, ứng dụng tự chạy ẩn ở khay và bật bot. Không cần `install-task.ps1`.
 - Mở exe lần hai chỉ đưa cửa sổ đang chạy lên, không mở thêm bản mới.
-- Lần đầu chạy trong thư mục trống, exe tự tạo `.env`, `workspace/`, `tools/`, `logs/` và mở trang Cài đặt để bạn điền khóa.
-- Dữ liệu nằm **cạnh exe** (`.env`, `data/`, `workspace/`, `logs/`). Muốn chuyển máy: chép cả thư mục.
-- Tool tự viết: đặt file `.py` vào `tools/` cạnh exe (xem `tools/_example.py`), rồi khởi động lại bot.
+- Lần đầu chạy trong thư mục trống, exe tự tạo `userdata\` và mở trang Cài đặt để bạn điền khóa.
+- Dữ liệu nằm trong `userdata\` **cạnh exe**. Muốn chuyển máy: chép thư mục đó.
+- Tool tự viết: đặt file `.py` vào `userdata\data\tools\` (xem `_example.py` trong đó), rồi khởi động lại bot.
 
 Exe chưa có chữ ký số, nên **Windows có thể chặn** ("Windows đã bảo vệ PC của bạn" hoặc "An Application Control policy has blocked this file"), nhất là sau mỗi lần build lại. Máy này đang bật **Smart App Control**, cơ chế này chặn exe chưa ký mà không cho bấm "Vẫn chạy". Nếu bị chặn:
 - Thử mở lại bằng cách bấm đúp trong Explorer (Windows tra uy tín trên mạng, đôi khi lần sau cho chạy).
 - Hoặc chạy cùng ứng dụng đó từ mã nguồn (không bị chặn vì `pythonw.exe` đã được ký): `.venv\Scripts\pythonw.exe -m bot gui`.
 - Không nên tắt Smart App Control chỉ vì bot: tắt rồi thì không bật lại được nếu không cài lại Windows.
 
-Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
+Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `userdata\config\.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
 
 Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gateway status` (kết quả in vào cửa sổ cmd).
 
@@ -105,18 +139,18 @@ Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gatewa
 .venv\Scripts\python.exe -m bot admin stop
 ```
 
-Mở http://127.0.0.1:8081. Mã đăng nhập là `ADMIN_TOKEN` trong `.env`; nếu còn trống, lần chạy đầu sẽ tự tạo.
+Mở http://127.0.0.1:8081. Mã đăng nhập là `ADMIN_TOKEN` trong `userdata\config\.env`; nếu còn trống, lần chạy đầu sẽ tự tạo.
 
 | Trang | Làm được gì |
 |---|---|
 | Tổng quan | Bật / tắt / khởi động lại bot, xem trạng thái, tin và token hôm nay, biểu đồ 14 ngày, cảnh báo |
 | Nhóm | Đặt tên gợi nhớ, cho phép / chặn, đổi chế độ `all` / `default`, xóa lịch sử; có hiệu lực ngay, không cần khởi động lại |
 | Hội thoại | Đọc lịch sử bot dùng làm ngữ cảnh (tắt được bằng `ADMIN_SHOW_HISTORY=false`) |
-| Chỉ dẫn | Sửa `SYSTEM.md` và `MEMORY.md`, tự sao lưu vào `workspace/.backup/` |
+| Chỉ dẫn | Sửa `SYSTEM.md` và `MEMORY.md`, tự sao lưu vào `userdata/data/workspace/.backup/` |
 | Chat thử | Nói chuyện với trợ lý mà không qua Zalo (token vẫn được tính) |
 | Log | Xem log bot / giao diện, lọc theo mức, theo dõi trực tiếp |
 | Tin lỗi | Gửi lại hoặc bỏ qua tin bot không gửi được |
-| Cài đặt | Đăng nhập acc Zalo cá nhân bằng mã QR; sửa các giá trị trong `.env` (có sao lưu `.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
+| Cài đặt | Đăng nhập acc Zalo cá nhân bằng mã QR; sửa các giá trị trong `userdata\config\.env` (có sao lưu `.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
 
 Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được từ máy khác), bắt buộc mã truy cập, chặn yêu cầu từ trang web khác. Đừng đưa cổng 8081 ra Internet.
 
@@ -142,7 +176,7 @@ powershell -ExecutionPolicy Bypass -File scripts\install-task.ps1
 
 - Script đăng ký hai Task Scheduler: `ZaloAssistantBot` (bot) và `ZaloAssistantBotAdmin` (giao diện). Chỉ muốn bot thì thêm `-NoAdmin`.
 - Bot tự chạy khi bạn đăng nhập Windows, và tự khởi động lại sau 10 giây nếu thoát.
-- Nếu `.env` sai (thiếu biến hoặc token sai), script dừng hẳn thay vì khởi động lại mãi. Xem `logs/supervisor.log`.
+- Nếu `.env` sai (thiếu biến hoặc token sai), script dừng hẳn thay vì khởi động lại mãi. Xem `userdata/system/logs/supervisor.log`.
 
 Để bot không ngừng khi máy ngủ, tắt Sleep (khi cắm sạc):
 
@@ -158,7 +192,7 @@ Các lệnh khác:
 
 ## Chuyển sang webhook (khi có domain hoặc VPS)
 
-1. Trong `.env`: đặt `RECEIVE_MODE=webhook` và `WEBHOOK_SECRET` (8–256 ký tự ngẫu nhiên).
+1. Trong `userdata\config\.env`: đặt `RECEIVE_MODE=webhook` và `WEBHOOK_SECRET` (8–256 ký tự ngẫu nhiên).
 2. Đưa `http://WEBHOOK_HOST:WEBHOOK_PORT` ra Internet qua HTTPS, ví dụ bằng Cloudflare Tunnel hoặc reverse proxy.
 3. Đăng ký webhook:
 
@@ -186,13 +220,13 @@ Thay vì Zalo Bot, bot có thể đăng nhập vào **một acc Zalo cá nhân**
 
 3. Tạo mã QR bằng một trong hai cách sau.
    - **Giao diện quản lý** (khuyên dùng, chạy được cả trên VPS qua SSH tunnel): vào **Cài đặt**, bấm **Đăng nhập bằng mã QR**, mã hiện ngay trên trang.
-   - **Dòng lệnh**: `python -m bot zalo-login`. Ảnh mã QR được lưu vào `data/zalo_qr.png` và tự mở. Trên máy không có màn hình, thêm `--no-open`.
+   - **Dòng lệnh**: `python -m bot zalo-login`. Ảnh mã QR được lưu vào `userdata/system/zalo_qr.png` và tự mở. Trên máy không có màn hình, thêm `--no-open`.
 
 4. Trong app Zalo của acc phụ, bấm biểu tượng **quét mã**, quét mã QR, rồi bấm **Đăng nhập** để xác nhận. Mã QR hết hạn sau khoảng 100 giây: dòng lệnh tự tạo mã mới, còn trên giao diện thì bấm tạo lại.
 
 5. Xong bước 4, bot tự làm phần còn lại:
-   - lưu phiên đăng nhập vào `data/zalo_session.json`;
-   - đặt `RECEIVE_MODE=personal` trong `.env`;
+   - lưu phiên đăng nhập vào `userdata/config/zalo_session.json`;
+   - đặt `RECEIVE_MODE=personal` trong `userdata/config/.env`;
    - nếu bot đang chạy thì tự khởi động lại.
 
    Nếu bot chưa chạy, bật bằng `python -m bot run`, `gateway start` hoặc nút Bật bot. `ZALO_BOT_TOKEN` để trống cũng được.
@@ -200,7 +234,7 @@ Thay vì Zalo Bot, bot có thể đăng nhập vào **một acc Zalo cá nhân**
 6. Từ **acc chính** của bạn, nhắn riêng `/id` cho acc phụ, điền `user_id` nhận được vào `OWNER_ZALO_ID`, rồi khởi động lại bot. Sau đó dùng `/allow`, `/mode`... như với Zalo Bot.
 
 Lưu ý:
-- `data/zalo_session.json` là **chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. Thư mục `data/` đã nằm trong `.gitignore`. Muốn chuyển bot sang máy khác (VPS...), chép cả file này theo, hoặc quét QR lại trên máy mới.
+- `userdata/config/zalo_session.json` là **chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. Thư mục `userdata/` đã nằm trong `.gitignore`. Muốn chuyển bot sang máy khác (VPS...), chép cả file này theo, hoặc quét QR lại trên máy mới.
 - Trong app Zalo của acc phụ, mục **Quản lý thiết bị đăng nhập** sẽ hiện một phiên Zalo Web. **Đừng đăng xuất phiên đó**, nếu không bot mất kết nối.
 - **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
 - Tin acc phụ tự gửi (kể cả gửi từ điện thoại) bị bot bỏ qua, nên bot không tự trả lời chính mình.
@@ -211,7 +245,7 @@ Lưu ý:
 - Khi phiên hết hạn, log báo "Đăng nhập Zalo cá nhân thất bại". Lúc đó chỉ cần quét QR lại.
 - Các lệnh `me`, `set-webhook`... và nút "Gửi lại" ở trang Tin lỗi chỉ dùng được với Zalo Bot.
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
-- Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `data/zalo_session.json` và điền `ZALO_IMEI` trong `.env`.
+- Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `userdata/config/zalo_session.json` và điền `ZALO_IMEI` trong `userdata/config/.env`.
 
 ## Bộ lọc tin nhóm và memorydata
 
@@ -219,8 +253,8 @@ Mỗi cuộc trò chuyện (nhóm hoặc chat riêng) đã được cho phép c�
 
 | | Nằm ở | Chứa gì | Dùng để |
 |---|---|---|---|
-| **Memorydata** | `data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
-| **Session** | `data/history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
+| **Memorydata** | `userdata/data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
+| **Session** | `userdata/data/history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
 
 **Bộ lọc** quyết định tin trong nhóm có đang nhờ bot trả lời không (chat riêng thì tin nào cũng qua). Các tầng chạy theo thứ tự:
 1. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
@@ -241,7 +275,7 @@ Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc
 Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot gọi API của web [quanlythoigian](https://quanlythoigian-azure.vercel.app) để thêm lịch hẹn hoặc việc cần làm. Lịch thêm vào hiện trên web, tự lên Google Lịch (nếu web đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
 
 1. Trên web, vào **Cài đặt → Kết nối AI agent → Tạo khoá cho agent** và chép khoá.
-2. Trong `.env` của bot (hoặc giao diện quản lý → Cài đặt → mục Lịch và Khóa bí mật):
+2. Trong `userdata\config\.env` của bot (hoặc giao diện quản lý → Cài đặt → mục Lịch và Khóa bí mật):
 
    ```
    SCHEDULE_API_URL=https://quanlythoigian-azure.vercel.app
@@ -259,20 +293,24 @@ Ví dụ nhắn bot: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nh�
 
 ## Thêm tool cho trợ lý
 
-1. Sao chép `src/bot/agent/tools/_example.py` thành một file mới không có dấu `_` ở đầu tên.
+1. Sao chép `userdata\data\tools\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
 2. Sửa hàm và mô tả trong file đó, rồi khởi động lại bot.
+
+(Tool có sẵn của bot nằm trong `src/bot/agent/tools/`.)
 
 Tool chỉ dành cho chủ bot thì đặt `owner_only=True`.
 
 ## Dữ liệu
 
-| Thư mục | Nội dung |
-|---|---|
-| `data/*.txt` | Trạng thái nhóm, token đã dùng, tin gửi lỗi. Mỗi dòng là một JSON. |
-| `data/history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
-| `data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
-| `workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
-| `workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
-| `logs/` | `bot.log` (xoay vòng 5 × 1 MB) và `supervisor.log`. |
+Mọi dữ liệu của bạn nằm trong `userdata\` (xem mục [Thư mục](#thư-mục)). Thư mục này nằm trong `.gitignore`, nên không bao giờ lên GitHub. Muốn chuyển máy, chép cả `userdata\` sang là đủ.
 
-`data/`, `logs/`, `.env` và `workspace/MEMORY.md` nằm trong `.gitignore`. Khi chuyển máy, chép `.env`, `data/` và `workspace/` sang là đủ.
+| Ở đâu | Nội dung |
+|---|---|
+| `userdata/config/.env` | Khoá API và mọi cài đặt. |
+| `userdata/config/zalo_session.json` | Phiên đăng nhập acc Zalo cá nhân. |
+| `userdata/data/*.txt` | Trạng thái nhóm, token đã dùng, tin gửi lỗi. Mỗi dòng là một JSON. |
+| `userdata/data/history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
+| `userdata/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
+| `userdata/data/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
+| `userdata/data/workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
+| `userdata/system/logs/` | `bot.log` (xoay vòng 5 × 1 MB), `admin.log`, `gui.log`, `supervisor.log`. |

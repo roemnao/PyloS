@@ -26,7 +26,7 @@ Nhóm mới thêm luôn ở chế độ `default`.
 
 ## Lấy ID của bạn lần đầu
 
-Khi `OWNER_ZALO_ID` còn trống, bất kỳ ai gõ `/id` cũng được bot trả lời, và log in `from_id` của mọi người nhắn tới. Lấy `user_id` của bạn, điền vào `.env`, rồi khởi động lại bot. Sau đó `/id` chỉ còn chủ bot dùng được.
+Khi `OWNER_ZALO_ID` còn trống, bất kỳ ai gõ `/id` cũng được bot trả lời, và log in `from_id` của mọi người nhắn tới. Lấy `user_id` của bạn, điền vào `userdata/config/.env` (hoặc trang Cài đặt), rồi khởi động lại bot. Sau đó `/id` chỉ còn chủ bot dùng được.
 
 ## Hạn mức token
 

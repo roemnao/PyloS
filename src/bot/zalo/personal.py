@@ -63,7 +63,7 @@ def load_session(path: Path, imei: str = "") -> tuple[dict[str, str], str, str]:
     if not isinstance(raw, dict) or not raw:
         raise ConfigError(f"File phiên Zalo {path} rỗng hoặc sai định dạng")
     if not imei:
-        raise ConfigError("Thiếu IMEI: đăng nhập lại bằng mã QR, hoặc điền ZALO_IMEI trong .env.")
+        raise ConfigError("Thiếu IMEI: đăng nhập lại bằng mã QR, hoặc điền ZALO_IMEI trong userdata/config/.env.")
     return {str(k): str(v) for k, v in raw.items()}, imei, user_agent
 
 

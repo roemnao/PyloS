@@ -11,7 +11,7 @@ from conftest import make_settings
 
 from bot.system import bootstrap, gateway
 
-from bot import config
+from bot import config, paths
 from bot.agent.tools import discover
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,28 +22,28 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_app_home_from_source_is_project_root(monkeypatch):
     monkeypatch.delenv("ZALOBOT_HOME", raising=False)
     monkeypatch.delattr(sys, "frozen", raising=False)
-    assert config.app_home() == ROOT
+    assert paths.app_home() == ROOT
 
 
 def test_app_home_when_frozen_is_exe_folder(monkeypatch, tmp_path):
     monkeypatch.delenv("ZALOBOT_HOME", raising=False)
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(tmp_path / "app" / "ZaloBot.exe"))
-    assert config.app_home() == (tmp_path / "app").resolve()
+    assert paths.app_home() == (tmp_path / "app").resolve()
 
 
 def test_app_home_falls_back_to_localappdata_when_not_writable(monkeypatch, tmp_path):
     monkeypatch.delenv("ZALOBOT_HOME", raising=False)
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(tmp_path / "ProgramFiles" / "ZaloBot.exe"))
-    monkeypatch.setattr(config, "_writable", lambda _: False)
+    monkeypatch.setattr(paths, "_writable", lambda _: False)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
-    assert config.app_home() == tmp_path / "local" / "ZaloAssistantBot"
+    assert paths.app_home() == tmp_path / "local" / "ZaloAssistantBot"
 
 
 def test_app_home_override(monkeypatch, tmp_path):
     monkeypatch.setenv("ZALOBOT_HOME", str(tmp_path))
-    assert config.app_home() == tmp_path.resolve()
+    assert paths.app_home() == tmp_path.resolve()
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="chỉ Windows mở cửa sổ console")
@@ -106,23 +106,31 @@ def test_spawn_command_source_and_frozen(monkeypatch):
 
 # ---------- lần chạy đầu ----------
 
-def test_ensure_home_creates_missing_files_without_overwriting(tmp_path):
-    (tmp_path / ".env").write_text("ZALO_BOT_TOKEN=keep-me\n", encoding="utf-8")
-    created = bootstrap.ensure_home(tmp_path, frozen=True)
-    assert set(created) == {"workspace/SYSTEM.md", "workspace/MEMORY.md", "tools/_example.py"}
-    assert (tmp_path / ".env").read_text(encoding="utf-8") == "ZALO_BOT_TOKEN=keep-me\n"
-    for directory in ("data", "logs", "workspace", "tools"):
-        assert (tmp_path / directory).is_dir()
-    assert bootstrap.ensure_home(tmp_path, frozen=True) == []
+def test_ensure_home_creates_userdata_without_overwriting(tmp_path):
+    env = tmp_path / "userdata" / "config" / ".env"
+    env.parent.mkdir(parents=True)
+    env.write_text("ZALO_BOT_TOKEN=keep-me\n", encoding="utf-8")
+    created = bootstrap.ensure_home(tmp_path)
+    assert set(created) == {"userdata/data/workspace/SYSTEM.md", "userdata/data/workspace/MEMORY.md",
+                            "userdata/data/tools/_example.py"}
+    assert env.read_text(encoding="utf-8") == "ZALO_BOT_TOKEN=keep-me\n"
+    for directory in ("config", "data", "data/workspace", "data/tools", "system", "system/logs"):
+        assert (tmp_path / "userdata" / directory).is_dir()
+    assert bootstrap.ensure_home(tmp_path) == []
 
     fresh = tmp_path / "fresh"
-    assert ".env" in bootstrap.ensure_home(fresh, frozen=False)
-    assert not (fresh / "tools").exists()
+    assert "userdata/config/.env" in bootstrap.ensure_home(fresh)
 
 
-def test_bundled_env_template_matches_repo_example():
-    template = (ROOT / "src" / "bot" / "templates" / "env.example").read_text(encoding="utf-8")
-    assert template == (ROOT / ".env.example").read_text(encoding="utf-8")
+def test_env_template_keeps_data_inside_userdata(tmp_path):
+    """Mẫu .env (app chép vào userdata/config/.env) không được trỏ dữ liệu về chỗ cũ data/, logs/..."""
+    from dotenv import dotenv_values
+
+    template = ROOT / "src" / "bot" / "templates" / "env.example"
+    env = {k: v or "" for k, v in dotenv_values(template).items()}
+    s = config.Settings.from_env(env, base_dir=tmp_path)
+    for path in (s.data_dir, s.workspace_dir, s.log_dir, s.system_dir, s.zalo_session_file):
+        assert (tmp_path / "userdata") in path.parents, path
 
 
 def test_ensure_admin_token_writes_once(tmp_path):
@@ -168,10 +176,10 @@ with InstanceLock(data / "bot.lock"):
 
 def test_gateway_stops_bot_gracefully_with_flag(tmp_path):
     settings = make_settings(tmp_path)
-    settings.data_dir.mkdir(parents=True)
-    proc = subprocess.Popen([sys.executable, "-c", HELPER, str(settings.data_dir)])
+    settings.system_dir.mkdir(parents=True)  # khoá, pid, cờ dừng nằm ở userdata/system
+    proc = subprocess.Popen([sys.executable, "-c", HELPER, str(settings.system_dir)])
     try:
-        assert gateway._wait(lambda: (settings.data_dir / "ready").exists(), 20)
+        assert gateway._wait(lambda: (settings.system_dir / "ready").exists(), 20)
         assert gateway.is_running(settings, gateway.BOT)
         result = gateway.stop(settings, gateway.BOT)
         assert result.ok, result.message
@@ -263,7 +271,7 @@ def test_icons(tmp_path):
 
 
 def test_check_secrets_finds_leaks(tmp_path):
-    sys.path.insert(0, str(ROOT / "packaging"))
+    sys.path.insert(0, str(ROOT / "scripts" / "packaging"))
     try:
         import check_secrets
     finally:

@@ -46,11 +46,11 @@ class Result:
 
 
 def pid_path(settings: Settings, service: Service = BOT) -> Path:
-    return settings.data_dir / f"{service.name}.pid"
+    return settings.system_dir / f"{service.name}.pid"
 
 
 def write_pid(settings: Settings, service: Service = BOT) -> None:
-    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    settings.system_dir.mkdir(parents=True, exist_ok=True)
     pid_path(settings, service).write_text(str(os.getpid()), encoding="utf-8")
 
 
@@ -69,7 +69,7 @@ def read_pid(settings: Settings, service: Service = BOT) -> int | None:
 
 
 def lock_for(settings: Settings, service: Service = BOT) -> InstanceLock:
-    return InstanceLock(settings.data_dir / f"{service.name}.lock")
+    return InstanceLock(settings.system_dir / f"{service.name}.lock")
 
 
 def is_running(settings: Settings, service: Service = BOT) -> bool:
@@ -85,7 +85,7 @@ def is_running(settings: Settings, service: Service = BOT) -> bool:
 
 def gui_running(settings: Settings) -> bool:
     """True nếu ứng dụng quản lý (cửa sổ + khay) đang mở."""
-    lock = InstanceLock(settings.data_dir / "gui.lock")
+    lock = InstanceLock(settings.system_dir / "gui.lock")
     try:
         lock.acquire()
     except AlreadyRunning:
@@ -169,7 +169,7 @@ def spawn_command(service: Service) -> list[str]:
 
 def stop_flag(settings: Settings, service: Service = BOT) -> Path:
     """File cờ yêu cầu tiến trình tự dừng (dừng êm, để exe dọn được thư mục tạm của nó)."""
-    return settings.data_dir / f"{service.name}.stop"
+    return settings.system_dir / f"{service.name}.stop"
 
 
 def _spawn(service: Service) -> subprocess.Popen:
@@ -209,7 +209,7 @@ def start(settings: Settings, service: Service = BOT) -> Result:
         # Chờ bot báo sẵn sàng (ready_at, sau khi kiểm tra token) hoặc thoát sớm (token sai, thiếu cấu hình...).
         def ready() -> bool:
             return child.poll() is not None or int(
-                StateStore(settings.data_dir / "state.txt").data.get("ready_at") or 0
+                StateStore(settings.system_dir / "state.txt").data.get("ready_at") or 0
             ) >= started
 
         _wait(ready, 40)
@@ -272,7 +272,7 @@ def _registry_autostart() -> bool:
 def status_info(settings: Settings) -> dict[str, Any]:
     """Trạng thái bot dạng dữ liệu, dùng cho `gateway status` và trang Tổng quan."""
     running = is_running(settings, BOT)
-    state = StateStore(settings.data_dir / "state.txt").data
+    state = StateStore(settings.system_dir / "state.txt").data
     groups = GroupStore(settings.data_dir / "groups.txt").all()
     return {
         "running": running,

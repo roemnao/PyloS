@@ -21,7 +21,7 @@ from typing import Any
 
 from bot.system import gateway
 from bot.system.bootstrap import ensure_admin_token, ensure_home
-from bot.config import APP_HOME, ConfigError, Settings
+from bot.config import APP_HOME, ENV_FILE, ConfigError, Settings
 from bot.system.logging_setup import setup_logging
 from bot.storage.lock import AlreadyRunning, InstanceLock
 
@@ -88,7 +88,7 @@ class Desktop:
         from bot.ui.admin.server import AdminContext, create_app
 
         self.port = _free_port(self.settings.admin_port)
-        app = create_app(AdminContext(APP_HOME / ".env", APP_HOME), self.port)
+        app = create_app(AdminContext(ENV_FILE, APP_HOME), self.port)
         self.server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=self.port, log_config=None, access_log=False))
         threading.Thread(target=self.server.run, name="admin-server", daemon=True).start()
         deadline = time.monotonic() + 15
@@ -156,7 +156,7 @@ class Desktop:
         """Đọc lại .env (có thể vừa sửa ở trang Cài đặt)."""
         from bot.ui.admin.server import AdminContext
 
-        return AdminContext(APP_HOME / ".env", APP_HOME).settings()
+        return AdminContext(ENV_FILE, APP_HOME).settings()
 
     def update_status(self) -> None:
         try:
@@ -241,9 +241,9 @@ class Desktop:
     # ---------- vòng nền ----------
 
     def _background(self) -> None:
-        show_flag = self.settings.data_dir / "gui.show"
+        show_flag = self.settings.system_dir / "gui.show"
         # Trang Tổng quan (bấm "Cập nhật") ghi file này để nhờ ứng dụng tự cập nhật và mở lại.
-        update_request = self.settings.data_dir / "gui.update"
+        update_request = self.settings.system_dir / "gui.update"
         last_status = 0.0
         next_update_check = time.monotonic() + 20
         while not self._stopped.is_set():
@@ -341,7 +341,7 @@ class Desktop:
             webview.start(
                 gui="edgechromium" if os.name == "nt" else None,
                 private_mode=False,  # giữ mã đăng nhập giữa các lần mở
-                storage_path=str(self.settings.data_dir / "webview"),
+                storage_path=str(self.settings.system_dir / "webview"),
             )
         except Exception:  # noqa: BLE001 - thiếu WebView2: dùng trình duyệt, ứng dụng vẫn chạy ở khay
             log.exception("Không mở được cửa sổ WebView2, chuyển sang trình duyệt")
@@ -364,27 +364,31 @@ class Desktop:
 
 def update_flag_file(settings: Settings) -> Path:
     """data/update.txt: số thay đổi mới chưa cập nhật, để trang Tổng quan hiện nút Cập nhật."""
-    return settings.data_dir / "update.txt"
+    return settings.system_dir / "update.txt"
 
 
 def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool = False) -> int:
+    from bot import paths
+
+    # Vừa cập nhật và chuyển dữ liệu sang userdata/: bot cũ đã tắt trong lúc chuyển, bật lại luôn.
+    start_bot = start_bot or (after_update and bool(paths.LAST_MIGRATED))
     try:
         ensure_home()
         settings = Settings.from_env()
-        settings, _ = ensure_admin_token(settings, APP_HOME / ".env")
+        settings, _ = ensure_admin_token(settings, ENV_FILE)
     except (ConfigError, OSError) as exc:
         _message_box(f"Không khởi động được:\n{exc}\n\nThư mục dữ liệu: {APP_HOME}")
         return 2
     setup_logging(settings.log_level, settings.log_dir, settings.secrets, filename="gui.log")
 
-    lock = InstanceLock(settings.data_dir / "gui.lock")
+    lock = InstanceLock(settings.system_dir / "gui.lock")
     try:
         # Mở lại sau khi cập nhật: chờ bản cũ thoát hẳn rồi mới nhận khoá.
         lock.acquire(wait=30.0 if after_update else 0.0)
     except AlreadyRunning:
         # Đã có một bản đang chạy: nhờ nó hiện cửa sổ rồi thoát.
         if not tray_only:
-            (settings.data_dir / "gui.show").write_text("1", encoding="utf-8")
+            (settings.system_dir / "gui.show").write_text("1", encoding="utf-8")
         return 0
     try:
         log.info("Mở ứng dụng quản lý (thư mục dữ liệu: %s)", APP_HOME)

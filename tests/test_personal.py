@@ -102,7 +102,7 @@ def test_require_personal_needs_qr_session(tmp_path):
     settings = make_settings(tmp_path, RECEIVE_MODE="personal", GEMINI_API_KEY="k")
     with pytest.raises(ConfigError, match="Chưa đăng nhập"):
         settings.require()
-    session = tmp_path / "data" / "zalo_session.json"
+    session = tmp_path / "userdata" / "config" / "zalo_session.json"
     session.parent.mkdir(parents=True, exist_ok=True)
     session.write_text(json.dumps({"imei": "i", "cookies": {"zpw_sek": "x"}}), encoding="utf-8")
     settings.require()  # không cần ZALO_BOT_TOKEN

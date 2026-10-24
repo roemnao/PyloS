@@ -290,20 +290,20 @@ def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_
     assert data["state"] == "success" and data["session"]["exists"] and data["session"]["display_name"] == "An"
     assert "imei-1" not in str(data) and "zpw_sek" not in str(data)  # không lộ phiên đăng nhập ra API
     assert "RECEIVE_MODE=personal" in env_path.read_text(encoding="utf-8")
-    assert json.loads((tmp_path / "data" / "zalo_session.json").read_text(encoding="utf-8"))["imei"] == "imei-1"
+    assert json.loads((tmp_path / "userdata" / "config" / "zalo_session.json").read_text(encoding="utf-8"))["imei"] == "imei-1"
 
 
 def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, monkeypatch):
     from bot.system import updater
 
-    (tmp_path / "data").mkdir(exist_ok=True)
-    (tmp_path / "data" / "update.txt").write_text("3", encoding="utf-8")
+    (tmp_path / "userdata" / "system").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "userdata" / "system" / "update.txt").write_text("3", encoding="utf-8")
     assert client.get("/api/status", headers=AUTH).json()["updates_pending"] == 3
 
     monkeypatch.setattr(updater, "unavailable_reason", lambda: None)
     monkeypatch.setattr(gateway, "gui_running", lambda settings: True)
     res = client.post("/api/update", headers=AUTH).json()
-    assert res["ok"] and (tmp_path / "data" / "gui.update").exists()
+    assert res["ok"] and (tmp_path / "userdata" / "system" / "gui.update").exists()
 
     monkeypatch.setattr(updater, "unavailable_reason", lambda: "Đang chạy ZaloBot.exe")
     assert client.post("/api/update", headers=AUTH).json() == {"ok": False, "message": "Đang chạy ZaloBot.exe"}

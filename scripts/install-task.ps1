@@ -13,8 +13,8 @@ $script = Join-Path $PSScriptRoot "run-forever.ps1"
 if (-not (Test-Path (Join-Path $root ".venv\Scripts\python.exe"))) {
     throw "Missing .venv. See README.md, section 'Cai dat'."
 }
-if (-not (Test-Path (Join-Path $root ".env"))) {
-    throw "Missing .env. Copy .env.example to .env and fill in ZALO_BOT_TOKEN and GEMINI_API_KEY."
+if (-not (Test-Path (Join-Path $root "userdata\config\.env"))) {
+    throw "Missing userdata\config\.env. Open the app once (ZaloBot.cmd) to create it, then fill in your keys on the Settings page."
 }
 
 function Register-BotTask([string]$TaskName, [string]$Command, [string]$Description) {
@@ -37,4 +37,4 @@ Register-BotTask "ZaloAssistantBot" "run" "Zalo assistant bot (auto restart)"
 if (-not $NoAdmin) {
     Register-BotTask "ZaloAssistantBotAdmin" "admin" "Zalo assistant bot - admin UI on http://127.0.0.1:8081 (auto restart)"
 }
-Write-Host "Logs: $root\logs\bot.log, $root\logs\admin.log"
+Write-Host "Logs: $root\userdata\system\logs\bot.log, $root\userdata\system\logs\admin.log"
