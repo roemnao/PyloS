@@ -9,7 +9,8 @@ import pytest
 from bot.config import ConfigError
 from bot.storage import ActivityStore
 from bot.zalo import ZaloError
-from bot.zalo.personal import PersonalZalo, _is_network_error, build_mentions, load_session, to_incoming
+from bot.mentions import add_tags, build_mentions
+from bot.zalo.personal import PersonalZalo, _is_network_error, load_session, mention_names, to_incoming
 
 from conftest import make_settings
 
@@ -206,3 +207,52 @@ async def test_bot_tells_model_member_names(tmp_path):
     system = agent.calls[0][0]
     assert "@Thái Toàn" in system or "Thái Toàn" in system
     assert "Thu Hồng" in system and "tag" in system
+
+
+def test_build_mentions_ignores_case_and_diacritics():
+    members = {"u5": "Phúc Xo"}
+    assert build_mentions("@phuc xo làm bài nhé", members) == [{"pos": 0, "len": 8, "uid": "u5", "type": 0}]
+
+
+def test_add_tags_only_for_names_requested_with_tag_intent():
+    members = {"u5": "Phúc Xo", "u6": "Bình", "u7": "Thái", "u8": "Thái Toàn"}
+    reply = "Phúc Xo ơi, bạn nhớ làm bài tập train C nhé"
+    assert add_tags(reply, "roemnao tag phúc xo kêu làm bài tập train c", members) == "@" + reply
+    # không có ý tag/nhắc/gọi: giữ nguyên (tránh làm người khác nhận thông báo khi chỉ nói về họ)
+    assert add_tags("Bình nói 7h nhé", "Bình nói mấy giờ vậy?", members) == "Bình nói 7h nhé"
+    # chỉ tag người được nhờ, không tag người khác có trong câu trả lời
+    assert add_tags("Bình ơi, Thái Toàn nhờ bạn", "nhắc Bình giúp", members) == "@Bình ơi, Thái Toàn nhờ bạn"
+    # tên dài khớp trước; đã có "@" thì không thêm nữa
+    assert add_tags("Thái Toàn ơi", "gọi thái toàn", members) == "@Thái Toàn ơi"
+    assert add_tags("@Thái Toàn ơi", "gọi thái toàn", members) == "@Thái Toàn ơi"
+
+
+async def test_bot_adds_missing_at_sign_end_to_end(tmp_path):
+    from bot.agent import PromptBuilder
+    from bot.app import Bot
+
+    from conftest import GROUP, FakeAgent, FakeZalo, event
+
+    class WithMembers(FakeZalo):
+        def members(self, chat_id):
+            return {"u5": "Phúc Xo"}
+
+    agent = FakeAgent(reply="Phúc Xo ơi, bạn nhớ làm bài tập train C nhé")
+    zalo = WithMembers()
+    settings = make_settings(tmp_path, ALLOWED_CHAT_IDS=GROUP, BOT_NAMES="roemnao")
+    bot = Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir), retry_delay=0)
+    await bot.handle_payload(event("roemnao tag phúc xo kêu làm bài tập train c"))
+    await bot.drain()
+    assert zalo.texts(GROUP)[-1] == "@Phúc Xo ơi, bạn nhớ làm bài tập train C nhé"
+
+
+def test_names_learned_from_incoming_tags(tmp_path):
+    text = "😀 roemnao tag @Phúc Xo với @All nhé"
+    mentions = [{"uid": "u5", "pos": 15, "len": 8, "type": 0}, {"uid": "-1", "pos": 28, "len": 4, "type": 1}]
+    assert mention_names(text, mentions) == {"u5": "Phúc Xo"}
+
+    zalo = make_personal(tmp_path)
+    zalo._on_message("m1", "u1", text, {"ts": "1", "mentions": mentions}, "g1", ThreadType.GROUP)
+    assert zalo._learned["g1"] == {"u5": "Phúc Xo"}
+    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    assert zalo.members("g1")["u5"] == "Phúc Xo"

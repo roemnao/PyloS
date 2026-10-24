@@ -12,6 +12,7 @@ from bot.agent import Agent, PromptBuilder, ToolContext, Turn
 from bot.commands import CommandHandler, parse_command
 from bot.config import Settings
 from bot.filter import Decision, MessageFilter
+from bot.mentions import add_tags
 from bot.ratelimit import RateLimiter
 from bot.storage import (
     MODE_ALL,
@@ -285,6 +286,8 @@ class Bot:
         self.stats.incr("replied")
         names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
         text = strip_name_prefix(to_plain_text(reply.text), names)
+        if members:
+            text = add_tags(text, prompt, members)  # model hay quên "@" trước tên người cần tag
         self.history.append(msg.chat_id, "model", text)
         await self._say(msg.chat_id, text)
 
