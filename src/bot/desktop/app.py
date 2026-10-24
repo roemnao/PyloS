@@ -239,7 +239,7 @@ class Desktop:
         threading.Thread(target=self.tray.run, name="tray", daemon=True).start()
         threading.Thread(target=self._background, name="background", daemon=True).start()
 
-        zalo_ready = self.settings.zalo_imei if self.settings.personal else self.settings.zalo_bot_token
+        zalo_ready = self.settings.zalo_session_file.is_file() if self.settings.personal else self.settings.zalo_bot_token
         needs_setup = not (zalo_ready and self.settings.gemini_api_key)
         if self.start_bot:
             threading.Thread(target=self._auto_start_bot, daemon=True).start()

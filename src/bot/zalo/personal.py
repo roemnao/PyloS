@@ -1,7 +1,7 @@
 """Chạy bot trên một tài khoản Zalo cá nhân (acc phụ) qua thư viện không chính thức zlapi.
 
-Khác Zalo Bot Platform: không có token. Bot đăng nhập bằng IMEI + cookies lấy từ
-chat.zalo.me, nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
+Khác Zalo Bot Platform: không có token. Bot đăng nhập bằng phiên (IMEI + cookies) có được
+khi quét mã QR (bot/zalo/qrlogin.py), nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
 Cách này không được Zalo hỗ trợ chính thức: acc có thể bị khoá, thư viện có thể hỏng
 khi Zalo đổi giao thức. Chỉ dùng acc phụ.
 
@@ -30,23 +30,38 @@ log = logging.getLogger(__name__)
 # Sự kiện cho tin không phải chữ (ảnh, sticker, file...): Bot chỉ cần biết nó không phải TEXT_EVENT.
 OTHER_EVENT = "message.other.received"
 HEARTBEAT_SECONDS = 60
+RELOGIN_HINT = "Quét mã QR lại: `python -m bot zalo-login` hoặc giao diện quản lý → Cài đặt."
 
 
-def load_cookies(path: Path) -> dict[str, str]:
-    """Đọc cookies từ file JSON: dạng {"tên": "giá trị"} hoặc danh sách [{"name", "value"}] (xuất từ extension)."""
+def load_session(path: Path, imei: str = "") -> tuple[dict[str, str], str, str]:
+    """Đọc file phiên đăng nhập, trả về (cookies, imei, user_agent).
+
+    Nhận các dạng:
+    - file do `python -m bot zalo-login` / giao diện tạo: {"imei", "user_agent", "cookies": {...}};
+    - cookies chép tay: {"tên": "giá trị"} hoặc danh sách [{"name", "value"}] (xuất từ extension).
+    IMEI trong file (đi cùng cookies khi quét QR) được ưu tiên hơn ZALO_IMEI.
+    """
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        raise ConfigError(f"Không thấy file cookies Zalo: {path}") from None
+        raise ConfigError(
+            f"Chưa đăng nhập acc Zalo cá nhân (không thấy {path}). "
+            "Chạy `python -m bot zalo-login` hoặc vào giao diện quản lý → Cài đặt → Đăng nhập bằng mã QR."
+        ) from None
     except ValueError as exc:
-        raise ConfigError(f"File cookies {path} không phải JSON hợp lệ: {exc}") from None
+        raise ConfigError(f"File phiên Zalo {path} không phải JSON hợp lệ: {exc}") from None
+    user_agent = ""
     if isinstance(raw, dict) and isinstance(raw.get("cookies"), (list, dict)):
+        imei = str(raw.get("imei") or "") or imei
+        user_agent = str(raw.get("user_agent") or "")
         raw = raw["cookies"]
     if isinstance(raw, list):
         raw = {str(c.get("name")): str(c.get("value", "")) for c in raw if isinstance(c, dict) and c.get("name")}
     if not isinstance(raw, dict) or not raw:
-        raise ConfigError(f"File cookies {path} rỗng hoặc sai định dạng")
-    return {str(k): str(v) for k, v in raw.items()}
+        raise ConfigError(f"File phiên Zalo {path} rỗng hoặc sai định dạng")
+    if not imei:
+        raise ConfigError("Thiếu IMEI: đăng nhập lại bằng mã QR, hoặc điền ZALO_IMEI trong .env.")
+    return {str(k): str(v) for k, v in raw.items()}, imei, user_agent
 
 
 def to_incoming(
@@ -108,7 +123,7 @@ class PersonalZalo:
     def login(self) -> None:
         """Đăng nhập bằng cookies (chạy đồng bộ, gọi qua asyncio.to_thread)."""
         api_cls, self._message_cls, self._thread_type_cls = _import_zlapi()
-        cookies = load_cookies(self.settings.zalo_cookies_file)
+        cookies, imei, user_agent = load_session(self.settings.zalo_session_file, self.settings.zalo_imei)
         owner = self
 
         class _Client(api_cls):
@@ -124,14 +139,14 @@ class PersonalZalo:
                 log.warning("zlapi lỗi: %s", error)
 
         try:
-            self._api = _Client(imei=self.settings.zalo_imei, cookies=cookies)
+            self._api = _Client(imei=imei, cookies=cookies, user_agent=user_agent or None)
         except Exception as exc:  # noqa: BLE001 - zlapi ném nhiều loại lỗi khác nhau
             if _is_network_error(exc):
                 raise ZaloError("Không kết nối được Zalo (lỗi mạng), sẽ thử lại", network=True) from None
-            raise ZaloError(f"Đăng nhập Zalo cá nhân thất bại: {exc}. Lấy lại IMEI và cookies mới.") from None
+            raise ZaloError(f"Đăng nhập Zalo cá nhân thất bại: {exc}. {RELOGIN_HINT}") from None
         self.self_id = str(self._api.uid() or "")
         if not self.self_id:
-            raise ZaloError("Đăng nhập Zalo cá nhân thất bại: cookies hết hạn hoặc IMEI không khớp. Lấy lại cả hai.")
+            raise ZaloError(f"Đăng nhập Zalo cá nhân thất bại: phiên đã hết hạn. {RELOGIN_HINT}")
         try:
             profile = self._api.fetchAccountInfo().profile
             self.self_name = str(profile.get("displayName") or profile.get("zaloName") or "")

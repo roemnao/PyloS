@@ -9,7 +9,7 @@ import pytest
 from bot.config import ConfigError
 from bot.storage import ActivityStore
 from bot.zalo import ZaloError
-from bot.zalo.personal import PersonalZalo, _is_network_error, load_cookies, to_incoming
+from bot.zalo.personal import PersonalZalo, _is_network_error, load_session, to_incoming
 
 from conftest import make_settings
 
@@ -47,21 +47,27 @@ def make_personal(tmp_path, api=None) -> PersonalZalo:
     return zalo
 
 
-def test_load_cookies_accepts_dict_and_extension_list(tmp_path):
+def test_load_session_reads_qr_file_and_manual_cookies(tmp_path):
+    qr = tmp_path / "s.json"
+    qr.write_text(json.dumps({"imei": "imei-qr", "user_agent": "UA", "cookies": {"zpw_sek": "x"}}), encoding="utf-8")
+    assert load_session(qr, imei="imei-env") == ({"zpw_sek": "x"}, "imei-qr", "UA")
+
     flat = tmp_path / "a.json"
     flat.write_text(json.dumps({"zpw_sek": "x", "zpsid": "y"}), encoding="utf-8")
-    assert load_cookies(flat) == {"zpw_sek": "x", "zpsid": "y"}
+    assert load_session(flat, imei="imei-env") == ({"zpw_sek": "x", "zpsid": "y"}, "imei-env", "")
 
     listed = tmp_path / "b.json"
     listed.write_text(json.dumps([{"name": "zpw_sek", "value": "x", "domain": ".zalo.me"}]), encoding="utf-8")
-    assert load_cookies(listed) == {"zpw_sek": "x"}
+    assert load_session(listed, imei="i")[0] == {"zpw_sek": "x"}
 
-    with pytest.raises(ConfigError):
-        load_cookies(tmp_path / "missing.json")
+    with pytest.raises(ConfigError, match="zalo-login"):
+        load_session(tmp_path / "missing.json")
+    with pytest.raises(ConfigError, match="IMEI"):
+        load_session(flat)
     bad = tmp_path / "c.json"
     bad.write_text("[]", encoding="utf-8")
     with pytest.raises(ConfigError):
-        load_cookies(bad)
+        load_session(bad, imei="i")
 
 
 def test_to_incoming_maps_fields_and_marks_own_messages():
@@ -78,16 +84,14 @@ def test_to_incoming_maps_fields_and_marks_own_messages():
     assert to_incoming("m4", None, "x", {}, "u1", False, "me-1") is None
 
 
-def test_require_personal_needs_imei_and_cookies(tmp_path):
+def test_require_personal_needs_qr_session(tmp_path):
     settings = make_settings(tmp_path, RECEIVE_MODE="personal", GEMINI_API_KEY="k")
-    with pytest.raises(ConfigError, match="cookies"):
+    with pytest.raises(ConfigError, match="Chưa đăng nhập"):
         settings.require()
-    cookies = tmp_path / "data" / "zalo_cookies.json"
-    cookies.parent.mkdir(parents=True, exist_ok=True)
-    cookies.write_text("{}", encoding="utf-8")
-    with pytest.raises(ConfigError, match="ZALO_IMEI"):
-        settings.require()
-    make_settings(tmp_path, RECEIVE_MODE="personal", GEMINI_API_KEY="k", ZALO_IMEI="imei").require()
+    session = tmp_path / "data" / "zalo_session.json"
+    session.parent.mkdir(parents=True, exist_ok=True)
+    session.write_text(json.dumps({"imei": "i", "cookies": {"zpw_sek": "x"}}), encoding="utf-8")
+    settings.require()  # không cần ZALO_BOT_TOKEN
 
 
 async def test_send_picks_thread_type_from_activity(tmp_path):

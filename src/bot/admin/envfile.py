@@ -56,7 +56,6 @@ SECRETS: dict[str, str] = {
     "ZALO_BOT_TOKEN": "Bot token Zalo",
     "GEMINI_API_KEY": "API key Gemini",
     "WEBHOOK_SECRET": "Webhook secret (8–256 ký tự)",
-    "ZALO_IMEI": "IMEI acc Zalo cá nhân (chế độ personal)",
 }
 
 _LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=")

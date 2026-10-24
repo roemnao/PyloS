@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -84,7 +86,7 @@ def test_secrets_never_leave_the_server(client):
         text = client.get(path, headers=AUTH).text
         assert ZALO_TOKEN not in text and ADMIN_TOKEN not in text, path
     secrets = {s["key"]: s["set"] for s in client.get("/api/settings", headers=AUTH).json()["secrets"]}
-    assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False, "ZALO_IMEI": False}
+    assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False}
 
 
 # ---------- cài đặt / .env ----------
@@ -254,3 +256,38 @@ def test_status_reports_alerts_and_stats(client, tmp_path):
     assert any("GEMINI_API_KEY" in a for a in data["alerts"])
     assert any("hạn mức" in a for a in data["alerts"])
     assert data["running"] is False
+
+
+# ---------- đăng nhập acc Zalo cá nhân bằng QR ----------
+
+def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_path, monkeypatch):
+    import time
+
+    from bot.zalo import qrlogin
+
+    class FakeLogin:
+        def __init__(self, *args, **kwargs):
+            self.status = qrlogin.QrStatus(state=qrlogin.WAITING_SCAN, image="UE5H", message="Quét mã")
+
+        def report(self, state, message="", **extra):
+            self.status = qrlogin.QrStatus(state=state, message=message, display_name=extra.get("display_name", ""))
+
+        def run(self):
+            self.report(qrlogin.SUCCESS, "Đã kết nối acc An.", display_name="An")
+            return qrlogin.ZaloSession(cookies={"zpw_sek": "x"}, imei="imei-1", display_name="An")
+
+        def cancel(self):
+            pass
+
+    monkeypatch.setattr(qrlogin, "QrLogin", FakeLogin)
+    assert client.get("/api/zalo-login", headers=AUTH).json()["state"] == "idle"
+    assert client.post("/api/zalo-login/start", headers=AUTH).status_code == 200
+    for _ in range(50):
+        data = client.get("/api/zalo-login", headers=AUTH).json()
+        if data["state"] == "success" and "RECEIVE_MODE" in data["message"]:
+            break
+        time.sleep(0.05)
+    assert data["state"] == "success" and data["session"]["exists"] and data["session"]["display_name"] == "An"
+    assert "imei-1" not in str(data) and "zpw_sek" not in str(data)  # không lộ phiên đăng nhập ra API
+    assert "RECEIVE_MODE=personal" in env_path.read_text(encoding="utf-8")
+    assert json.loads((tmp_path / "data" / "zalo_session.json").read_text(encoding="utf-8"))["imei"] == "imei-1"

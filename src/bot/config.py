@@ -115,7 +115,7 @@ class Settings:
     allow_all_chats: bool = False
     # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal.py)
     zalo_imei: str = ""
-    zalo_cookies_file: Path = Path("data/zalo_cookies.json")
+    zalo_session_file: Path = Path("data/zalo_session.json")
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -169,7 +169,7 @@ class Settings:
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
             allow_all_chats=_bool(env, "ALLOW_ALL_CHATS", False),
             zalo_imei=env.get("ZALO_IMEI", "").strip(),
-            zalo_cookies_file=path("ZALO_COOKIES_FILE", "data/zalo_cookies.json"),
+            zalo_session_file=path("ZALO_SESSION_FILE", "data/zalo_session.json"),
         )
 
     @property
@@ -180,13 +180,9 @@ class Settings:
         """Dừng với thông báo rõ ràng nếu thiếu bí mật cần cho lệnh đang chạy."""
         missing = []
         if zalo and self.personal:
-            if not self.zalo_imei:
-                missing.append("ZALO_IMEI")
-            if not self.zalo_cookies_file.is_file():
-                raise ConfigError(
-                    f"RECEIVE_MODE=personal cần file cookies Zalo ở {self.zalo_cookies_file} "
-                    "(xem mục \"Chạy trên acc Zalo cá nhân\" trong README)."
-                )
+            from bot.zalo.personal import load_session
+
+            load_session(self.zalo_session_file, self.zalo_imei)  # ném ConfigError nếu chưa đăng nhập bằng QR
         elif zalo and not self.zalo_bot_token:
             missing.append("ZALO_BOT_TOKEN")
         if gemini and not self.gemini_api_key:

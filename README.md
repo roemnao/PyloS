@@ -96,7 +96,7 @@ Mở http://127.0.0.1:8081. Mã đăng nhập là `ADMIN_TOKEN` trong `.env`; n�
 | Chat thử | Nói chuyện với trợ lý mà không qua Zalo (token vẫn được tính) |
 | Log | Xem log bot / giao diện, lọc theo mức, theo dõi trực tiếp |
 | Tin lỗi | Gửi lại hoặc bỏ qua tin bot không gửi được |
-| Cài đặt | Sửa các giá trị trong `.env` (có sao lưu `.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
+| Cài đặt | Đăng nhập acc Zalo cá nhân bằng mã QR; sửa các giá trị trong `.env` (có sao lưu `.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
 
 Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được từ máy khác), bắt buộc mã truy cập, chặn yêu cầu từ trang web khác. Đừng đưa cổng 8081 ra Internet.
 
@@ -152,7 +152,7 @@ Polling và webhook không dùng cùng lúc được. Khi chạy lại ở chế
 
 ## Chạy trên acc Zalo cá nhân (acc phụ)
 
-Thay vì Zalo Bot, bot có thể đăng nhập thẳng vào **một acc Zalo cá nhân** và trả lời dưới tên acc đó. Bạn kết bạn, nhắn riêng hay thêm acc này vào nhóm như với người thật.
+Thay vì Zalo Bot, bot có thể đăng nhập vào **một acc Zalo cá nhân** bằng cách **quét mã QR**, giống khi đăng nhập Zalo Web, rồi trả lời dưới tên acc đó. Bạn kết bạn, nhắn riêng hay thêm acc này vào nhóm như với người thật.
 
 > ⚠️ Cách này dùng thư viện **không chính thức** [zlapi](https://pypi.org/project/zlapi/), giả làm Zalo Web. Nó **vi phạm điều khoản của Zalo**: acc có thể bị khoá bất cứ lúc nào. Thư viện cũng có thể ngừng chạy khi Zalo đổi giao thức. **Chỉ dùng acc phụ**, đừng dùng acc chính.
 
@@ -162,33 +162,32 @@ Thay vì Zalo Bot, bot có thể đăng nhập thẳng vào **một acc Zalo cá
    .venv\Scripts\python.exe -m pip install -e ".[personal]"
    ```
 
-2. Lấy **IMEI** và **cookies** của acc phụ:
-   - Trên máy tính, mở trình duyệt (nên dùng một hồ sơ trình duyệt riêng), vào https://chat.zalo.me và đăng nhập **acc phụ**.
-   - Lấy IMEI và cookies bằng extension mà tài liệu zlapi giới thiệu (xem mục "How to get IMEI and Cookies" trên trang zlapi), rồi chép ra.
-   - Lưu cookies vào `data/zalo_cookies.json`. Cả hai dạng sau đều đọc được: `{"tên_cookie": "giá trị", ...}` hoặc danh sách `[{"name": ..., "value": ...}, ...]` mà extension xuất ra.
-   - Sau khi lấy xong, **đóng tab chat.zalo.me** nhưng **đừng bấm Đăng xuất**: đăng xuất làm cookies hết hạn.
+2. Trên điện thoại, đăng nhập Zalo bằng **acc phụ**.
 
-3. Sửa `.env`:
+3. Tạo mã QR bằng một trong hai cách sau.
+   - **Giao diện quản lý** (khuyên dùng, chạy được cả trên VPS qua SSH tunnel): vào **Cài đặt**, bấm **Đăng nhập bằng mã QR**, mã hiện ngay trên trang.
+   - **Dòng lệnh**: `python -m bot zalo-login`. Ảnh mã QR được lưu vào `data/zalo_qr.png` và tự mở. Trên máy không có màn hình, thêm `--no-open`.
 
-   ```
-   RECEIVE_MODE=personal
-   ZALO_IMEI=<IMEI vừa lấy>
-   # ZALO_COOKIES_FILE=data/zalo_cookies.json   (mặc định)
-   ```
+4. Trong app Zalo của acc phụ, bấm biểu tượng **quét mã**, quét mã QR, rồi bấm **Đăng nhập** để xác nhận. Mã QR hết hạn sau khoảng 100 giây: dòng lệnh tự tạo mã mới, còn trên giao diện thì bấm tạo lại.
 
-   `ZALO_BOT_TOKEN` để trống cũng được.
+5. Xong bước 4, bot tự làm phần còn lại:
+   - lưu phiên đăng nhập vào `data/zalo_session.json`;
+   - đặt `RECEIVE_MODE=personal` trong `.env`;
+   - nếu bot đang chạy thì tự khởi động lại.
 
-4. Chạy bot như bình thường: `python -m bot run` (hoặc `gateway start`, ZaloBot.exe, systemd...).
+   Nếu bot chưa chạy, bật bằng `python -m bot run`, `gateway start` hoặc nút Bật bot. `ZALO_BOT_TOKEN` để trống cũng được.
 
-5. Từ **acc chính** của bạn, nhắn riêng `/id` cho acc phụ, điền `user_id` nhận được vào `OWNER_ZALO_ID`, rồi khởi động lại bot. Sau đó dùng `/allow`, `/mode`... như với Zalo Bot.
+6. Từ **acc chính** của bạn, nhắn riêng `/id` cho acc phụ, điền `user_id` nhận được vào `OWNER_ZALO_ID`, rồi khởi động lại bot. Sau đó dùng `/allow`, `/mode`... như với Zalo Bot.
 
 Lưu ý:
-- **Cookies và IMEI là chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. `data/` và `.env` đã nằm trong `.gitignore`.
-- **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở lại chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
+- `data/zalo_session.json` là **chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. Thư mục `data/` đã nằm trong `.gitignore`. Muốn chuyển bot sang máy khác (VPS...), chép cả file này theo, hoặc quét QR lại trên máy mới.
+- Trong app Zalo của acc phụ, mục **Quản lý thiết bị đăng nhập** sẽ hiện một phiên Zalo Web. **Đừng đăng xuất phiên đó**, nếu không bot mất kết nối.
+- **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
 - Tin acc phụ tự gửi (kể cả gửi từ điện thoại) bị bot bỏ qua, nên bot không tự trả lời chính mình.
-- Nếu log báo "Đăng nhập Zalo cá nhân thất bại", cookies đã hết hạn: lấy cookies (và IMEI) mới rồi khởi động lại.
+- Khi phiên hết hạn, log báo "Đăng nhập Zalo cá nhân thất bại". Lúc đó chỉ cần quét QR lại.
 - Các lệnh `me`, `set-webhook`... và nút "Gửi lại" ở trang Tin lỗi chỉ dùng được với Zalo Bot.
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
+- Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `data/zalo_session.json` và điền `ZALO_IMEI` trong `.env`.
 
 ## Thêm tool cho trợ lý
 

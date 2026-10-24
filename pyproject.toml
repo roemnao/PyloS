@@ -23,6 +23,7 @@ dev = [
 # Chạy trên acc Zalo cá nhân (RECEIVE_MODE=personal): thư viện không chính thức
 personal = [
     "zlapi>=1.0.3",
+    "requests>=2.31",
 ]
 # Ứng dụng quản lý (cửa sổ + khay): python -m bot gui
 desktop = [

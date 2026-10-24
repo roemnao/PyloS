@@ -576,6 +576,61 @@ async function renderFailed(main) {
       : [h("p", { class: "empty", text: "Không có tin lỗi nào." })]));
 }
 
+// ---------- Đăng nhập acc Zalo cá nhân bằng mã QR ----------
+
+function zaloLoginCard() {
+  const info = h("p", { class: "muted small" });
+  const image = h("img", { class: "qr", alt: "Mã QR đăng nhập Zalo", hidden: true });
+  const message = h("p", { role: "status" });
+  const startBtn = h("button", { class: "btn primary", type: "button", text: "Đăng nhập bằng mã QR" });
+  const cancelBtn = h("button", { class: "btn", type: "button", text: "Huỷ", hidden: true });
+  let timer = null;
+
+  function show(data) {
+    const s = data.session || {};
+    info.textContent = s.exists
+      ? `Đang dùng acc: ${s.display_name || "(không rõ tên)"}${s.saved_at ? ` · đăng nhập ${timeText(s.saved_at)}` : ""}`
+        + (s.personal ? "" : " · chưa bật (RECEIVE_MODE không phải personal)")
+      : "Chưa đăng nhập acc Zalo cá nhân nào.";
+    const active = ["starting", "waiting_scan", "scanned"].includes(data.state);
+    image.hidden = !data.image;
+    if (data.image) image.src = `data:image/png;base64,${data.image}`;
+    message.textContent = data.message || "";
+    message.className = data.state === "success" ? "ok" : ["error", "declined", "expired"].includes(data.state) ? "error" : "";
+    startBtn.hidden = active;
+    startBtn.textContent = s.exists ? "Đăng nhập lại / đổi acc bằng mã QR" : "Đăng nhập bằng mã QR";
+    cancelBtn.hidden = !active;
+    if (!active && timer) { clearInterval(timer); timer = null; }
+  }
+
+  async function poll() {
+    try { show(await api("/api/zalo-login")); } catch (err) { reportError(err); }
+  }
+
+  function watch() {
+    if (!timer) timer = setInterval(poll, 1500);
+  }
+
+  startBtn.addEventListener("click", async () => {
+    try { show(await api("/api/zalo-login/start", { method: "POST" })); watch(); } catch (err) { reportError(err); }
+  });
+  cancelBtn.addEventListener("click", async () => {
+    try { show(await api("/api/zalo-login/cancel", { method: "POST" })); } catch (err) { reportError(err); }
+  });
+  state.cleanup.push(() => { if (timer) clearInterval(timer); });
+  api("/api/zalo-login").then((data) => {
+    show(data);
+    if (["starting", "waiting_scan", "scanned"].includes(data.state)) watch();
+  }).catch(reportError);
+
+  return h("div", { class: "card stack" },
+    h("h2", { text: "Acc Zalo cá nhân (đăng nhập bằng mã QR)" }),
+    h("p", { class: "muted small", text: "Cho bot chạy trên một acc Zalo cá nhân thay vì Zalo Bot. Trên điện thoại đang đăng nhập "
+      + "ACC PHỤ, mở Zalo → biểu tượng quét mã → quét mã bên dưới → bấm Đăng nhập. Cách này không chính thức: "
+      + "acc có thể bị Zalo khoá, đừng dùng acc chính." }),
+    info, image, message, h("div", { class: "row" }, startBtn, cancelBtn));
+}
+
 // ---------- Cài đặt ----------
 
 async function renderSettings(main) {
@@ -641,6 +696,7 @@ async function renderSettings(main) {
   fill(main, 
     h("h1", { text: "Cài đặt" }),
     banner,
+    zaloLoginCard(),
     ...[...groups].map(([name, fields]) => h("div", { class: "card stack" }, h("h2", { text: name }), ...fields)),
     h("div", { class: "row", style: "margin-bottom:1rem" }, h("button", { class: "btn primary", type: "button", text: "Lưu cài đặt", onclick: save })),
     h("div", { class: "card stack" }, h("h2", { text: "Khóa bí mật" }),
