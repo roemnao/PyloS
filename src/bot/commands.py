@@ -12,8 +12,8 @@ COMMANDS = ("help", "mode", "allow", "deny", "status", "reset", "id")
 HELP = (
     "Lệnh của chủ bot:\n"
     "/mode - xem chế độ của nhóm này\n"
-    "/mode all - trả lời mọi tin nhắn\n"
-    "/mode default - chỉ trả lời tin gọi bot\n"
+    "/mode all - bộ lọc AI: trả lời khi được gọi hoặc khi AI thấy tin đang nhờ bot\n"
+    "/mode default - chỉ trả lời khi được gọi (/bot, @tag, tên bot)\n"
     "/allow - cho phép nhóm này dùng bot\n"
     "/deny - chặn nhóm này\n"
     "/status - xem trạng thái\n"
@@ -43,8 +43,8 @@ def parse_command(text: str | None) -> ParsedCommand | None:
 
 def describe_mode(mode: str, triggers: tuple[str, ...]) -> str:
     if mode == MODE_ALL:
-        return "all (trả lời mọi tin nhắn)"
-    return f"default (trả lời khi được gọi: {', '.join(triggers)}, @tag, gọi tên bot, hoặc bộ lọc AI thấy tin đang nhờ bot)"
+        return "all (bộ lọc AI: trả lời khi được gọi hoặc khi AI thấy tin đang nhờ bot)"
+    return f"default (chỉ trả lời khi được gọi: {', '.join(triggers)}, @tag hoặc tên bot)"
 
 
 class CommandHandler:

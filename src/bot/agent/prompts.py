@@ -49,7 +49,8 @@ class PromptBuilder:
             "## Bối cảnh\n"
             f"- Bây giờ: {WEEKDAYS[now.weekday()]}, {now:%H:%M %d/%m/%Y} (giờ Việt Nam).\n"
             f"- Cuộc trò chuyện: {'nhóm Zalo nhiều người' if is_group else 'chat riêng'}. "
-            "Mỗi tin của người dùng có dạng \"Tên: nội dung\".\n"
+            "Mỗi tin của người dùng có dạng \"Tên: nội dung\" để bạn biết ai đang nói; "
+            "khi trả lời thì viết thẳng nội dung, KHÔNG mở đầu bằng \"Tên:\".\n"
             f"- Công cụ hiện có: {', '.join(tool_names) if tool_names else 'không có'}."
         )
         if is_group and "doc_memorydata" in tool_names:

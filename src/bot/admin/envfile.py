@@ -32,13 +32,13 @@ FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec("ALLOW_ALL_CHATS", "Cho phép mọi cuộc trò chuyện",
               "Bật: bot trả lời ở mọi nhóm và chat riêng, không cần /allow (chat bị /deny vẫn bị chặn). "
               "Tắt: chỉ các chat đã /allow.", kind="bool"),
-    FieldSpec("BOT_TRIGGERS", "Từ gọi bot", "Ở chế độ default, chỉ trả lời tin bắt đầu bằng các từ này (cách nhau dấu phẩy)."),
+    FieldSpec("BOT_TRIGGERS", "Từ gọi bot", "Tin trong nhóm bắt đầu bằng một trong các từ này thì bot trả lời (cách nhau dấu phẩy)."),
     FieldSpec("BOT_NAMES", "Tên gọi bot",
-              "Ở chế độ default, tin trong nhóm có nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, "
+              "Tin trong nhóm có nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, "
               "không cần /bot. Tên acc Zalo của bot được tự thêm. Cách nhau dấu phẩy; để trống để tắt."),
     FieldSpec("FILTER_AI", "Bộ lọc AI",
-              "Bật: tin trong nhóm không gọi tên bot vẫn được Gemini xét xem có đang nhờ bot không. "
-              "Tắt: chỉ trả lời khi có /bot, @tag hoặc gọi tên (không tốn token cho bộ lọc).",
+              "Bật: ở nhóm chế độ all (/mode all), tin không gọi tên bot được Gemini xét xem có đang nhờ bot không. "
+              "Nhóm chế độ default luôn chỉ trả lời khi được gọi. Tắt: mọi nhóm chỉ trả lời khi có /bot, @tag hoặc gọi tên.",
               kind="bool", group="Bộ lọc & memorydata"),
     FieldSpec("FILTER_MODEL", "Model cho bộ lọc", "Nên dùng model rẻ, nhanh. Để trống = GEMINI_MODEL.",
               group="Bộ lọc & memorydata"),

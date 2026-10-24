@@ -49,13 +49,31 @@ async def test_bare_trigger_asks_what_to_do(make_bot, zalo, agent):
     assert zalo.texts(GROUP) == ["Bạn cần mình giúp gì?"]
 
 
-async def test_mode_all_answers_every_message(make_bot, agent):
+async def test_mode_all_lets_ai_filter_decide(make_bot, agent):
     bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
     await send(bot, event("/mode all", from_id=OWNER))
     assert bot.groups.get(GROUP).mode == "all"
+    await send(bot, event("tin thường AI bảo không"))  # FakeAgent.filter_reply mặc định False
+    agent.filter_reply = True
     await send(bot, event("tin thường 1"))
     await send(bot, event("/bot tin có gọi"))
     assert [c[1][-1].text for c in agent.calls] == ["tin thường 1", "tin có gọi"]
+    assert len(agent.classify_calls) == 2  # tin /bot qua bằng quy tắc, không hỏi AI
+
+
+async def test_default_mode_never_asks_ai(make_bot, agent):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    agent.filter_reply = True
+    await send(bot, event("mai mấy giờ họp nhỉ"))
+    assert agent.calls == [] and agent.classify_calls == []
+
+
+async def test_reply_name_prefix_is_removed(make_bot, agent, zalo):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    agent.reply_text = "An: chào bạn nhé"
+    await send(bot, event("/bot chào", name="An"))
+    assert zalo.texts(GROUP)[-1] == "chào bạn nhé"
+    assert bot.history.recent(GROUP, 5)[-1]["text"] == "chào bạn nhé"
 
 
 async def test_non_owner_commands_are_ignored(make_bot, zalo, agent):
@@ -259,6 +277,7 @@ async def test_budget_exceeded_turns_all_into_default_and_notifies_once(make_bot
     agent.tokens = 60
     bot = make_bot(ALLOWED_CHAT_IDS=GROUP, DAILY_TOKEN_BUDGET="100")
     await send(bot, event("/mode all", from_id=OWNER))
+    agent.filter_reply = True
     await send(bot, event("tin 1"))
     await send(bot, event("tin 2"))  # vượt hạn mức sau tin này
     assert zalo.texts(GROUP).count(BUDGET_NOTICE) == 1

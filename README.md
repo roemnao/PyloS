@@ -52,7 +52,7 @@ Sau đó mở `.env` và điền:
 4. Điền `user_id` của bạn vào `OWNER_ZALO_ID` trong `.env`, rồi khởi động lại bot (Ctrl+C rồi chạy lại lệnh ở bước 2).
 5. Trong nhóm, gõ `/allow`. Từ đây:
    - Bot trả lời tin bắt đầu bằng `/bot` (chế độ `default`).
-   - `/mode all` để bot trả lời mọi tin.
+   - `/mode all` để bot tự nhận ra cả những câu nhờ nó mà không gọi tên (bộ lọc AI, xem mục "Bộ lọc tin nhóm và memorydata").
 6. Xem `logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
 
 ## Mở ứng dụng bằng ZaloBot.cmd (khuyên dùng)
@@ -219,10 +219,10 @@ Mỗi cuộc trò chuyện (nhóm hoặc chat riêng) đã được cho phép c�
 | **Session** | `data/history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
 
 **Bộ lọc** quyết định tin trong nhóm có đang nhờ bot trả lời không (chat riêng thì tin nào cũng qua). Các tầng chạy theo thứ tự:
-1. Nhóm ở chế độ `all`: qua.
-2. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
-3. Sticker, ảnh, hay tin chỉ là cảm thán ("ok", "haha", emoji…): chặn ngay.
-4. Còn lại: hỏi Gemini "tin này có đang nhờ trợ lý không?". Gemini được xem thêm `FILTER_CONTEXT_LINES` tin gần nhất, nên hiểu cả câu hỏi tiếp nối ngay sau khi bot vừa trả lời. Token của bước này cũng tính vào hạn mức ngày. Khi hết hạn mức, hoặc `FILTER_AI=false`, chỉ còn tầng 2 cho qua.
+1. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
+2. Sticker, ảnh, tin chỉ là cảm thán ("ok", "haha", emoji…), hoặc tin **chỉ tag người khác** ("@Thái Toàn", "@All …"): chặn ngay.
+3. Nhóm ở **`/mode default`**: dừng ở đây, tức là chỉ trả lời khi được gọi.
+4. Nhóm ở **`/mode all`**: hỏi Gemini "tin này có đang nhờ trợ lý không?". Gemini được xem thêm `FILTER_CONTEXT_LINES` tin gần nhất, nên hiểu cả câu hỏi tiếp nối ngay sau khi bot vừa trả lời. Gemini được dặn: không chắc thì không trả lời. Token của bước này cũng tính vào hạn mức ngày. Khi hết hạn mức, hoặc `FILTER_AI=false`, chỉ còn tầng 1 cho qua.
 
 Tin không qua lọc vẫn nằm trong memorydata. Khi bạn hỏi "bot tóm tắt nhóm nói gì hôm nay" hay "lúc nãy Bình hẹn mấy giờ?", bot tự gọi tool `doc_memorydata` để đọc lại. Tool chỉ đọc được **chính cuộc trò chuyện đó**.
 

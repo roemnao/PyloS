@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -270,7 +271,8 @@ class Bot:
         self.usage.add(reply.tokens)
         self.stats.incr("tokens", reply.tokens)
         self.stats.incr("replied")
-        text = to_plain_text(reply.text)
+        names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
+        text = strip_name_prefix(to_plain_text(reply.text), names)
         self.history.append(msg.chat_id, "model", text)
         await self._say(msg.chat_id, text)
 
@@ -301,3 +303,12 @@ class Bot:
         self.failed.add(chat_id, text, last_error)
         self.stats.incr("errors")
         log.error("Bỏ cuộc gửi tin tới chat %s, đã lưu vào failed.txt", chat_id)
+
+
+def strip_name_prefix(text: str, names: set[str]) -> str:
+    """Model hay bắt chước dạng "Tên: nội dung" của lịch sử và trả "An: ...": bỏ phần "Tên:" ở đầu."""
+    for name in sorted((n.strip() for n in names if n and n.strip()), key=len, reverse=True):
+        match = re.match(rf"\s*{re.escape(name)}\s*:\s*", text, re.IGNORECASE)
+        if match and text[match.end():].strip():
+            return text[match.end():]
+    return text
