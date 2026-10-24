@@ -23,11 +23,13 @@ D:\pylosSever\
 │  │  ├─ chat_activity.txt          lần nhắn cuối của từng cuộc trò chuyện
 │  │  ├─ daily_stats.txt            số tin nhận/trả lời/lỗi/token theo ngày
 │  │  ├─ token_usage.txt            token Gemini đã dùng mỗi ngày (hạn mức)
-│  │  └─ failed_replies.txt         câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
+│  │  ├─ failed_replies.txt         câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
+│  │  └─ assigned_events.txt        lịch bot đã giao cho người khác (để sửa / huỷ "lịch lúc nãy")
 │  └─ system\                       (3) bot tự quản lý, không cần đụng
 │     ├─ logs\                      bot.log, admin.log, gui.log, supervisor.log
 │     ├─ bot_status.txt             lúc khởi động, lần nhận tin cuối
 │     ├─ processed_message_ids.txt  id tin đã xử lý (chống trả lời trùng)
+│     ├─ remote_config.json         thông số lấy từ web iforgotmywayhome (bản gần nhất, dùng khi mất mạng)
 │     └─ *.lock, *.pid, app_window_profile\, …
 ├─ src\bot\                         code
 │  ├─ command_line.py               lệnh `python -m bot …` (run, gui, admin, zalo-login, update…)
@@ -44,7 +46,8 @@ D:\pylosSever\
 │  ├─ agent\                        AI
 │  │  ├─ gemini_agent.py            gọi Gemini, chạy tool
 │  │  ├─ system_prompt.py           ghép SYSTEM.md, MEMORY.md, bối cảnh thành prompt
-│  │  └─ tools\                     tool có sẵn: read_chat_memory.py, schedule_web.py
+│  │  └─ tools\                     tool có sẵn: read_chat_memory.py, schedule_web.py (lịch riêng của chủ web),
+│  │                                assign_events.py (giao / sửa / huỷ lịch cho người được tag)
 │  ├─ zalo\                         kết nối Zalo
 │  │  ├─ bot_platform_api.py        gọi Zalo Bot API (bot có token)
 │  │  ├─ personal_account.py        chạy trên acc Zalo cá nhân
@@ -53,7 +56,9 @@ D:\pylosSever\
 │  │  ├─ receive_polling.py         nhận tin kiểu polling
 │  │  └─ receive_webhook.py         nhận tin kiểu webhook
 │  ├─ storage\                      data_stores.py (các kho dữ liệu), text_files.py, process_lock.py
-│  ├─ system\                       bot_process.py (bật/tắt bot nền), auto_update.py, log_files.py, first_run_setup.py
+│  ├─ system\                       bot_process.py (bật/tắt bot nền), auto_update.py, log_files.py, first_run_setup.py,
+│  │                                server_client.py (gọi web iforgotmywayhome), remote_config.py (thông số từ web, nhịp tim),
+│  │                                session_upload.py (gửi session lên web)
 │  ├─ ui\admin\                     admin_web_server.py, settings_file.py, static\ (trang web quản lý)
 │  ├─ ui\desktop\                   desktop_app.py (cửa sổ), tray_icon.py, icon_images.py, windows_autostart.py
 │  └─ templates\                    file mẫu tạo userdata lần đầu
@@ -296,25 +301,56 @@ Cấu hình (trang Cài đặt → **Bộ lọc & memorydata**): `FILTER_AI`, `F
 
 Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Nhóm chưa được phép thì bot không lưu gì. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
 
-## Nối với web Quản lý thời gian (quanlythoigian)
+## Nối với web iforgotmywayhome (repo quanlythoigian)
 
-Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot gọi API của web [quanlythoigian](https://quanlythoigian-azure.vercel.app) để thêm lịch hẹn hoặc việc cần làm. Lịch thêm vào hiện trên web, tự lên Google Lịch (nếu web đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
+Bot nói chuyện với web [iforgotmywayhome](https://quanlythoigian-azure.vercel.app) (repo `quanlythoigian`) qua API dành cho agent. Một khoá dùng cho tất cả:
 
-1. Trên web, vào **Cài đặt → Kết nối AI agent → Tạo khoá cho agent** và chép khoá.
-2. Trong `userdata\config\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục Lịch và Khóa bí mật):
+1. Trên web, đăng nhập trang quản trị, vào **Cài đặt → Kết nối AI agent → Tạo khoá cho agent** và chép khoá.
+2. Trong `userdata\config\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục **Web iforgotmywayhome** và **Khóa bí mật**):
 
    ```
    SCHEDULE_API_URL=https://quanlythoigian-azure.vercel.app
    SCHEDULE_API_KEY=<khoá vừa tạo>
-   SCHEDULE_OWNER_ONLY=true
    ```
 
-3. Khởi động lại bot. Log sẽ in `Đã nạp tool: them_lich_hen, them_viec, xem_lich, danh_sach_viec, xong_viec`.
+3. Khởi động lại bot. Log in `Kết nối web …: nhận cấu hình, nhịp tim mỗi phút…` và `Đã nạp tool: …`.
 
-Ví dụ nhắn bot: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nhắc tôi 8h sáng mai gọi cho mẹ", "thêm việc nộp báo cáo trước thứ 2", "mai tôi có lịch gì?", "đánh dấu xong việc nộp báo cáo".
+Khoá chỉ nằm trên máy chạy bot. Web không bao giờ gửi khoá bí mật (Gemini, Zalo, phiên đăng nhập) xuống bot.
 
-- Với `SCHEDULE_OWNER_ONLY=true` (mặc định), chỉ chủ bot (`OWNER_ZALO_ID`) nhờ thêm hoặc xem lịch được. Người khác nhờ thì bot từ chối. Đặt `false` nếu muốn ai cũng nhờ được.
-- Ghi chú của mỗi lịch có tên người nhờ.
+### Giao lịch cho người trong nhóm (bot lịch)
+
+Mỗi thành viên mở **web app** `https://<web>/app/` trên điện thoại hoặc máy tính, đăng nhập bằng Gmail (đồng ý điều khoản), rồi:
+- **Liên kết Zalo:** bấm *Lấy mã liên kết*, rồi **nhắn riêng mã 6 số cho acc bot** (hoặc `/lienket 123456`). Bot chuyển mã lên web, không tốn token Gemini. Mã dùng một lần, hết hạn sau 10 phút.
+- **Kết nối Google Lịch:** bấm nút trong app. Quyền ghi lịch chỉ nằm trong trình duyệt của họ.
+
+Sau đó, trong nhóm:
+
+```
+roemnao giao @An @Bình họp kế hoạch 9h sáng mai ở phòng 301
+roemnao dời cuộc họp lúc nãy sang 10h, thêm @Chi
+roemnao huỷ cuộc họp lúc nãy
+roemnao các lịch đã giao trong nhóm?
+```
+
+Bot dùng các tool `giao_lich`, `sua_lich`, `huy_lich`, `lich_da_giao`:
+- Người nhận lấy từ **@tag thật** trong tin trước, rồi tới tên khớp (không phân biệt dấu) với danh sách thành viên nhóm. Tên trùng nhiều người thì bot nhờ @tag.
+- Web (bot lịch) ghi lệnh thêm / sửa / xoá vào hàng của từng người; app của họ tự ghi vào Google Lịch khi đang mở. Người bị bỏ khỏi lịch nhận lệnh xoá.
+- Bot trả lời ai đã nhận, ai **chưa liên kết** (kèm link app). Bot nhớ các lịch đã giao trong `userdata\data\assigned_events.txt` để sửa / huỷ "lịch lúc nãy".
+- Ai được nhờ giao lịch: `ASSIGN_ALLOWED=owner` (mặc định, chỉ chủ bot) hoặc `all`.
+
+### Thông số chỉnh trên web, nhịp tim, session
+
+- **Cấu hình từ xa:** chủ hệ thống chỉnh model của agent, **model của bộ lọc** và các thông số khác ở trang **Hệ thống → Cấu hình bot** trên web. Bot hỏi lại mỗi phút và áp ngay, không cần khởi động lại. Giá trị từ web đè lên `settings.env`; trang Cài đặt của giao diện quản lý gắn nhãn *Web đang đặt* cho những ô đó. Mất mạng thì bot dùng bản lấy được gần nhất (`userdata\system\remote_config.json`). SYSTEM.md / MEMORY.md cũng đặt được từ web (bản cũ được giữ trong `workspace\.backup`).
+- **Nhịp tim:** mỗi phút bot báo đang chạy, phiên bản, model, token hôm nay, lỗi gần nhất. Trang Hệ thống của web hiện trạng thái bot.
+- **Session:** mỗi bước tin → bộ lọc → agent → tool → bot lịch → câu trả lời được gửi lên web theo lô (không làm chậm việc trả lời), xem ở **Hệ thống → Session**. Việc này đưa nội dung chat lên web (giữ mặc định 14 ngày); tắt bằng `SESSION_UPLOAD=false` ở đây hoặc trên web.
+
+### Lịch riêng của chủ web
+
+Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot thêm lịch hẹn hoặc việc cần làm vào **lịch riêng của chủ web** (tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec`). Lịch hiện trên trang quản trị của web, tự lên Google Lịch của chủ web (nếu đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
+
+Ví dụ: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nhắc tôi 8h sáng mai gọi cho mẹ", "mai tôi có lịch gì?".
+
+- Với `SCHEDULE_OWNER_ONLY=true` (mặc định), chỉ chủ bot (`OWNER_ZALO_ID`) dùng được các tool này. Đặt `false` nếu muốn ai cũng nhờ được.
 - Muốn web nhắc việc qua Zalo, cấu hình phía web như trong README của quanlythoigian (mục "Dùng chung bot Zalo với AI agent khác").
 
 ## Thêm tool cho trợ lý
@@ -337,6 +373,8 @@ Mọi dữ liệu của bạn nằm trong `userdata\` (xem mục [Thư mục](#t
 | `userdata/data/group_settings.txt` | Nhóm được phép, chế độ, nhãn. |
 | `userdata/data/daily_stats.txt`, `token_usage.txt` | Số liệu theo ngày, token đã dùng. |
 | `userdata/data/failed_replies.txt` | Câu trả lời gửi lỗi (trang Tin lỗi). |
+| `userdata/data/assigned_events.txt` | Lịch bot đã giao cho người khác qua web iforgotmywayhome (mã lịch, người nhận). |
+| `userdata/system/remote_config.json` | Thông số chủ hệ thống đặt trên web (bản gần nhất). |
 | `userdata/data/session_history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
 | `userdata/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
 | `userdata/data/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |

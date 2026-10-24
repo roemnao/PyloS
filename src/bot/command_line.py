@@ -105,6 +105,8 @@ async def _run(settings: Settings) -> int:
             log.warning("getMe lỗi: %s", exc)
     # Token đã qua kiểm tra (hoặc chỉ lỗi mạng tạm thời): báo cho `gateway start` biết bot đã sẵn sàng.
     bot.state.update(ready_at=now_ms())
+    background_stop = asyncio.Event()
+    background = _start_server_sync(settings, bot, background_stop)
 
     from bot.system import bot_process
 
@@ -156,11 +158,55 @@ async def _run(settings: Settings) -> int:
         finally:
             watcher.cancel()
     finally:
+        background_stop.set()
+        if background:
+            await asyncio.wait(background, timeout=5)  # cho lô session cuối kịp gửi
+            for task in background:
+                task.cancel()
         await bot.stop()
         await zalo.aclose()
     if stopping:
         log.info("Đã dừng bot")
     return 0
+
+
+def _start_server_sync(settings: Settings, bot: Bot, stop: asyncio.Event) -> list[asyncio.Task]:
+    """Có SCHEDULE_API_KEY: nhận thông số từ web, gửi nhịp tim mỗi phút và gửi session (xem bot/system/)."""
+    from bot.system import server_client
+
+    if not server_client.configured():
+        return []
+    from bot.system.remote_config import LastError, RemoteConfig, RemoteSync
+    from bot.system.session_upload import SessionUploader
+
+    remote = RemoteConfig(settings, bot.apply_settings)
+    if remote.version:
+        remote.apply()  # bản lấy được lần trước: dùng ngay, kể cả khi đang mất mạng
+    last_error = LastError()
+    logging.getLogger("bot").addHandler(last_error)
+    bot.sessions = SessionUploader(lambda: bot.settings.session_upload)
+    sync = RemoteSync(remote, lambda: _bot_status(bot, last_error))
+    log.info("Kết nối web %s: nhận cấu hình, nhịp tim mỗi phút, session %s",
+             server_client.server_config()[0], "bật" if bot.settings.session_upload else "tắt")
+    return [asyncio.create_task(sync.run(stop), name="remote-config"), asyncio.create_task(bot.sessions.run(stop), name="sessions")]
+
+
+def _bot_status(bot: Bot, last_error: Any) -> dict[str, Any]:
+    """Thông tin gửi kèm nhịp tim (không có nội dung tin nhắn hay khoá bí mật)."""
+    from datetime import datetime, timezone
+
+    from bot import __version__
+
+    iso = lambda ms: datetime.fromtimestamp(ms / 1000, timezone.utc).isoformat() if ms else None  # noqa: E731
+    s = bot.settings
+    today = bot.stats.today()
+    return {
+        "version": __version__, "startedAt": iso(bot.started_at_ms), "mode": s.receive_mode,
+        "model": s.gemini_model, "filterModel": s.filter_model or s.gemini_model,
+        "tokensToday": bot.usage.used_today(), "tokenBudget": s.daily_token_budget,
+        "messagesToday": int(today.get("received", 0)), "repliesToday": int(today.get("replied", 0)),
+        "pending": len(bot.failed.pending()), "lastError": last_error.message, "lastErrorAt": iso(last_error.at_ms),
+    }
 
 
 class ConsoleZalo:

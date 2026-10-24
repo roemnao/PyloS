@@ -3,28 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quản lý Bot Zalo</title>
+  <meta name="theme-color" content="#1d1f24">
+  <title>iforgotmywayhome · Bot Zalo</title>
   <link rel="icon" href="data:,">
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css">
   <link rel="stylesheet" href="/static/admin_page.css">
   <script src="/static/admin_page.js" defer></script>
 </head>
 <body>
+  <svg class="sprite" width="0" height="0" aria-hidden="true">
+    <defs>
+      <symbol id="i-temple" viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5z"/><path d="M4 9.5h16M5.8 11.5v6.2M9.4 11.5v6.2M14.6 11.5v6.2M18.2 11.5v6.2M3.5 18.5h17M2 21h20"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    </defs>
+  </svg>
+
   <section id="login" class="login" hidden>
-    <form id="login-form" class="login-card">
-      <h1>Quản lý Bot Zalo</h1>
-      <p class="muted">Nhập mã truy cập (<code>ADMIN_TOKEN</code> trong file <code>.env</code>).</p>
+    <form id="login-form" class="login-card card">
+      <div class="brand"><svg class="temple i" aria-hidden="true"><use href="#i-temple"/></svg><span class="wordmark">iforgotmywayhome</span></div>
+      <h1>Quản lý bot Zalo</h1>
+      <p class="muted">Nhập mã truy cập (<code>ADMIN_TOKEN</code> trong <code>userdata/config/settings.env</code>).</p>
       <input id="login-token" type="password" autocomplete="current-password" placeholder="Mã truy cập" required>
       <p id="login-error" class="error" hidden></p>
       <button type="submit" class="btn primary">Đăng nhập</button>
+      <p><button type="button" class="btn ghost small theme-toggle" data-theme-toggle><svg class="i i-moon"><use href="#i-moon"/></svg><svg class="i i-sun"><use href="#i-sun"/></svg><span data-theme-label>Nền tối</span></button></p>
     </form>
   </section>
 
   <div id="app" class="layout" hidden>
-    <header class="topbar">
-      <div class="brand">Bot Zalo</div>
-      <span id="status-pill" class="pill">…</span>
-      <button id="logout" class="btn ghost small" type="button">Đăng xuất</button>
-    </header>
+    <div class="topbar-wrap">
+      <header class="topbar">
+        <div class="brand"><svg class="temple i" aria-hidden="true"><use href="#i-temple"/></svg><span class="wordmark">iforgotmywayhome</span><small>bot Zalo</small></div>
+        <span id="status-pill" class="pill">…</span>
+        <span class="grow"></span>
+        <button type="button" class="btn icon theme-toggle" data-theme-toggle aria-label="Sáng / tối"><svg class="i i-moon"><use href="#i-moon"/></svg><svg class="i i-sun"><use href="#i-sun"/></svg></button>
+        <button id="logout" class="btn ghost small" type="button">Đăng xuất</button>
+      </header>
+      <div class="meander" aria-hidden="true"></div>
+    </div>
     <nav id="nav" class="nav" aria-label="Các trang"></nav>
     <main id="main" class="main" tabindex="-1"></main>
   </div>

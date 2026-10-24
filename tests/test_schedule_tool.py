@@ -7,6 +7,7 @@ import pytest
 
 from bot.agent import ToolContext
 from bot.agent.tools import schedule_web
+from bot.system import server_client
 
 CTX = ToolContext("g1", "u1", "An", True)
 
@@ -34,7 +35,7 @@ def api(monkeypatch):
         return httpx.Response(404, json={"error": "không có"})
 
     real = httpx.AsyncClient
-    monkeypatch.setattr(schedule_web.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+    monkeypatch.setattr(server_client.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
     monkeypatch.setenv("SCHEDULE_API_URL", "https://web.example/")
     monkeypatch.setenv("SCHEDULE_API_KEY", "k3y")
     return calls

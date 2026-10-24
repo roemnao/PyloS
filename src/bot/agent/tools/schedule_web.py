@@ -15,61 +15,24 @@ API (src/app.js của quanlythoigian), xác thực bằng "Authorization: Bearer
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 from urllib.parse import quote
 
-import httpx
-from dotenv import dotenv_values
-
 from bot.agent.tools import Tool, ToolContext
+from bot.system.server_client import DEFAULT_URL, base_url, env_values, request, server_config  # noqa: F401
 
 log = logging.getLogger(__name__)
 
-DEFAULT_URL = "https://quanlythoigian-azure.vercel.app/api/agent"
-TIMEOUT = 30.0
-
-
-def _env() -> dict[str, str]:
-    # Đọc cả .env vì giao diện quản lý (Chat thử) không nạp .env vào os.environ như bot.
-    from bot.config import APP_HOME
-    from bot.userdata_paths import ENV_REL
-
-    values = {k: v for k, v in dotenv_values(APP_HOME / ENV_REL).items() if v is not None}
-    return {**values, **os.environ}
-
-
-def base_url(raw: str) -> str:
-    """Nhận cả địa chỉ web lẫn địa chỉ API: https://x.vercel.app, .../api/agent, .../api/agent/."""
-    url = (raw or "").strip().rstrip("/") or DEFAULT_URL
-    if not url.endswith("/api/agent"):
-        url += "/api/agent"
-    return url
-
 
 def _config() -> tuple[str, str]:
-    env = _env()
-    return base_url(env.get("SCHEDULE_API_URL", "")), env.get("SCHEDULE_API_KEY", "").strip()
+    return server_config()
 
 
 async def _request(method: str, path: str, *, json: Any = None, params: dict[str, str] | None = None) -> Any:
-    url, key = _config()
-    if not key:
-        return {"error": "Chưa cấu hình SCHEDULE_API_KEY (khoá agent của web quản lý thời gian)."}
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        try:
-            response = await client.request(method, url + path, json=json, params=params,
-                                            headers={"Authorization": f"Bearer {key}"})
-        except httpx.HTTPError as exc:
-            return {"error": f"Không gọi được web quản lý thời gian: {type(exc).__name__}"}
-    try:
-        data = response.json()
-    except ValueError:
-        data = {"error": f"Phản hồi không phải JSON (HTTP {response.status_code})"}
-    if response.status_code >= 400:
-        message = data.get("error") if isinstance(data, dict) else None
-        return {"error": f"Web báo lỗi HTTP {response.status_code}: {message or data}"}
-    return data
+    result = await request(method, path, json=json, params=params)
+    if isinstance(result, dict) and "error" in result:
+        return {"error": result["error"]}
+    return result
 
 
 def _note(args: dict[str, Any], ctx: ToolContext) -> str:
@@ -114,7 +77,7 @@ async def _complete_task(args: dict[str, Any], ctx: ToolContext) -> dict[str, An
 
 
 def _owner_only() -> bool:
-    return _env().get("SCHEDULE_OWNER_ONLY", "true").strip().lower() not in ("0", "false", "no", "off", "không")
+    return env_values().get("SCHEDULE_OWNER_ONLY", "true").strip().lower() not in ("0", "false", "no", "off", "không")
 
 
 _TIME_HINT = "ISO 8601 kèm múi giờ Việt Nam, ví dụ 2026-10-30T14:00:00+07:00. Tính từ ngày giờ hiện tại trong phần Bối cảnh."

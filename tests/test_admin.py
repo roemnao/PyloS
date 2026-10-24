@@ -75,10 +75,13 @@ def test_rejects_cross_origin_writes(client):
 
 def test_static_page_has_security_headers(client):
     page = client.get("/")
-    assert page.status_code == 200 and "Quản lý Bot Zalo" in page.text
+    assert page.status_code == 200 and "iforgotmywayhome" in page.text
     assert "script-src 'self'" in page.headers["content-security-policy"]
     assert page.headers["x-frame-options"] == "DENY"
     assert client.get("/static/admin_page.js").status_code == 200
+    # Bộ giao diện chung (font, màu, sáng/tối) nằm ngay trong app: CSP chỉ cho tải từ chính nó.
+    for path in ("/static/theme.css", "/static/theme.js", "/static/fonts/be-vietnam-pro-vietnamese-400-normal.woff2"):
+        assert client.get(path).status_code == 200, path
 
 
 def test_secrets_never_leave_the_server(client):
@@ -322,3 +325,20 @@ def test_memorydata_api_shows_filter_result_and_respects_history_switch(client, 
 
     env_path.write_text(ENV_TEXT + "ADMIN_SHOW_HISTORY=false\n", encoding="utf-8")
     assert client.get("/api/memorydata/g1", headers=AUTH).status_code == 403
+
+
+def test_settings_show_values_set_on_the_web(env_path, tmp_path):
+    from bot.system.remote_config import cache_path
+
+    ctx = AdminContext(env_path, tmp_path)
+    client = TestClient(create_app(ctx, 8081), base_url=BASE)
+    path = cache_path(ctx.settings())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('{"version": 7, "values": {"FILTER_MODEL": "gemini-3.5-flash", "FILTER_AI": false, "GEMINI_API_KEY": "x"},'
+                    ' "files": {"SYSTEM.md": "Bạn là roemnao."}, "fetched_at": 1}', encoding="utf-8")
+    data = client.get("/api/settings", headers=AUTH).json()
+    remote = {f["key"]: f["remote"] for f in data["fields"] if f["remote"] is not None}
+    assert remote == {"FILTER_MODEL": "gemini-3.5-flash", "FILTER_AI": "Tắt"}  # khoá bí mật không bao giờ hiện
+    assert data["remote"]["version"] == 7 and data["remote"]["count"] == 2
+    assert client.get("/api/workspace/SYSTEM", headers=AUTH).json()["managed_by_web"] is True
+    assert client.get("/api/workspace/MEMORY", headers=AUTH).json()["managed_by_web"] is False

@@ -99,6 +99,10 @@ class Settings:
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
     schedule_api_key: str = ""
+    # Ai được giao lịch cho người khác qua bot lịch: "owner" (chỉ chủ bot) hoặc "all"
+    assign_allowed: str = "owner"
+    # Gửi session bộ lọc ↔ agent lên web để chủ hệ thống xem lại (trang Hệ thống → Session)
+    session_upload: bool = True
     zalo_session_file: Path = Path(SESSION_REL)
     # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
@@ -127,6 +131,10 @@ class Settings:
             raise ConfigError(
                 f"RECEIVE_MODE phải là 'polling', 'webhook' hoặc 'personal', đang là {receive_mode!r}"
             )
+
+        assign_allowed = env.get("ASSIGN_ALLOWED", "").strip().lower() or "owner"
+        if assign_allowed not in ("owner", "all"):
+            raise ConfigError(f"ASSIGN_ALLOWED phải là 'owner' hoặc 'all', đang là {assign_allowed!r}")
 
         return cls(
             zalo_bot_token=env.get("ZALO_BOT_TOKEN", "").strip(),
@@ -162,6 +170,8 @@ class Settings:
             filter_context_lines=_int(env, "FILTER_CONTEXT_LINES", 6),
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
+            assign_allowed=assign_allowed,
+            session_upload=_bool(env, "SESSION_UPLOAD", True),
             zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
         )
 

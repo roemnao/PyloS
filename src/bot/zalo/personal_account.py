@@ -155,6 +155,7 @@ class PersonalZalo:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._memory = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR)
         self._group_members: dict[str, tuple[float, dict[str, str]]] = {}  # chat_id -> (lúc lấy, {uid: tên})
+        self._group_names: dict[str, str] = {}  # tên nhóm (lấy kèm danh sách thành viên)
         self._learned: dict[str, dict[str, str]] = {}  # chat_id -> {uid: tên} đọc từ các @tag người khác gửi
         self.self_id = ""
         self.self_name = ""
@@ -265,6 +266,8 @@ class PersonalZalo:
     def _fetch_group_members(self, chat_id: str) -> dict[str, str]:
         info = self._api.fetchGroupInfo(chat_id)
         grid = ((info.get("gridInfoMap") or {}) if hasattr(info, "get") else {}).get(str(chat_id)) or {}
+        if hasattr(grid, "get") and grid.get("name"):
+            self._group_names[str(chat_id)] = str(grid.get("name"))
         names: dict[str, str] = {}
         for member in grid.get("currentMems") or []:
             if hasattr(member, "get") and member.get("id"):
@@ -278,6 +281,10 @@ class PersonalZalo:
                 if hasattr(profile, "get"):
                     names[str(uid)] = str(profile.get("displayName") or profile.get("zaloName") or "")
         return {uid: name for uid, name in names.items() if name}
+
+    def chat_name(self, chat_id: str) -> str:
+        """Tên nhóm đã biết (không gọi thêm API Zalo); rỗng nếu chưa lấy danh sách thành viên nhóm này lần nào."""
+        return self._group_names.get(str(chat_id), "")
 
     def members(self, chat_id: str) -> dict[str, str]:
         """{uid: tên} của người trong nhóm: danh sách thành viên từ Zalo (lưu 1 giờ) + người đã nhắn gần đây."""

@@ -25,6 +25,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from bot.system import bot_process
+from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from bot.config import ConfigError, Settings
@@ -61,6 +62,12 @@ WORKSPACE_FILES = {"SYSTEM": "SYSTEM.md", "MEMORY": "MEMORY.md"}
 MAX_WORKSPACE_CHARS = 200_000
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOG_LINE = re.compile(r"^\d{4}-\d{2}-\d{2} [\d:,]+ (DEBUG|INFO|WARNING|ERROR|CRITICAL) ")
+
+def _remote_text(value: Any) -> str:
+    if isinstance(value, bool):
+        return "Bật" if value else "Tắt"
+    return str(value)
+
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": (
@@ -262,11 +269,14 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.get("/api/workspace/{name}")
     def read_workspace(name: str) -> dict[str, Any]:
-        path = _workspace_path(ctx.settings(), name)
+        settings = ctx.settings()
+        path = _workspace_path(settings, name)
+        managed = WORKSPACE_FILES[name] in (read_cached(settings).get("files") or {})
         try:
-            return {"name": name, "content": path.read_text(encoding="utf-8"), "updated_at": int(path.stat().st_mtime * 1000)}
+            return {"name": name, "content": path.read_text(encoding="utf-8"), "updated_at": int(path.stat().st_mtime * 1000),
+                    "managed_by_web": managed}
         except FileNotFoundError:
-            return {"name": name, "content": "", "updated_at": None}
+            return {"name": name, "content": "", "updated_at": None, "managed_by_web": managed}
 
     @app.put("/api/workspace/{name}")
     def write_workspace(name: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
@@ -299,14 +309,22 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "FILTER_MODEL": settings.filter_model or settings.gemini_model,
             "FILTER_CONTEXT_LINES": str(settings.filter_context_lines),
             "MEMORYDATA_KEEP": str(settings.memorydata_keep),
+            "ASSIGN_ALLOWED": settings.assign_allowed,
+            "SESSION_UPLOAD": "true" if settings.session_upload else "false",
         }
+        # Thông số chủ hệ thống đặt trên web (bot lưu bản gần nhất): đè lên giá trị ở đây khi bot chạy.
+        remote = read_cached(settings)
+        remote_values = {k: v for k, v in (remote.get("values") or {}).items() if k in REMOTE_KEYS}
         return {
             "fields": [
                 {"key": f.key, "label": f.label, "help": f.help, "kind": f.kind, "choices": list(f.choices),
-                 "group": f.group, "value": values.get(f.key) or defaults.get(f.key, "")}
+                 "group": f.group, "value": values.get(f.key) or defaults.get(f.key, ""),
+                 "remote": _remote_text(remote_values[f.key]) if f.key in remote_values else None}
                 for f in settings_file.FIELDS
             ],
             "secrets": [{"key": k, "label": label, "set": bool(values.get(k))} for k, label in settings_file.SECRETS.items()],
+            "remote": {"version": remote.get("version"), "fetched_at": remote.get("fetched_at"),
+                       "count": len(remote_values), "files": sorted(remote.get("files") or {})} if remote else None,
         }
 
     @app.put("/api/settings")
@@ -538,7 +556,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         else:
             agent = EchoAgent()
         system = PromptBuilder(settings.workspace_dir).build(is_group=bool(body.get("is_group")), tool_names=tools.names())
-        ctx_tool = ToolContext("admin-playground", settings.owner_zalo_id or "admin", "Chủ bot", is_owner=True)
+        ctx_tool = ToolContext("admin-playground", settings.owner_zalo_id or "admin", "Chủ bot", is_owner=True, can_assign=True)
         try:
             reply = await agent.reply(system, turns, ctx_tool)
         except Exception as exc:  # noqa: BLE001 - báo lỗi Gemini cho người dùng
