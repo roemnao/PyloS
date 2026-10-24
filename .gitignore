@@ -1,0 +1,20 @@
+# Bí mật
+.env
+.env.bak
+
+# Dữ liệu và log của bot (có nội dung cá nhân)
+data/
+logs/
+workspace/MEMORY.md
+workspace/notes/
+workspace/.backup/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+/ZaloBot.exe
