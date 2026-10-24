@@ -113,6 +113,9 @@ class Settings:
     admin_port: int = 8081
     admin_show_history: bool = True
     allow_all_chats: bool = False
+    # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal.py)
+    zalo_imei: str = ""
+    zalo_cookies_file: Path = Path("data/zalo_cookies.json")
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -134,8 +137,10 @@ class Settings:
             return p if p.is_absolute() else base / p
 
         receive_mode = env.get("RECEIVE_MODE", "").strip().lower() or "polling"
-        if receive_mode not in ("polling", "webhook"):
-            raise ConfigError(f"RECEIVE_MODE phải là 'polling' hoặc 'webhook', đang là {receive_mode!r}")
+        if receive_mode not in ("polling", "webhook", "personal"):
+            raise ConfigError(
+                f"RECEIVE_MODE phải là 'polling', 'webhook' hoặc 'personal', đang là {receive_mode!r}"
+            )
 
         return cls(
             zalo_bot_token=env.get("ZALO_BOT_TOKEN", "").strip(),
@@ -163,12 +168,26 @@ class Settings:
             admin_port=_int(env, "ADMIN_PORT", 8081, minimum=1),
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
             allow_all_chats=_bool(env, "ALLOW_ALL_CHATS", False),
+            zalo_imei=env.get("ZALO_IMEI", "").strip(),
+            zalo_cookies_file=path("ZALO_COOKIES_FILE", "data/zalo_cookies.json"),
         )
+
+    @property
+    def personal(self) -> bool:
+        return self.receive_mode == "personal"
 
     def require(self, *, zalo: bool = True, gemini: bool = True) -> None:
         """Dừng với thông báo rõ ràng nếu thiếu bí mật cần cho lệnh đang chạy."""
         missing = []
-        if zalo and not self.zalo_bot_token:
+        if zalo and self.personal:
+            if not self.zalo_imei:
+                missing.append("ZALO_IMEI")
+            if not self.zalo_cookies_file.is_file():
+                raise ConfigError(
+                    f"RECEIVE_MODE=personal cần file cookies Zalo ở {self.zalo_cookies_file} "
+                    "(xem mục \"Chạy trên acc Zalo cá nhân\" trong README)."
+                )
+        elif zalo and not self.zalo_bot_token:
             missing.append("ZALO_BOT_TOKEN")
         if gemini and not self.gemini_api_key:
             missing.append("GEMINI_API_KEY")
@@ -182,4 +201,7 @@ class Settings:
 
     @property
     def secrets(self) -> list[str]:
-        return [s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token) if s]
+        return [
+            s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei)
+            if s
+        ]

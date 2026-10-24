@@ -1,6 +1,6 @@
 # Bot trợ lý Zalo (Gemini)
 
-Bot chạy trên **Zalo Bot Platform**, trả lời trong nhóm bằng **Gemini**. Bot nhận tin bằng `getUpdates` (polling), nên chạy được trên máy cá nhân, không cần domain.
+Bot chạy trên **Zalo Bot Platform**, trả lời trong nhóm bằng **Gemini**. Bot nhận tin bằng `getUpdates` (polling), nên chạy được trên máy cá nhân, không cần domain. Bot cũng chạy được trên **một acc Zalo cá nhân** (xem [Chạy trên acc Zalo cá nhân](#chạy-trên-acc-zalo-cá-nhân-acc-phụ)).
 
 Kế hoạch và các quyết định thiết kế nằm trong [PLAN.md](PLAN.md). Cách dùng lệnh trong Zalo nằm trong [workspace/README.md](workspace/README.md).
 
@@ -149,6 +149,46 @@ Các lệnh khác:
 4. Chạy `python -m bot run` như bình thường.
 
 Polling và webhook không dùng cùng lúc được. Khi chạy lại ở chế độ polling, bot tự gỡ webhook.
+
+## Chạy trên acc Zalo cá nhân (acc phụ)
+
+Thay vì Zalo Bot, bot có thể đăng nhập thẳng vào **một acc Zalo cá nhân** và trả lời dưới tên acc đó. Bạn kết bạn, nhắn riêng hay thêm acc này vào nhóm như với người thật.
+
+> ⚠️ Cách này dùng thư viện **không chính thức** [zlapi](https://pypi.org/project/zlapi/), giả làm Zalo Web. Nó **vi phạm điều khoản của Zalo**: acc có thể bị khoá bất cứ lúc nào. Thư viện cũng có thể ngừng chạy khi Zalo đổi giao thức. **Chỉ dùng acc phụ**, đừng dùng acc chính.
+
+1. Cài thêm thư viện:
+
+   ```powershell
+   .venv\Scripts\python.exe -m pip install -e ".[personal]"
+   ```
+
+2. Lấy **IMEI** và **cookies** của acc phụ:
+   - Trên máy tính, mở trình duyệt (nên dùng một hồ sơ trình duyệt riêng), vào https://chat.zalo.me và đăng nhập **acc phụ**.
+   - Lấy IMEI và cookies bằng extension mà tài liệu zlapi giới thiệu (xem mục "How to get IMEI and Cookies" trên trang zlapi), rồi chép ra.
+   - Lưu cookies vào `data/zalo_cookies.json`. Cả hai dạng sau đều đọc được: `{"tên_cookie": "giá trị", ...}` hoặc danh sách `[{"name": ..., "value": ...}, ...]` mà extension xuất ra.
+   - Sau khi lấy xong, **đóng tab chat.zalo.me** nhưng **đừng bấm Đăng xuất**: đăng xuất làm cookies hết hạn.
+
+3. Sửa `.env`:
+
+   ```
+   RECEIVE_MODE=personal
+   ZALO_IMEI=<IMEI vừa lấy>
+   # ZALO_COOKIES_FILE=data/zalo_cookies.json   (mặc định)
+   ```
+
+   `ZALO_BOT_TOKEN` để trống cũng được.
+
+4. Chạy bot như bình thường: `python -m bot run` (hoặc `gateway start`, ZaloBot.exe, systemd...).
+
+5. Từ **acc chính** của bạn, nhắn riêng `/id` cho acc phụ, điền `user_id` nhận được vào `OWNER_ZALO_ID`, rồi khởi động lại bot. Sau đó dùng `/allow`, `/mode`... như với Zalo Bot.
+
+Lưu ý:
+- **Cookies và IMEI là chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. `data/` và `.env` đã nằm trong `.gitignore`.
+- **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở lại chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
+- Tin acc phụ tự gửi (kể cả gửi từ điện thoại) bị bot bỏ qua, nên bot không tự trả lời chính mình.
+- Nếu log báo "Đăng nhập Zalo cá nhân thất bại", cookies đã hết hạn: lấy cookies (và IMEI) mới rồi khởi động lại.
+- Các lệnh `me`, `set-webhook`... và nút "Gửi lại" ở trang Tin lỗi chỉ dùng được với Zalo Bot.
+- Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
 
 ## Thêm tool cho trợ lý
 

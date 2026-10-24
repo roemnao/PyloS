@@ -1,6 +1,6 @@
 """Dòng lệnh: python -m bot <lệnh>.
 
-  run            chạy bot (polling hoặc webhook theo RECEIVE_MODE)
+  run            chạy bot (polling, webhook hoặc personal = acc Zalo cá nhân, theo RECEIVE_MODE)
   console        chat thử ngay trên terminal, không cần bot token Zalo
   me             gọi getMe (xem bot có vào được nhóm không: can_join_groups)
   set-webhook    đăng ký webhook URL với WEBHOOK_SECRET
@@ -56,7 +56,12 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
 
 
 async def _run(settings: Settings) -> int:
-    zalo = ZaloClient(settings.zalo_bot_token)
+    if settings.personal:
+        from bot.zalo.personal import PersonalZalo
+
+        zalo = PersonalZalo(settings)
+    else:
+        zalo = ZaloClient(settings.zalo_bot_token)
     agent, tools = _build_agent(settings)
     bot = Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir), tools.names())
     stop = asyncio.Event()
@@ -67,17 +72,30 @@ async def _run(settings: Settings) -> int:
         except (NotImplementedError, RuntimeError):
             pass  # Windows: Ctrl+C sẽ ném KeyboardInterrupt, xử lý ở main()
 
-    try:
-        me = await zalo.get_me()
-        log.info("Bot: %s (id=%s, can_join_groups=%s)", me.get("account_name"), me.get("id"), me.get("can_join_groups"))
-    except ZaloError as exc:
-        if exc.error_code == 401 and not exc.network:
-            log.error("ZALO_BOT_TOKEN không hợp lệ (401 Unauthorized). Kiểm tra lại .env.")
+    if settings.personal:
+        log.warning("Đang chạy trên acc Zalo cá nhân (không chính thức): acc có thể bị Zalo khoá. Chỉ dùng acc phụ.")
+        try:
+            await asyncio.to_thread(zalo.login)
+        except (ZaloError, ConfigError) as exc:
+            log.error("%s", exc)
             await bot.stop()
-            await zalo.aclose()
-            return EXIT_CONFIG
-        # Lỗi mạng lúc khởi động (ví dụ máy vừa bật chưa có mạng): vẫn chạy, polling sẽ tự thử lại.
-        log.warning("getMe lỗi: %s", exc)
+            # Lỗi mạng thì để supervisor khởi động lại; cookies hết hạn/IMEI sai thì khởi động lại cũng không khỏi.
+            return 1 if isinstance(exc, ZaloError) and exc.network else EXIT_CONFIG
+        log.info("Acc Zalo cá nhân: %s (id=%s)", zalo.self_name or "?", zalo.self_id)
+        if not settings.owner_zalo_id:
+            log.warning("OWNER_ZALO_ID chưa đặt. Nhắn /id cho acc bot từ acc chính của bạn để lấy ID.")
+    else:
+        try:
+            me = await zalo.get_me()
+            log.info("Bot: %s (id=%s, can_join_groups=%s)", me.get("account_name"), me.get("id"), me.get("can_join_groups"))
+        except ZaloError as exc:
+            if exc.error_code == 401 and not exc.network:
+                log.error("ZALO_BOT_TOKEN không hợp lệ (401 Unauthorized). Kiểm tra lại .env.")
+                await bot.stop()
+                await zalo.aclose()
+                return EXIT_CONFIG
+            # Lỗi mạng lúc khởi động (ví dụ máy vừa bật chưa có mạng): vẫn chạy, polling sẽ tự thử lại.
+            log.warning("getMe lỗi: %s", exc)
     # Token đã qua kiểm tra (hoặc chỉ lỗi mạng tạm thời): báo cho `gateway start` biết bot đã sẵn sàng.
     bot.state.update(ready_at=now_ms())
 
@@ -100,6 +118,11 @@ async def _run(settings: Settings) -> int:
 
             def request_stop() -> None:
                 server.should_exit = True
+        elif settings.personal:
+            main_task = asyncio.create_task(zalo.run(bot.handle_message, bot.state, stop))
+
+            def request_stop() -> None:
+                stop.set()
         else:
             from bot.sources.polling import run_polling
 
@@ -329,6 +352,8 @@ def main(argv: list[str] | None = None) -> int:
             settings.require(zalo=True, gemini=True)
         elif command in ("me", "set-webhook", "delete-webhook", "webhook-info"):
             settings.require(zalo=True, gemini=False)
+        if command in ("me", "set-webhook", "delete-webhook", "webhook-info") and settings.personal:
+            raise ConfigError(f"Lệnh {command} chỉ dùng với Zalo Bot (token), không dùng với RECEIVE_MODE=personal.")
         if command == "set-webhook" and not (8 <= len(settings.webhook_secret) <= 256):
             raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong .env.")
     except ConfigError as exc:

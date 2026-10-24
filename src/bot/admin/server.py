@@ -131,7 +131,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if info["failed_pending"]:
             alerts.append(f"{info['failed_pending']} tin gửi lỗi chưa xử lý (trang Tin lỗi).")
         last_poll = info.get("last_poll_at")
-        if info["running"] and settings.receive_mode == "polling" and last_poll and now_ms() - int(last_poll) > 180_000:
+        if info["running"] and settings.receive_mode in ("polling", "personal") and last_poll and now_ms() - int(last_poll) > 180_000:
             alerts.append("Bot đang chạy nhưng hơn 3 phút chưa nhận được phản hồi từ Zalo (mất mạng?).")
         if info["token_budget"] and info["tokens_today"] >= info["token_budget"]:
             alerts.append("Đã hết hạn mức token hôm nay: nhóm chế độ all đang chạy như default.")
@@ -366,6 +366,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return {"ok": True, "message": "Đã bỏ qua."}
         if action != "retry":
             raise HTTPException(404, "Không có thao tác này")
+        if settings.personal:
+            return {"ok": False, "message": "Chế độ acc Zalo cá nhân chưa hỗ trợ gửi lại từ giao diện."}
         settings.require(zalo=True, gemini=False)
         client = ZaloClient(settings.zalo_bot_token)
         try:
