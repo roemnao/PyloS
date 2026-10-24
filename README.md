@@ -55,7 +55,27 @@ Sau đó mở `.env` và điền:
    - `/mode all` để bot trả lời mọi tin.
 6. Xem `logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
 
+## Mở ứng dụng bằng ZaloBot.cmd (khuyên dùng)
+
+Bấm đúp **`ZaloBot.cmd`** trong thư mục dự án. Nó mở đúng ứng dụng quản lý như ZaloBot.exe (cửa sổ, biểu tượng **Z** ở khay, menu khay), nhưng **chạy thẳng từ code**:
+
+- **Không cần build lại** khi có code mới.
+- **Không bị Smart App Control chặn**, vì nó chạy bằng `pythonw.exe` đã được ký.
+- **Lần đầu chạy** (chưa có `.venv`), nó tự tạo môi trường và cài thư viện. Cần cài Python 3.11+ trước, nhớ tick "Add python.exe to PATH".
+
+**Cập nhật code mới** (mỗi lần có thay đổi trên GitHub):
+- Chuột phải biểu tượng **Z** → **Cập nhật**. Ứng dụng tự kiểm tra bản mới khi mở và 6 giờ một lần. Khi có bản mới, menu ghi "Cập nhật (N thay đổi mới)" và trang **Tổng quan** hiện nút **Cập nhật ngay**.
+- Khi cập nhật, ứng dụng tự `git pull`, cài lại thư viện nếu danh sách thư viện thay đổi, khởi động lại bot, rồi tự đóng và mở lại.
+- Dùng dòng lệnh thì chạy `.venv\Scripts\python.exe -m bot update`.
+- Nếu bạn đã sửa tay file nào trong code, `git pull` có thể từ chối. Thông báo lỗi sẽ nói rõ file nào.
+
+Đã bật **Khởi động cùng Windows** bằng ZaloBot.exe trước đây? Mở ZaloBot.cmd một lần, mục đó sẽ tự chuyển sang chạy từ code thay cho exe cũ.
+
+Muốn có lối tắt ngoài Desktop: chuột phải `ZaloBot.cmd` → **Show more options** → **Send to** → **Desktop (create shortcut)**.
+
 ## Ứng dụng quản lý: ZaloBot.exe
+
+> Bản exe là code đóng gói tại lúc build: mỗi lần có code mới phải build lại, và Smart App Control có thể chặn mỗi bản mới. Nên dùng **ZaloBot.cmd** (mục trên) thay thế.
 
 Bấm đúp `D:\pylosSever\ZaloBot.exe`. Một cửa sổ "Quản lý Bot Zalo" mở ra (tự đăng nhập), kèm biểu tượng chữ **Z** ở khay hệ thống (góc phải thanh tác vụ; có thể nằm trong mũi tên ^).
 

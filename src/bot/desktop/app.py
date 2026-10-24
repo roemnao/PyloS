@@ -12,6 +12,7 @@ import logging
 import os
 import socket
 import subprocess
+import sys
 import threading
 import time
 import webbrowser
@@ -66,6 +67,8 @@ class Desktop:
         self.bot_state = "stopped"
         self._told_about_tray = False
         self._stopped = threading.Event()
+        self.updates_pending = 0  # số thay đổi mới trên GitHub (chỉ khi chạy từ mã nguồn)
+        self._told_about_update = False
 
     # ---------- server giao diện ----------
 
@@ -175,19 +178,94 @@ class Desktop:
         if self.tray is not None:
             self.tray.refresh()
 
+    # ---------- cập nhật (chạy từ mã nguồn) ----------
+
+    def check_updates(self) -> None:
+        from bot import updater
+
+        try:
+            self.updates_pending = updater.pending_commits()
+        except updater.UpdateError as exc:
+            log.info("Không kiểm tra được bản mới: %s", exc)
+            return
+        update_flag_file(self.settings).write_text(str(self.updates_pending), encoding="utf-8")
+        self.refresh_tray()
+        if self.updates_pending and not self._told_about_update and self.tray is not None:
+            self._told_about_update = True
+            self.tray.notify(f"Có {self.updates_pending} thay đổi mới. Chuột phải biểu tượng → Cập nhật.")
+
+    def update_app(self, *_: Any) -> None:
+        threading.Thread(target=self._update_app, name="update", daemon=True).start()
+
+    def _update_app(self) -> None:
+        from bot import updater
+
+        if self.busy:
+            return
+        self.busy = True
+        self.refresh_tray()
+        if self.tray is not None:
+            self.tray.notify("Đang cập nhật…")
+        try:
+            result = updater.update()
+        except updater.UpdateError as exc:
+            self.busy = False
+            self.refresh_tray()
+            if self.tray is not None:
+                self.tray.notify(f"Cập nhật lỗi: {exc}")
+            return
+        self.updates_pending = 0
+        update_flag_file(self.settings).unlink(missing_ok=True)
+        if not result.changed:
+            self.busy = False
+            self.refresh_tray()
+            if self.tray is not None:
+                self.tray.notify(result.message)
+            return
+        settings = self.settings_now()
+        # Bot và giao diện chạy riêng (nếu có) phải khởi động lại mới dùng code mới.
+        if gateway.is_running(settings, gateway.BOT):
+            gateway.restart(settings, gateway.BOT)
+        if self.admin_lock is None and gateway.is_running(settings, gateway.ADMIN):
+            gateway.restart(settings, gateway.ADMIN)
+        if self.tray is not None:
+            self.tray.notify(result.message.splitlines()[0] + " Đang mở lại ứng dụng…")
+        # Mở bản mới (nó chờ bản này thoát để nhận khoá), rồi thoát bản này.
+        args = [sys.executable, "-m", "bot", "gui", "--after-update"]
+        if self.window is None or self.tray_only:
+            args.append("--tray")
+        kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
+        subprocess.Popen(args, cwd=APP_HOME, **kwargs)
+        self.quit()
+
     # ---------- vòng nền ----------
 
     def _background(self) -> None:
         show_flag = self.settings.data_dir / "gui.show"
+        # Trang Tổng quan (bấm "Cập nhật") ghi file này để nhờ ứng dụng tự cập nhật và mở lại.
+        update_request = self.settings.data_dir / "gui.update"
         last_status = 0.0
+        next_update_check = time.monotonic() + 20
         while not self._stopped.is_set():
             if show_flag.exists():
                 show_flag.unlink(missing_ok=True)
                 self.show_window()
+            if update_request.exists():
+                update_request.unlink(missing_ok=True)
+                self.update_app()
             if time.monotonic() - last_status > 5:
                 last_status = time.monotonic()
                 self.update_status()
+            if self.can_update and time.monotonic() > next_update_check:
+                next_update_check = time.monotonic() + 6 * 3600
+                threading.Thread(target=self.check_updates, name="update-check", daemon=True).start()
             self._stopped.wait(0.5)
+
+    @property
+    def can_update(self) -> bool:
+        from bot import updater
+
+        return updater.unavailable_reason() is None
 
     def _auto_start_bot(self) -> None:
         if gateway.is_running(self.settings, gateway.BOT):
@@ -233,6 +311,9 @@ class Desktop:
 
     def run(self) -> int:
         self.start_admin_server()
+        from bot.desktop import autostart
+
+        autostart.migrate()
         from bot.desktop.tray import Tray
 
         self.tray = Tray(self)
@@ -281,7 +362,12 @@ class Desktop:
         return 0
 
 
-def run_gui(tray_only: bool = False, start_bot: bool = False) -> int:
+def update_flag_file(settings: Settings) -> Path:
+    """data/update.txt: số thay đổi mới chưa cập nhật, để trang Tổng quan hiện nút Cập nhật."""
+    return settings.data_dir / "update.txt"
+
+
+def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool = False) -> int:
     try:
         ensure_home()
         settings = Settings.from_env()
@@ -293,7 +379,8 @@ def run_gui(tray_only: bool = False, start_bot: bool = False) -> int:
 
     lock = InstanceLock(settings.data_dir / "gui.lock")
     try:
-        lock.acquire()
+        # Mở lại sau khi cập nhật: chờ bản cũ thoát hẳn rồi mới nhận khoá.
+        lock.acquire(wait=30.0 if after_update else 0.0)
     except AlreadyRunning:
         # Đã có một bản đang chạy: nhờ nó hiện cửa sổ rồi thoát.
         if not tray_only:

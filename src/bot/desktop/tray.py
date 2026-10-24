@@ -40,6 +40,8 @@ class Tray:
                 item("Khởi động lại bot", desktop.restart_bot,
                      enabled=lambda _: desktop.bot_running and not desktop.busy),
                 pystray.Menu.SEPARATOR,
+                item(lambda _: f"Cập nhật ({desktop.updates_pending} thay đổi mới)" if desktop.updates_pending else "Cập nhật",
+                     desktop.update_app, enabled=lambda _: desktop.can_update and not desktop.busy),
                 item("Khởi động cùng Windows", self.toggle_autostart, checked=lambda _: autostart.is_enabled()),
                 item("Mở thư mục dữ liệu", desktop.open_folder),
                 pystray.Menu.SEPARATOR,
