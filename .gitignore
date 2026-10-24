@@ -1,6 +1,7 @@
 # Bí mật
 .env
 .env.bak
+zalo_session.json
 
 # Dữ liệu và log của bot (có nội dung cá nhân)
 data/

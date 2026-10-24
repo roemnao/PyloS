@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import json
 import logging
 import os
 import re
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -122,7 +124,10 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         info = gateway.status_info(settings)
         alerts = []
-        if not info["zalo_token_set"]:
+        if settings.personal:
+            if not settings.zalo_session_file.is_file():
+                alerts.append("Chưa đăng nhập acc Zalo cá nhân: vào Cài đặt → Đăng nhập bằng mã QR.")
+        elif not info["zalo_token_set"]:
             alerts.append("Chưa đặt ZALO_BOT_TOKEN (trang Cài đặt).")
         if not info["gemini_key_set"]:
             alerts.append("Chưa đặt GEMINI_API_KEY (trang Cài đặt).")
@@ -131,7 +136,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if info["failed_pending"]:
             alerts.append(f"{info['failed_pending']} tin gửi lỗi chưa xử lý (trang Tin lỗi).")
         last_poll = info.get("last_poll_at")
-        if info["running"] and settings.receive_mode == "polling" and last_poll and now_ms() - int(last_poll) > 180_000:
+        if info["running"] and settings.receive_mode in ("polling", "personal") and last_poll and now_ms() - int(last_poll) > 180_000:
             alerts.append("Bot đang chạy nhưng hơn 3 phút chưa nhận được phản hồi từ Zalo (mất mạng?).")
         if info["token_budget"] and info["tokens_today"] >= info["token_budget"]:
             alerts.append("Đã hết hạn mức token hôm nay: nhóm chế độ all đang chạy như default.")
@@ -291,6 +296,74 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         envfile.update(ctx.env_path, cleaned)
         return {"ok": True, "set": True, "message": f"Đã đặt {key}. Khởi động lại bot để áp dụng."}
 
+    # ---------- đăng nhập acc Zalo cá nhân bằng mã QR ----------
+
+    qr: dict[str, Any] = {"login": None}
+
+    def qr_payload() -> dict[str, Any]:
+        login = qr["login"]
+        settings = ctx.settings()
+        session = {"exists": settings.zalo_session_file.is_file(), "personal": settings.personal}
+        if session["exists"]:
+            try:
+                saved = json.loads(settings.zalo_session_file.read_text(encoding="utf-8"))
+                session.update(display_name=str(saved.get("display_name") or ""), saved_at=saved.get("saved_at"))
+            except (OSError, ValueError, AttributeError):
+                pass
+        if login is None:
+            return {"state": "idle", "session": session}
+        st = login.status
+        return {"state": st.state, "message": st.message, "display_name": st.display_name,
+                "image": st.image if st.state == "waiting_scan" else "", "session": session}
+
+    @app.get("/api/zalo-login")
+    def zalo_login_status() -> dict[str, Any]:
+        return qr_payload()
+
+    @app.post("/api/zalo-login/start")
+    def zalo_login_start() -> dict[str, Any]:
+        try:
+            from bot.zalo import qrlogin
+        except ImportError:
+            raise HTTPException(400, "Thiếu thư viện. Cài bằng: pip install -e \".[personal]\"") from None
+        current = qr["login"]
+        if current is not None and current.status.state not in qrlogin.FINISHED:
+            return qr_payload()
+        settings = ctx.settings()
+        login = qr["login"] = qrlogin.QrLogin()
+
+        def work() -> None:
+            try:
+                session = login.run()
+            except qrlogin.QrLoginError:
+                return  # trạng thái lỗi/hết hạn/huỷ đã được ghi vào login.status
+            except Exception as exc:  # noqa: BLE001
+                log.exception("Đăng nhập QR lỗi")
+                login.report(qrlogin.ERROR, f"Lỗi không mong đợi: {exc}")
+                return
+            try:
+                qrlogin.apply_session(session, settings.zalo_session_file, ctx.env_path)
+                message = login.status.message + " Đã bật chế độ acc cá nhân (RECEIVE_MODE=personal)."
+                fresh = ctx.settings()
+                if gateway.is_running(fresh):
+                    message += " " + gateway.restart(fresh).message
+                else:
+                    message += " Bấm Bật bot ở trang Tổng quan."
+                login.report(qrlogin.SUCCESS, message, display_name=session.display_name)
+                log.info("Đã đăng nhập acc Zalo cá nhân %s bằng QR", session.display_name)
+            except Exception as exc:  # noqa: BLE001
+                log.exception("Lưu phiên Zalo lỗi")
+                login.report(qrlogin.ERROR, f"Đăng nhập được nhưng lưu phiên lỗi: {exc}")
+
+        threading.Thread(target=work, name="zalo-qr-login", daemon=True).start()
+        return qr_payload()
+
+    @app.post("/api/zalo-login/cancel")
+    def zalo_login_cancel() -> dict[str, Any]:
+        if qr["login"] is not None:
+            qr["login"].cancel()
+        return qr_payload()
+
     # ---------- log ----------
 
     def _log_path(settings: Settings, source: str) -> Path:
@@ -366,6 +439,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return {"ok": True, "message": "Đã bỏ qua."}
         if action != "retry":
             raise HTTPException(404, "Không có thao tác này")
+        if settings.personal:
+            return {"ok": False, "message": "Chế độ acc Zalo cá nhân chưa hỗ trợ gửi lại từ giao diện."}
         settings.require(zalo=True, gemini=False)
         client = ZaloClient(settings.zalo_bot_token)
         try:

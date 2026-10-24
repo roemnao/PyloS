@@ -41,8 +41,10 @@ FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec("DAILY_TOKEN_BUDGET", "Hạn mức token mỗi ngày", "0 = không giới hạn.", kind="int", group="Giới hạn"),
     FieldSpec("USER_RATE_PER_MIN", "Số tin mỗi phút / người", "0 = không giới hạn.", kind="int", group="Giới hạn"),
     FieldSpec("CHAT_RATE_PER_MIN", "Số tin mỗi phút / nhóm", "0 = không giới hạn.", kind="int", group="Giới hạn"),
-    FieldSpec("RECEIVE_MODE", "Cách nhận tin", "polling: không cần domain. webhook: cần URL HTTPS công khai.",
-              kind="choice", choices=("polling", "webhook"), group="Kết nối"),
+    FieldSpec("RECEIVE_MODE", "Cách nhận tin",
+              "polling: không cần domain. webhook: cần URL HTTPS công khai. "
+              "personal: chạy trên acc Zalo cá nhân (không chính thức, acc có thể bị khoá).",
+              kind="choice", choices=("polling", "webhook", "personal"), group="Kết nối"),
     FieldSpec("WEBHOOK_HOST", "Webhook: địa chỉ lắng nghe", group="Kết nối"),
     FieldSpec("WEBHOOK_PORT", "Webhook: cổng", kind="int", group="Kết nối"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),

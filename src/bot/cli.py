@@ -1,6 +1,6 @@
 """Dòng lệnh: python -m bot <lệnh>.
 
-  run            chạy bot (polling hoặc webhook theo RECEIVE_MODE)
+  run            chạy bot (polling, webhook hoặc personal = acc Zalo cá nhân, theo RECEIVE_MODE)
   console        chat thử ngay trên terminal, không cần bot token Zalo
   me             gọi getMe (xem bot có vào được nhóm không: can_join_groups)
   set-webhook    đăng ký webhook URL với WEBHOOK_SECRET
@@ -9,6 +9,7 @@
   gateway        quản lý bot chạy nền: start | stop | restart | status | logs [-n N] [-f]
   admin          giao diện web quản lý: [run] | start | stop | restart | status  [--open]
   health         kiểm tra bot còn poll đều không (dùng cho giám sát)
+  zalo-login     đăng nhập acc Zalo cá nhân (acc phụ) bằng mã QR, bật RECEIVE_MODE=personal
 """
 
 from __future__ import annotations
@@ -56,7 +57,12 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
 
 
 async def _run(settings: Settings) -> int:
-    zalo = ZaloClient(settings.zalo_bot_token)
+    if settings.personal:
+        from bot.zalo.personal import PersonalZalo
+
+        zalo = PersonalZalo(settings)
+    else:
+        zalo = ZaloClient(settings.zalo_bot_token)
     agent, tools = _build_agent(settings)
     bot = Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir), tools.names())
     stop = asyncio.Event()
@@ -67,17 +73,30 @@ async def _run(settings: Settings) -> int:
         except (NotImplementedError, RuntimeError):
             pass  # Windows: Ctrl+C sẽ ném KeyboardInterrupt, xử lý ở main()
 
-    try:
-        me = await zalo.get_me()
-        log.info("Bot: %s (id=%s, can_join_groups=%s)", me.get("account_name"), me.get("id"), me.get("can_join_groups"))
-    except ZaloError as exc:
-        if exc.error_code == 401 and not exc.network:
-            log.error("ZALO_BOT_TOKEN không hợp lệ (401 Unauthorized). Kiểm tra lại .env.")
+    if settings.personal:
+        log.warning("Đang chạy trên acc Zalo cá nhân (không chính thức): acc có thể bị Zalo khoá. Chỉ dùng acc phụ.")
+        try:
+            await asyncio.to_thread(zalo.login)
+        except (ZaloError, ConfigError) as exc:
+            log.error("%s", exc)
             await bot.stop()
-            await zalo.aclose()
-            return EXIT_CONFIG
-        # Lỗi mạng lúc khởi động (ví dụ máy vừa bật chưa có mạng): vẫn chạy, polling sẽ tự thử lại.
-        log.warning("getMe lỗi: %s", exc)
+            # Lỗi mạng thì để supervisor khởi động lại; cookies hết hạn/IMEI sai thì khởi động lại cũng không khỏi.
+            return 1 if isinstance(exc, ZaloError) and exc.network else EXIT_CONFIG
+        log.info("Acc Zalo cá nhân: %s (id=%s)", zalo.self_name or "?", zalo.self_id)
+        if not settings.owner_zalo_id:
+            log.warning("OWNER_ZALO_ID chưa đặt. Nhắn /id cho acc bot từ acc chính của bạn để lấy ID.")
+    else:
+        try:
+            me = await zalo.get_me()
+            log.info("Bot: %s (id=%s, can_join_groups=%s)", me.get("account_name"), me.get("id"), me.get("can_join_groups"))
+        except ZaloError as exc:
+            if exc.error_code == 401 and not exc.network:
+                log.error("ZALO_BOT_TOKEN không hợp lệ (401 Unauthorized). Kiểm tra lại .env.")
+                await bot.stop()
+                await zalo.aclose()
+                return EXIT_CONFIG
+            # Lỗi mạng lúc khởi động (ví dụ máy vừa bật chưa có mạng): vẫn chạy, polling sẽ tự thử lại.
+            log.warning("getMe lỗi: %s", exc)
     # Token đã qua kiểm tra (hoặc chỉ lỗi mạng tạm thời): báo cho `gateway start` biết bot đã sẵn sàng.
     bot.state.update(ready_at=now_ms())
 
@@ -100,6 +119,11 @@ async def _run(settings: Settings) -> int:
 
             def request_stop() -> None:
                 server.should_exit = True
+        elif settings.personal:
+            main_task = asyncio.create_task(zalo.run(bot.handle_message, bot.state, stop))
+
+            def request_stop() -> None:
+                stop.set()
         else:
             from bot.sources.polling import run_polling
 
@@ -200,6 +224,60 @@ def _health(settings: Settings, max_age_seconds: int) -> int:
     age = (now_ms() - last) / 1000
     print(f"Lần poll cuối cách đây {age:.0f} giây.")
     return 0 if age <= max_age_seconds else 1
+
+
+def _zalo_login(settings: Settings, open_image: bool) -> int:
+    import webbrowser
+
+    from bot import gateway
+    from bot.zalo.qrlogin import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
+
+    qr_path = settings.data_dir / "zalo_qr.png"
+
+    def on_update(status) -> None:
+        if status.state == WAITING_SCAN:
+            save_qr_png(status.image, qr_path)
+            print(f"\nMã QR đã lưu ở: {qr_path}")
+            if open_image:
+                webbrowser.open(qr_path.resolve().as_uri())
+            else:
+                print("Máy không có màn hình? Mở giao diện quản lý (Cài đặt → Đăng nhập bằng mã QR) qua SSH tunnel, "
+                      "hoặc chép file ảnh trên về máy để quét.")
+        print(status.message, flush=True)
+
+    print("Đăng nhập acc Zalo cá nhân. Dùng ACC PHỤ: chạy bot trên acc cá nhân có thể bị Zalo khoá acc.")
+    try:
+        for attempt in range(3):  # mã QR sống ~100 giây; hết hạn thì tự tạo mã mới
+            login = QrLogin(on_update)
+            try:
+                session = login.run()
+                break
+            except QrLoginError as exc:
+                if login.status.state != EXPIRED or attempt == 2:
+                    print(f"Đăng nhập thất bại: {exc}", file=sys.stderr)
+                    return 1
+                print("Tạo mã QR mới...")
+    except KeyboardInterrupt:
+        print("\nĐã huỷ.")
+        return 1
+    finally:
+        qr_path.unlink(missing_ok=True)
+
+    apply_session(session, settings.zalo_session_file, PROJECT_ROOT / ".env")
+    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong .env.")
+    if session.user_id:
+        print(f"ID của acc phụ: {session.user_id}")
+    if gateway.is_running(settings):
+        from bot.admin import envfile
+
+        # Đọc lại .env: RECEIVE_MODE vừa đổi, còn os.environ vẫn giữ giá trị cũ.
+        fresh = Settings.from_env({**os.environ, **envfile.read_values(PROJECT_ROOT / ".env")})
+        print(gateway.restart(fresh).message)
+    else:
+        print("Chạy bot: python -m bot run (hoặc gateway start).")
+    if not settings.owner_zalo_id:
+        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong .env.")
+    return 0
 
 
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
@@ -315,6 +393,8 @@ def main(argv: list[str] | None = None) -> int:
     adm.add_argument("--open", action="store_true", help="mở trình duyệt và đăng nhập sẵn")
     health = sub.add_parser("health", help="kiểm tra bot còn chạy")
     health.add_argument("--max-age", type=int, default=180, help="số giây tối đa từ lần poll cuối")
+    zlogin = sub.add_parser("zalo-login", help="đăng nhập acc Zalo cá nhân bằng mã QR (chế độ personal)")
+    zlogin.add_argument("--no-open", action="store_true", help="không tự mở ảnh mã QR (máy không có màn hình)")
     args = parser.parse_args(argv)
     # Bấm đúp ZaloBot.exe (không tham số) thì mở ứng dụng quản lý; `python -m bot` vẫn chạy bot như trước.
     command = args.command or ("gui" if is_frozen() else "run")
@@ -329,6 +409,8 @@ def main(argv: list[str] | None = None) -> int:
             settings.require(zalo=True, gemini=True)
         elif command in ("me", "set-webhook", "delete-webhook", "webhook-info"):
             settings.require(zalo=True, gemini=False)
+        if command in ("me", "set-webhook", "delete-webhook", "webhook-info") and settings.personal:
+            raise ConfigError(f"Lệnh {command} chỉ dùng với Zalo Bot (token), không dùng với RECEIVE_MODE=personal.")
         if command == "set-webhook" and not (8 <= len(settings.webhook_secret) <= 256):
             raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong .env.")
     except ConfigError as exc:
@@ -340,6 +422,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "health":
         return _health(settings, args.max_age)
+
+    if command == "zalo-login":
+        return _zalo_login(settings, open_image=not args.no_open)
 
     if command == "gateway":
         from bot import gateway
