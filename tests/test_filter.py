@@ -63,28 +63,43 @@ async def test_other_messages_ask_ai_with_recent_context(make_filter, agent):
     recent = [{"role": "user", "name": "Bình", "text": "cũ lắm"}, {"role": "user", "name": "Bình", "text": "thủ đô Úc?"},
               {"role": "model", "text": "Canberra"}]
     agent.filter_reply = True
-    d = await decide(f, msg("còn New Zealand thì sao?"), recent=recent)
+    d = await decide(f, msg("còn New Zealand thì sao?"), mode="all", recent=recent)
     assert (d.passed, d.stage, d.prompt, d.tokens) == (True, "ai", "còn New Zealand thì sao?", 5)
     sent = agent.classify_calls[-1]
     assert "[Trợ lý] Canberra" in sent and "cũ lắm" not in sent  # chỉ 2 dòng gần nhất
     agent.filter_reply = False
-    assert (await decide(f, msg("tối nay ăn gì mọi người"))).passed is False
+    assert (await decide(f, msg("tối nay ăn gì mọi người"), mode="all")).passed is False
 
 
-async def test_ai_error_budget_mode_all_and_disabled(make_filter, agent):
+async def test_default_mode_only_rules_never_ai(make_filter, agent):
+    agent.filter_reply = True
+    d = await decide(make_filter(), msg("còn New Zealand thì sao?"), mode="default")
+    assert (d.passed, d.stage) == (False, "mode_default")
+    assert agent.classify_calls == []
+
+
+async def test_tagging_other_people_is_blocked_without_ai(make_filter, agent):
+    f = make_filter(identity=("me-1", "Roemnao"))
+    agent.filter_reply = True
+    for text, mentions in (("@Thái Toàn", ["u9"]), ("@All nhiệm vụ tối ưu code", ["-1"])):
+        d = await decide(f, msg(text, mentions=mentions), mode="all")
+        assert (d.passed, d.reason) == (False, "tag người khác, không gọi bot"), text
+    assert agent.classify_calls == []
+    # Tag người khác nhưng có gọi bot thì vẫn qua.
+    assert (await decide(f, msg("@Thái Toàn bot ơi nhắc bạn ấy", mentions=["u9"]), mode="all")).passed
+
+
+async def test_ai_error_budget_and_disabled_in_mode_all(make_filter, agent):
     agent.filter_error = RuntimeError("down")
-    d = await decide(make_filter(), msg("ai biết cách nấu phở?"))
+    d = await decide(make_filter(), msg("ai biết cách nấu phở?"), mode="all")
     assert (d.passed, d.stage) == (False, "error")
 
     agent.filter_error = None
-    d = await decide(make_filter(), msg("ai biết cách nấu phở?"), over_budget=True)
+    d = await decide(make_filter(), msg("ai biết cách nấu phở?"), mode="all", over_budget=True)
     assert (d.passed, d.stage) == (False, "budget")
 
-    d = await decide(make_filter(), msg("chuyện gì cũng được"), mode="all")
-    assert (d.passed, d.stage) == (True, "mode_all")
-
     calls = len(agent.classify_calls)
-    d = await decide(make_filter(FILTER_AI="false"), msg("ai biết cách nấu phở?"))
+    d = await decide(make_filter(FILTER_AI="false"), msg("ai biết cách nấu phở?"), mode="all")
     assert not d.passed and len(agent.classify_calls) == calls
 
 

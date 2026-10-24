@@ -4,13 +4,15 @@ Chỉ tin qua lọc mới vào session (lịch sử gửi cho Gemini). Mọi tin
 ghi vào memorydata của hội thoại (xem MemoryDataStore).
 
 Các tầng, dừng ở tầng đầu tiên kết luận được:
-  private   chat riêng                                   -> qua
-  mode_all  nhóm ở chế độ all (chưa hết hạn mức)         -> qua
-  rule      /bot, @tag acc bot, gọi tên bot              -> qua
-  rule      không phải chữ, chỉ là cảm thán/emoji         -> không qua
-  budget    hết hạn mức token ngày, hoặc tắt FILTER_AI   -> không qua
-  ai        hỏi Gemini, trả JSON {"reply", "reason"}     -> theo AI
-  error     AI lỗi                                       -> không qua
+  private       chat riêng                                      -> qua
+  rule          /bot, @tag acc bot, gọi tên bot                 -> qua
+  rule          không phải chữ, chỉ là cảm thán/emoji            -> không qua
+  rule          chỉ @tag người khác (không gọi bot)              -> không qua
+  mode_default  nhóm ở chế độ default: chỉ trả lời khi được gọi -> không qua
+  budget        chế độ all nhưng hết hạn mức token ngày         -> không qua
+  rule          FILTER_AI=false                                 -> không qua
+  ai            chế độ all: hỏi Gemini, JSON {"reply","reason"} -> theo AI
+  error         AI lỗi                                          -> không qua
 """
 
 from __future__ import annotations
@@ -118,18 +120,21 @@ class MessageFilter:
             return Decision(False, "rule", "không phải tin chữ")
 
         stripped = self.strip_trigger(text)
-        if mode == MODE_ALL and not over_budget:
-            return Decision(True, "mode_all", "nhóm đang ở chế độ all", stripped if stripped is not None else text)
         if stripped is not None:
             return Decision(True, "rule", "bắt đầu bằng từ gọi bot", stripped)
         if self.calls_bot(msg, text):
             return Decision(True, "rule", "@tag hoặc gọi tên bot", self.strip_self_mention(text))
         if is_chatter(text):
             return Decision(False, "rule", "chỉ là cảm thán/biểu tượng")
-        if not self.settings.filter_ai:
-            return Decision(False, "rule", "không gọi bot (bộ lọc AI đang tắt)")
+        if msg.mentions:
+            # Đã biết không @tag bot (calls_bot ở trên): tin tag người khác, kể cả @All, là nói với họ.
+            return Decision(False, "rule", "tag người khác, không gọi bot")
+        if mode != MODE_ALL:
+            return Decision(False, "mode_default", "chế độ default: chỉ trả lời khi được gọi")
         if over_budget:
             return Decision(False, "budget", "hết hạn mức token hôm nay, chỉ trả lời khi được gọi")
+        if not self.settings.filter_ai:
+            return Decision(False, "rule", "không gọi bot (bộ lọc AI đang tắt)")
         return await self._ask_ai(msg, text, recent)
 
     async def _ask_ai(self, msg: IncomingMessage, text: str, recent: list[dict[str, Any]]) -> Decision:

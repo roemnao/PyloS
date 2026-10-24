@@ -20,6 +20,7 @@ def lines(bot, chat_id=GROUP):
 
 async def test_every_message_logged_but_only_passed_ones_reach_session(make_bot, agent, zalo):
     bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    bot.groups.set_mode(GROUP, "all")  # chế độ all: tin không gọi tên mới được hỏi AI
     await send(bot, event("tối nay đi ăn lẩu nhé", name="Bình"))  # AI: không nhờ bot
     await send(bot, event("haha", name="An"))                      # quy tắc: cảm thán
     agent.filter_reply = True
