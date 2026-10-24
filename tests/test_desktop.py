@@ -145,7 +145,7 @@ def test_external_tools_are_loaded_and_broken_ones_skipped(tmp_path, caplog):
     (tools / "_example.py").write_text("raise RuntimeError('không được nạp')\n", encoding="utf-8")
     with caplog.at_level(logging.ERROR):
         registry = discover(tools)
-    assert registry.names() == ["hello"]
+    assert registry.names() == ["doc_memorydata", "hello"]  # tool có sẵn + tool ngoài
     assert "broken.py" in caplog.text
 
 

@@ -117,8 +117,11 @@ class Settings:
     zalo_imei: str = ""
     # Tên gọi bot: tin trong nhóm nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, không cần /bot
     bot_names: tuple[str, ...] = ("bot",)
-    # Ghi cả tin trong nhóm không gọi bot vào lịch sử, để lúc được gọi bot hiểu mọi người đang nói gì
-    group_context: bool = True
+    # Bộ lọc tin nhóm (bot/filter.py) và memorydata (mọi tin của từng hội thoại)
+    filter_ai: bool = True
+    filter_model: str = ""
+    filter_context_lines: int = 6
+    memorydata_keep: int = 5000
     schedule_api_key: str = ""
     zalo_session_file: Path = Path("data/zalo_session.json")
 
@@ -175,7 +178,10 @@ class Settings:
             allow_all_chats=_bool(env, "ALLOW_ALL_CHATS", False),
             zalo_imei=env.get("ZALO_IMEI", "").strip(),
             bot_names=_csv(env["BOT_NAMES"]) if "BOT_NAMES" in env else ("bot",),
-            group_context=_bool(env, "GROUP_CONTEXT", True),
+            filter_ai=_bool(env, "FILTER_AI", True),
+            filter_model=env.get("FILTER_MODEL", "").strip(),
+            filter_context_lines=_int(env, "FILTER_CONTEXT_LINES", 6),
+            memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
             zalo_session_file=path("ZALO_SESSION_FILE", "data/zalo_session.json"),
         )

@@ -268,6 +268,8 @@ function renderOverview(main) {
     h("div", { class: "grid" },
       stat("Tin nhận hôm nay", num(s.today.received)),
       stat("Đã trả lời", num(s.today.replied)),
+      stat("Bộ lọc (nhóm)", `${num(s.today.filter_pass)} qua · ${num(s.today.filter_block)} chặn`,
+        h("div", { class: "label", text: "tin trong nhóm hôm nay" })),
       stat("Lỗi", num(s.today.errors)),
       stat("Token hôm nay", num(used), tokenExtra)),
     h("div", { class: "card" }, h("h2", { text: "Token 14 ngày gần nhất" }), chart),
@@ -356,24 +358,45 @@ async function renderHistory(main) {
     groups.map((g) => h("option", { value: g.chat_id, selected: g.chat_id === state.historyChat,
       text: `${g.label || (g.type === "PRIVATE" ? `Chat riêng ${g.last_name}` : "Nhóm")} · ${g.chat_id.slice(0, 10)}…` })));
 
-  let lastCount = -1;
+  // Session: tin đã qua bộ lọc (bot dùng làm ngữ cảnh). Memorydata: mọi tin, kèm kết quả bộ lọc.
+  const VIEWS = {
+    session: { api: "history", note: "Session: lịch sử bot dùng làm ngữ cảnh, chỉ gồm tin đã qua bộ lọc và câu trả lời của bot." },
+    memory: { api: "memorydata", note: "Memorydata: mọi tin của cuộc trò chuyện (data/memorydata), kèm kết quả bộ lọc. Tin bị chặn có viền đứt." },
+  };
+  state.historyView = state.historyView || "session";
+  const note = h("p", { class: "muted small" });
+  const viewSelect = h("select", { "aria-label": "Chọn loại dữ liệu", onchange: (e) => { state.historyView = e.target.value; load(true); } },
+    h("option", { value: "session", text: "Session", selected: state.historyView === "session" }),
+    h("option", { value: "memory", text: "Memorydata (tất cả tin)", selected: state.historyView === "memory" }));
+
+  function filterTag(f) {
+    if (!f) return null;
+    const label = f.passed ? "qua lọc" : "bị chặn";
+    return h("span", { class: `pill small ${f.passed ? "ok" : "off"}`, title: f.reason || "", text: `${label} · ${f.stage}${f.reason ? `: ${f.reason}` : ""}` });
+  }
+
+  let lastKey = "";
   async function load(force = false) {
-    const data = await api(`/api/history/${encodeURIComponent(state.historyChat)}?n=200`);
-    if (!force && data.messages.length === lastCount) return;
-    lastCount = data.messages.length;
+    const view = VIEWS[state.historyView] || VIEWS.session;
+    note.textContent = view.note + " Tự cập nhật mỗi 5 giây.";
+    const data = await api(`/api/${view.api}/${encodeURIComponent(state.historyChat)}?n=200`);
+    const key = `${state.historyView}:${data.messages.length}:${data.messages.length ? data.messages[data.messages.length - 1].t : 0}`;
+    if (!force && key === lastKey) return;
+    lastKey = key;
     const nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 60;
     chat.replaceChildren(...(data.messages.length ? data.messages.map((m) =>
-      h("div", { class: `bubble ${m.role === "model" ? "model" : "user"}` },
+      h("div", { class: `bubble ${m.role === "model" ? "model" : "user"}${m.filter && !m.filter.passed ? " blocked" : ""}` },
         h("span", { class: "meta", text: `${m.role === "model" ? "Bot" : (m.name || "Người dùng")} · ${timeText(m.t)}` }),
-        m.text)) : [h("p", { class: "empty", text: "Chưa có tin nào." })]));
+        m.type === "other" ? "[ảnh/sticker/tệp]" : m.text,
+        filterTag(m.filter))) : [h("p", { class: "empty", text: "Chưa có tin nào." })]));
     if (force || nearBottom) chat.scrollTop = chat.scrollHeight;
   }
 
   fill(main, 
     h("h1", { text: "Hội thoại" }),
-    h("div", { class: "row", style: "margin-bottom:.75rem" }, h("div", { style: "flex:1;min-width:220px" }, select),
+    h("div", { class: "row", style: "margin-bottom:.75rem" }, h("div", { style: "flex:1;min-width:220px" }, select), viewSelect,
       h("button", { class: "btn", type: "button", text: "Tải lại", onclick: () => load(true).catch(reportError) })),
-    h("p", { class: "muted small", text: "Đây là lịch sử bot dùng làm ngữ cảnh (chỉ gồm tin bot đã trả lời). Tự cập nhật mỗi 5 giây." }),
+    note,
     h("div", { class: "card" }, chat));
   await load(true);
   const timer = setInterval(() => load().catch(reportError), 5000);

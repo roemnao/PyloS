@@ -173,6 +173,42 @@ class HistoryStore:
         self._file(chat_id).rewrite([])
 
 
+class MemoryDataStore:
+    """data/memorydata/<chat_id>.txt: MỌI tin của hội thoại (kể cả tin bộ lọc chặn), mỗi dòng một JSON.
+
+    {"t", "role": "user"|"model", "msg_id", "uid", "name", "type": "text"|"other", "text",
+     "filter": {"passed", "stage", "reason"}}   (câu trả lời của bot không có "filter")
+
+    Khác HistoryStore (session gửi cho Gemini, chỉ có tin qua lọc). Bot đọc file này qua tool doc_memorydata.
+    """
+
+    def __init__(self, directory: Path, keep: int = 5000) -> None:
+        self._dir = directory
+        self._keep = keep
+
+    def path(self, chat_id: str) -> Path:
+        return self._dir / f"{safe_name(chat_id)}.txt"
+
+    def _append(self, chat_id: str, record: dict[str, Any]) -> None:
+        f = JsonLinesFile(self.path(chat_id))
+        f.append(record)
+        if self._keep and f.count_lines() > self._keep * 2:
+            f.trim(self._keep)
+
+    def add_user(self, chat_id: str, *, msg_id: str | None, uid: str, name: str, text: str | None,
+                 is_text: bool, decision: dict[str, Any]) -> None:
+        self._append(chat_id, {
+            "t": now_ms(), "role": "user", "msg_id": msg_id, "uid": uid, "name": name,
+            "type": "text" if is_text else "other", "text": text or "", "filter": decision,
+        })
+
+    def add_model(self, chat_id: str, text: str) -> None:
+        self._append(chat_id, {"t": now_ms(), "role": "model", "text": text})
+
+    def recent(self, chat_id: str, n: int) -> list[dict[str, Any]]:
+        return JsonLinesFile(self.path(chat_id)).tail(n) if n > 0 else []
+
+
 class StateStore:
     """data/state.txt: thời điểm khởi động, lần poll cuối, tin cuối (để healthcheck)."""
 
@@ -221,9 +257,10 @@ class UsageStore:
 
 
 class StatsStore:
-    """data/stats.txt: số liệu theo ngày {"2026-10-22": {"received", "replied", "errors", "tokens"}}."""
+    """data/stats.txt: số liệu theo ngày {"2026-10-22": {"received", "replied", "errors", "tokens", ...}}."""
 
-    FIELDS = ("received", "replied", "errors", "tokens")
+    # filter_pass / filter_block: số tin trong nhóm bộ lọc cho qua / chặn
+    FIELDS = ("received", "replied", "errors", "tokens", "filter_pass", "filter_block")
 
     def __init__(self, path: Path, keep_days: int = 90) -> None:
         self._file = JsonObjectFile(path)

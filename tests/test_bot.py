@@ -345,16 +345,3 @@ async def test_tagging_personal_account_answers_and_strips_tag(tmp_path, agent):
     await bot.handle_message(to_incoming("m2", "u1", "meo u nghĩ sao?", {"ts": str(now_ms() + 1000)}, GROUP, True, "me-1"))
     await bot.drain()
     assert [c[1][-1].text for c in agent.calls] == ["tóm tắt giúp", "meo u nghĩ sao?"]
-
-
-async def test_group_context_keeps_unaddressed_messages(make_bot, agent):
-    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
-    await send(bot, event("tối nay đi ăn lẩu nhé", name="Bình"))
-    await send(bot, event("ok 7h", name="An"))
-    await send(bot, event("/bot chốt lại giúp"))
-    _, turns, _ = agent.calls[0]
-    assert [(t.name, t.text) for t in turns] == [("Bình", "tối nay đi ăn lẩu nhé"), ("An", "ok 7h"), ("An", "chốt lại giúp")]
-
-    off = make_bot(ALLOWED_CHAT_IDS="other", GROUP_CONTEXT="false")
-    await send(off, event("không lưu", chat_id="other"))
-    assert off.history.recent("other", 10) == []

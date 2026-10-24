@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -84,13 +85,13 @@ class GeminiAgent:
                 contents.append(types.Content(role="user", parts=[types.Part.from_text(text=text)]))
         return contents
 
-    async def _generate(self, contents: list[Any], config: Any) -> Any:
+    async def _generate(self, contents: Any, config: Any, model: str | None = None, timeout: float | None = None) -> Any:
         """Gọi Gemini, thử lại tối đa 2 lần nếu lỗi mạng tạm thời hoặc lỗi 5xx của Google."""
         for attempt in range(1, self.RETRIES + 2):
             try:
                 return await asyncio.wait_for(
-                    self._client.aio.models.generate_content(model=self._model, contents=contents, config=config),
-                    timeout=self._timeout,
+                    self._client.aio.models.generate_content(model=model or self._model, contents=contents, config=config),
+                    timeout=timeout or self._timeout,
                 )
             except Exception as exc:  # noqa: BLE001 - lọc lỗi tạm thời bên dưới
                 if attempt > self.RETRIES or not _is_transient(exc):
@@ -132,8 +133,31 @@ class GeminiAgent:
         return AgentReply(TOO_MANY_STEPS, tokens)  # không tới được, để type checker yên tâm
 
 
+    async def classify(self, system: str, text: str, *, model: str | None = None,
+                       timeout: float = 15) -> tuple[dict[str, Any], int]:
+        """Câu hỏi có/không ngắn, trả JSON (dùng cho bộ lọc tin). Lỗi thì ném ngoại lệ cho bên gọi xử lý."""
+        config = self._types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=0,
+            max_output_tokens=200,
+            response_mime_type="application/json",
+        )
+        response = await self._generate(text, config, model=model, timeout=timeout)
+        raw = (response.text or "").strip()
+        try:
+            data = json.loads(raw)
+        except ValueError:
+            raise ValueError(f"Gemini không trả JSON: {raw[:80]!r}") from None
+        if not isinstance(data, dict):
+            raise ValueError(f"Gemini trả JSON không phải object: {raw[:80]!r}")
+        return data, _usage_tokens(response)
+
+
 class EchoAgent:
     """Agent giả cho chế độ console khi chưa có GEMINI_API_KEY."""
+
+    async def classify(self, system: str, text: str, **_: Any) -> tuple[dict[str, Any], int]:
+        return {"reply": False, "reason": "chưa có GEMINI_API_KEY nên bộ lọc AI không chạy"}, 0
 
     async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
         last = turns[-1].text if turns else ""

@@ -44,7 +44,7 @@ def parse_command(text: str | None) -> ParsedCommand | None:
 def describe_mode(mode: str, triggers: tuple[str, ...]) -> str:
     if mode == MODE_ALL:
         return "all (trả lời mọi tin nhắn)"
-    return f"default (chỉ trả lời tin bắt đầu bằng {', '.join(triggers)})"
+    return f"default (trả lời khi được gọi: {', '.join(triggers)}, @tag, gọi tên bot, hoặc bộ lọc AI thấy tin đang nhờ bot)"
 
 
 class CommandHandler:

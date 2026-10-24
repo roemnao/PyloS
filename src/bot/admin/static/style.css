@@ -233,6 +233,9 @@ label.field > small { display: block; color: var(--muted); margin-top: .2rem; }
 .bubble.user { align-self: flex-start; background: var(--bubble-user); }
 .bubble.model { align-self: flex-end; background: var(--bubble-model); border: 1px solid var(--border); }
 .bubble .meta { display: block; font-size: .75rem; color: var(--muted); margin-bottom: .15rem; }
+/* Memorydata: tin bộ lọc chặn (không vào session) */
+.bubble.blocked { border: 1px dashed var(--muted); opacity: .7; }
+.bubble .pill { display: table; margin-top: .35rem; white-space: normal; }
 
 /* log */
 .log {
