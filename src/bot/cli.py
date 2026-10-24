@@ -10,6 +10,7 @@
   admin          giao diện web quản lý: [run] | start | stop | restart | status  [--open]
   health         kiểm tra bot còn poll đều không (dùng cho giám sát)
   zalo-login     đăng nhập acc Zalo cá nhân (acc phụ) bằng mã QR, bật RECEIVE_MODE=personal
+  update         lấy code mới từ GitHub (git pull), cài thư viện nếu cần, khởi động lại bot
 """
 
 from __future__ import annotations
@@ -280,6 +281,24 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     return 0
 
 
+def _update(settings: Settings) -> int:
+    from bot import gateway, updater
+
+    try:
+        result = updater.update()
+    except updater.UpdateError as exc:
+        print(f"Cập nhật lỗi: {exc}", file=sys.stderr)
+        return 1
+    print(result.message)
+    if result.changed:
+        for service in (gateway.BOT, gateway.ADMIN):
+            if gateway.is_running(settings, service):
+                print(gateway.restart(settings, service).message)
+        if gateway.gui_running(settings):
+            print("Nếu ứng dụng quản lý (cửa sổ/khay) đang mở, thoát và mở lại để dùng giao diện mới.")
+    return 0
+
+
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     import webbrowser
 
@@ -373,6 +392,7 @@ def main(argv: list[str] | None = None) -> int:
     gui = sub.add_parser("gui", help="ứng dụng quản lý: cửa sổ + biểu tượng khay (mặc định của ZaloBot.exe)")
     gui.add_argument("--tray", action="store_true", help="chỉ hiện ở khay, không mở cửa sổ (dùng khi khởi động cùng Windows)")
     gui.add_argument("--start-bot", action="store_true", help="bật bot luôn nếu đang tắt")
+    gui.add_argument("--after-update", action="store_true", help=argparse.SUPPRESS)
     console = sub.add_parser("console", help="chat thử trên terminal, không cần Zalo")
     console.add_argument("--chat-id", default="console-group")
     console.add_argument("--user-id", default=None, help="mặc định = OWNER_ZALO_ID hoặc 'console-user'")
@@ -393,6 +413,7 @@ def main(argv: list[str] | None = None) -> int:
     adm.add_argument("--open", action="store_true", help="mở trình duyệt và đăng nhập sẵn")
     health = sub.add_parser("health", help="kiểm tra bot còn chạy")
     health.add_argument("--max-age", type=int, default=180, help="số giây tối đa từ lần poll cuối")
+    sub.add_parser("update", help="lấy code mới từ GitHub và khởi động lại bot")
     zlogin = sub.add_parser("zalo-login", help="đăng nhập acc Zalo cá nhân bằng mã QR (chế độ personal)")
     zlogin.add_argument("--no-open", action="store_true", help="không tự mở ảnh mã QR (máy không có màn hình)")
     args = parser.parse_args(argv)
@@ -401,7 +422,8 @@ def main(argv: list[str] | None = None) -> int:
     if command == "gui":
         from bot.desktop.app import run_gui
 
-        return run_gui(tray_only=getattr(args, "tray", False), start_bot=getattr(args, "start_bot", False))
+        return run_gui(tray_only=getattr(args, "tray", False), start_bot=getattr(args, "start_bot", False),
+                       after_update=getattr(args, "after_update", False))
 
     try:
         settings = Settings.from_env()
@@ -425,6 +447,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "zalo-login":
         return _zalo_login(settings, open_image=not args.no_open)
+
+    if command == "update":
+        return _update(settings)
 
     if command == "gateway":
         from bot import gateway

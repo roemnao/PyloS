@@ -83,7 +83,18 @@ def is_running(settings: Settings, service: Service = BOT) -> bool:
     return False
 
 
-def run_hidden(cmd: list[str], timeout: float = 20) -> subprocess.CompletedProcess:
+def gui_running(settings: Settings) -> bool:
+    """True nếu ứng dụng quản lý (cửa sổ + khay) đang mở."""
+    lock = InstanceLock(settings.data_dir / "gui.lock")
+    try:
+        lock.acquire()
+    except AlreadyRunning:
+        return True
+    lock.release()
+    return False
+
+
+def run_hidden(cmd: list[str], timeout: float = 20, cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Chạy một lệnh hệ thống mà không bật cửa sổ cmd.
 
     ZaloBot.exe là ứng dụng cửa sổ (không có console), nên mỗi lần gọi schtasks/taskkill kiểu thường
@@ -96,7 +107,7 @@ def run_hidden(cmd: list[str], timeout: float = 20) -> subprocess.CompletedProce
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startup.wShowWindow = subprocess.SW_HIDE
         kwargs["startupinfo"] = startup
-    return subprocess.run(cmd, capture_output=True, stdin=subprocess.DEVNULL, timeout=timeout, **kwargs)
+    return subprocess.run(cmd, capture_output=True, stdin=subprocess.DEVNULL, timeout=timeout, cwd=cwd, **kwargs)
 
 
 def _kill(pid: int) -> None:

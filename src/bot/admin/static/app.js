@@ -236,8 +236,20 @@ function renderOverview(main) {
           h("span", { text: d.day.slice(8, 10) + "/" + d.day.slice(5, 7) }))))
     : h("p", { class: "empty", text: "Chưa có số liệu." });
 
+  const updateBanner = s.updates_pending ? h("div", { class: "banner" },
+    h("span", { text: `Có ${s.updates_pending} thay đổi mới trên GitHub. ` }),
+    h("button", { class: "btn small primary", type: "button", text: "Cập nhật ngay", onclick: async (e) => {
+      e.target.disabled = true;
+      e.target.textContent = "Đang cập nhật…";
+      try {
+        const res = await api("/api/update", { method: "POST" });
+        toast(res.message, res.ok ? "ok" : "error");
+      } catch (err) { reportError(err); }
+    } })) : null;
+
   fill(main, 
     h("h1", { text: "Tổng quan" }),
+    updateBanner,
     s.alerts.length ? h("ul", { class: "alerts" }, s.alerts.map((a) => h("li", { text: a }))) : null,
     h("div", { class: "card" },
       h("div", { class: "row between" },

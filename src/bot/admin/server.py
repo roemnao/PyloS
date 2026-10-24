@@ -134,6 +134,10 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             alerts.append("Chưa đặt GEMINI_API_KEY (trang Cài đặt).")
         if not info["owner_set"]:
             alerts.append("Chưa đặt OWNER_ZALO_ID: chưa ai dùng được lệnh /allow, /mode trên Zalo.")
+        try:
+            info["updates_pending"] = int((settings.data_dir / "update.txt").read_text(encoding="utf-8").strip() or 0)
+        except (OSError, ValueError):
+            info["updates_pending"] = 0
         if info["failed_pending"]:
             alerts.append(f"{info['failed_pending']} tin gửi lỗi chưa xử lý (trang Tin lỗi).")
         last_poll = info.get("last_poll_at")
@@ -299,6 +303,32 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         cleaned = envfile.validate(ctx.env_path, {key: value}, ctx.base_dir)
         envfile.update(ctx.env_path, cleaned)
         return {"ok": True, "set": True, "message": f"Đã đặt {key}. Khởi động lại bot để áp dụng."}
+
+    # ---------- cập nhật (chạy từ mã nguồn) ----------
+
+    @app.post("/api/update")
+    def update_app() -> dict[str, Any]:
+        from bot import updater
+
+        reason = updater.unavailable_reason()
+        if reason:
+            return {"ok": False, "message": reason}
+        settings = ctx.settings()
+        if gateway.gui_running(settings):
+            # Ứng dụng quản lý tự cập nhật, khởi động lại bot và mở lại chính nó (có thể đang chứa trang này).
+            atomic_write_text(settings.data_dir / "gui.update", "1")
+            return {"ok": True, "message": "Đang cập nhật. Ứng dụng sẽ tự đóng và mở lại sau ít giây."}
+        try:
+            result = updater.update()
+        except updater.UpdateError as exc:
+            return {"ok": False, "message": f"Cập nhật lỗi: {exc}"}
+        (settings.data_dir / "update.txt").unlink(missing_ok=True)
+        message = result.message
+        if result.changed:
+            if gateway.is_running(settings, gateway.BOT):
+                message += "\n" + gateway.restart(settings, gateway.BOT).message
+            message += "\nKhởi động lại giao diện (python -m bot admin restart) để dùng giao diện mới."
+        return {"ok": True, "message": message}
 
     # ---------- đăng nhập acc Zalo cá nhân bằng mã QR ----------
 

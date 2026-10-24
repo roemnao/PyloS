@@ -50,3 +50,22 @@ def set_enabled(enabled: bool) -> None:
                 winreg.DeleteValue(key, VALUE_NAME)
             except FileNotFoundError:
                 pass
+
+
+def migrate() -> None:
+    """Đã bật "Khởi động cùng Windows" bằng cách chạy khác (vd ZaloBot.exe cũ, nay dùng ZaloBot.cmd):
+    trỏ lại vào cách đang chạy, để lúc đăng nhập Windows mở đúng bản này."""
+    if os.name != "nt" or is_frozen():
+        return
+    import winreg
+
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
+            value, _ = winreg.QueryValueEx(key, VALUE_NAME)
+    except OSError:
+        return  # chưa bật: không tự bật
+    if value != command():
+        try:
+            set_enabled(True)
+        except OSError:
+            pass
