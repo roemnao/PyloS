@@ -11,7 +11,7 @@ param(
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root ".venv\Scripts\python.exe"
-$logDir = Join-Path $root "logs"
+$logDir = Join-Path $root "userdata\system\logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $supervisorLog = Join-Path $logDir "supervisor.log"
 
@@ -23,11 +23,11 @@ while ($true) {
     Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] exited with code $code"
     if ($code -eq 2) {
         # Config error (missing token/key): restarting will not help.
-        Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] config error, stopping. Fix .env then restart the task."
+        Add-Content -Encoding utf8 $supervisorLog "$(Get-Date -Format s) [$Command] config error, stopping. Fix userdata\config\settings.env then restart the task."
         exit 2
     }
     if ($code -eq 3) {
-        # Another instance already holds the lock in data\.
+        # Another instance already holds the lock in userdata\system\.
         exit 3
     }
     Start-Sleep -Seconds 10

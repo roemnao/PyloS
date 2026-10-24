@@ -6,9 +6,9 @@ from typing import Any
 import pytest
 
 from bot.agent import AgentReply, PromptBuilder, ToolContext, Turn
-from bot.app import Bot
+from bot.core.message_handler import Bot
 from bot.config import Settings
-from bot.timeutil import now_ms
+from bot.core.vietnam_time import now_ms
 from bot.zalo import ZaloError
 
 OWNER = "owner-1"

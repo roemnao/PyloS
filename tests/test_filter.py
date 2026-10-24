@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from bot.filter import MessageFilter, is_chatter
-from bot.zalo.personal import to_incoming
-from bot.timeutil import now_ms
+from bot.core.message_filter import MessageFilter, is_chatter
+from bot.zalo.personal_account import to_incoming
+from bot.core.vietnam_time import now_ms
 
 from conftest import FakeAgent, make_settings
 
@@ -129,3 +129,68 @@ async def test_gemini_classify_requests_json_and_counts_tokens():
     Response.text = "không phải json"
     with pytest.raises(ValueError):
         await agent.classify("sys", "tin")
+
+
+def _gemini(models):
+    from bot.agent import GeminiAgent, ToolRegistry
+
+    client = type("Client", (), {"aio": type("Aio", (), {"models": models})()})()
+    agent = GeminiAgent("k", "gemini-main", ToolRegistry(), client=client)
+    agent.retry_delay = 0
+    return agent
+
+
+class _Ok:
+    text = '{"reply": false, "reason": "x"}'
+    usage_metadata = None
+
+
+async def test_classify_retries_once_on_timeout_then_reports_clearly():
+    import asyncio
+
+    calls = []
+
+    class Slow:
+        async def generate_content(self, model, contents, config):
+            calls.append(1)
+            if len(calls) == 1:
+                await asyncio.sleep(1)
+            return _Ok()
+
+    agent = _gemini(Slow())
+    assert (await agent.classify("s", "t", timeout=0.05))[0]["reply"] is False and len(calls) == 2
+
+    class AlwaysSlow:
+        async def generate_content(self, model, contents, config):
+            await asyncio.sleep(1)
+
+    with pytest.raises(TimeoutError, match="không trả lời sau"):
+        await _gemini(AlwaysSlow()).classify("s", "t", timeout=0.05)
+
+
+async def test_classify_drops_thinking_when_model_rejects_it():
+    seen = []
+
+    class Rejects:
+        async def generate_content(self, model, contents, config):
+            seen.append(config.thinking_config)
+            if config.thinking_config is not None:
+                err = RuntimeError("400 INVALID_ARGUMENT: thinking_level is not supported for this model")
+                err.code = 400
+                raise err
+            return _Ok()
+
+    agent = _gemini(Rejects())
+    await agent.classify("s", "t")
+    await agent.classify("s", "t")
+    assert seen[0] is not None and seen[1:] == [None, None]  # nhớ lại, lần sau không thử nữa
+
+
+async def test_filter_logs_error_type_even_without_message(make_filter, agent, caplog):
+    import asyncio
+    import logging
+
+    agent.filter_error = asyncio.TimeoutError()
+    with caplog.at_level(logging.WARNING):
+        d = await decide(make_filter(), msg("ai biết cách nấu phở?"), mode="all")
+    assert d.stage == "error" and "TimeoutError" in d.reason and "TimeoutError" in caplog.text

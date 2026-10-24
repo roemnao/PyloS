@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from bot import updater
+from bot.system import auto_update
 
 
 def git(cwd, *args):
@@ -27,8 +27,8 @@ def repos(tmp_path, monkeypatch):
     git(dev, "push", "origin", "HEAD:main")
     local = tmp_path / "local"
     git(tmp_path, "clone", str(origin), str(local))
-    monkeypatch.setattr(updater, "PROJECT_ROOT", local)
-    monkeypatch.setattr(updater, "is_frozen", lambda: False)
+    monkeypatch.setattr(auto_update, "PROJECT_ROOT", local)
+    monkeypatch.setattr(auto_update, "is_frozen", lambda: False)
     return dev, local
 
 
@@ -41,41 +41,41 @@ def push_change(dev, name, text, message):
 
 def test_pending_then_update_pulls_new_commits(repos, monkeypatch):
     dev, local = repos
-    assert updater.pending_commits() == 0
-    assert not updater.update().changed
+    assert auto_update.pending_commits() == 0
+    assert not auto_update.update().changed
 
     push_change(dev, "README.md", "v2\n", "Sửa README")
     push_change(dev, "a.txt", "x\n", "Thêm a")
-    assert updater.pending_commits() == 2
+    assert auto_update.pending_commits() == 2
 
     pip_calls = []
-    monkeypatch.setattr(updater, "_run", lambda *a, **k: pip_calls.append(a) if "pip" in a else updater_run(*a, **k))
-    result = updater.update()
+    monkeypatch.setattr(auto_update, "_run", lambda *a, **k: pip_calls.append(a) if "pip" in a else updater_run(*a, **k))
+    result = auto_update.update()
     assert result.changed and "2 thay đổi" in result.message and "• Sửa README" in result.message
     assert (local / "README.md").read_text(encoding="utf-8") == "v2\n"
     assert pip_calls == []  # pyproject.toml không đổi thì không cài lại thư viện
 
     push_change(dev, "pyproject.toml", "[project]\n", "Đổi thư viện")
-    updater.update()
+    auto_update.update()
     assert pip_calls and pip_calls[0][1:4] == ("-m", "pip", "install")
 
 
-updater_run = updater._run
+updater_run = auto_update._run
 
 
 def test_local_changes_conflict_is_reported(repos):
     dev, local = repos
     push_change(dev, "README.md", "v2\n", "Sửa README")
     (local / "README.md").write_text("sửa tay\n", encoding="utf-8")
-    with pytest.raises(updater.UpdateError):
-        updater.update()
+    with pytest.raises(auto_update.UpdateError):
+        auto_update.update()
 
 
 def test_unavailable_for_exe_and_non_git(tmp_path, monkeypatch):
-    monkeypatch.setattr(updater, "is_frozen", lambda: True)
-    assert "exe" in updater.unavailable_reason()
-    monkeypatch.setattr(updater, "is_frozen", lambda: False)
-    monkeypatch.setattr(updater, "PROJECT_ROOT", tmp_path)
-    assert "git" in updater.unavailable_reason()
-    with pytest.raises(updater.UpdateError):
-        updater.update()
+    monkeypatch.setattr(auto_update, "is_frozen", lambda: True)
+    assert "exe" in auto_update.unavailable_reason()
+    monkeypatch.setattr(auto_update, "is_frozen", lambda: False)
+    monkeypatch.setattr(auto_update, "PROJECT_ROOT", tmp_path)
+    assert "git" in auto_update.unavailable_reason()
+    with pytest.raises(auto_update.UpdateError):
+        auto_update.update()

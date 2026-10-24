@@ -4,13 +4,13 @@ import asyncio
 
 import httpx
 
-from bot.sources import polling
+from bot.zalo import receive_polling
 from bot.storage import StateStore
 from bot.zalo import ZaloClient
 
 
 async def test_polling_delivers_updates_and_survives_errors(tmp_path, monkeypatch):
-    monkeypatch.setattr(polling, "MAX_BACKOFF", 0.01)
+    monkeypatch.setattr(receive_polling, "MAX_BACKOFF", 0.01)
     stop = asyncio.Event()
     received = []
     calls = {"getUpdates": 0, "deleteWebhook": 0}
@@ -34,8 +34,8 @@ async def test_polling_delivers_updates_and_survives_errors(tmp_path, monkeypatc
         received.append(payload)
 
     client = ZaloClient("tok", http=httpx.AsyncClient(transport=httpx.MockTransport(handler)))
-    state = StateStore(tmp_path / "state.txt")
-    polling_task = polling.run_polling(client, handle, state, stop, poll_timeout=1)
+    state = StateStore(tmp_path / "bot_status.txt")
+    polling_task = receive_polling.run_polling(client, handle, state, stop, poll_timeout=1)
     await asyncio.wait_for(polling_task, timeout=5)
 
     assert calls["deleteWebhook"] == 1

@@ -84,7 +84,7 @@ class ToolRegistry:
 
 
 def _load_external(directory: Path, registry: ToolRegistry) -> None:
-    """Nạp tool từ thư mục tools/ bên ngoài (cạnh ZaloBot.exe), vì trong exe không thêm file .py được."""
+    """Nạp tool người dùng tự viết trong userdata/data/tools/ (cả khi chạy exe, vì trong exe không thêm file .py được)."""
     for path in sorted(directory.glob("*.py")):
         if path.name.startswith("_"):
             continue
@@ -101,7 +101,7 @@ def _load_external(directory: Path, registry: ToolRegistry) -> None:
 
 
 def discover(external_dir: Path | None = None) -> ToolRegistry:
-    """Nạp mọi module có biến TOOLS: trong package này, và trong thư mục tools/ của APP_HOME."""
+    """Nạp mọi module có biến TOOLS: trong package này, và trong userdata/data/tools/."""
     registry = ToolRegistry()
     for module_info in pkgutil.iter_modules(__path__):
         if module_info.name.startswith("_"):
@@ -111,8 +111,9 @@ def discover(external_dir: Path | None = None) -> ToolRegistry:
             registry.register(tool)
     if external_dir is None:
         from bot.config import APP_HOME
+        from bot.userdata_paths import TOOLS_REL
 
-        external_dir = APP_HOME / "tools"
+        external_dir = APP_HOME / TOOLS_REL
     if external_dir.is_dir():
         _load_external(external_dir, registry)
     if len(registry):

@@ -7,8 +7,8 @@ import json
 import pytest
 import requests
 
-from bot.zalo import qrlogin
-from bot.zalo.qrlogin import QrLogin, QrLoginError, ZaloSession, apply_session, cookies_for
+from bot.zalo import qr_login
+from bot.zalo.qr_login import QrLogin, QrLoginError, ZaloSession, apply_session, cookies_for
 
 PNG = base64.b64encode(b"\x89PNG fake").decode()
 
@@ -74,7 +74,7 @@ def test_full_qr_flow_returns_session_with_chat_cookies():
 
     assert session.cookies == {"zpw_sek": "SEK", "zpsid": "SID"}  # bỏ cookie riêng của id.zalo.me
     assert session.display_name == "Acc Phụ" and session.user_id == "42"
-    assert session.imei.endswith("-" + hashlib.md5(qrlogin.USER_AGENT.encode()).hexdigest())
+    assert session.imei.endswith("-" + hashlib.md5(qr_login.USER_AGENT.encode()).hexdigest())
     assert [s for s, _ in updates] == ["starting", "waiting_scan", "scanned", "success"]
     assert updates[1] == ("waiting_scan", True)
     assert http.calls.count("POST waiting-scan") == 2  # error_code 8 thì gọi lại
@@ -87,13 +87,13 @@ def test_declined_and_expired():
     assert login.status.state == "declined"
 
     login = QrLogin(session=FakeZalo(scans_before=10**6))
-    login_deadline = qrlogin.QR_LIFETIME_SECONDS
-    qrlogin.QR_LIFETIME_SECONDS = 0
+    login_deadline = qr_login.QR_LIFETIME_SECONDS
+    qr_login.QR_LIFETIME_SECONDS = 0
     try:
         with pytest.raises(QrLoginError, match="hết hạn"):
             login.run()
     finally:
-        qrlogin.QR_LIFETIME_SECONDS = login_deadline
+        qr_login.QR_LIFETIME_SECONDS = login_deadline
     assert login.status.state == "expired"
 
 
@@ -116,7 +116,7 @@ def test_cookies_for_prefers_specific_domain():
 def test_apply_session_saves_file_and_enables_personal_mode(tmp_path):
     env = tmp_path / ".env"
     env.write_text("# chú thích\nRECEIVE_MODE=polling\nGEMINI_API_KEY=k\n", encoding="utf-8")
-    path = tmp_path / "data" / "zalo_session.json"
+    path = tmp_path / "data" / "zalo_login_session.json"
     apply_session(ZaloSession(cookies={"zpw_sek": "x"}, imei="i", display_name="An"), path, env)
     saved = json.loads(path.read_text(encoding="utf-8"))
     assert saved["imei"] == "i" and saved["cookies"] == {"zpw_sek": "x"} and saved["display_name"] == "An"

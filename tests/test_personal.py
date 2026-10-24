@@ -9,8 +9,8 @@ import pytest
 from bot.config import ConfigError
 from bot.storage import ActivityStore
 from bot.zalo import ZaloError
-from bot.mentions import add_tags, build_mentions
-from bot.zalo.personal import PersonalZalo, _is_network_error, load_session, mention_names, to_incoming
+from bot.core.mention_tags import add_tags, build_mentions
+from bot.zalo.personal_account import PersonalZalo, _is_network_error, load_session, mention_names, to_incoming
 
 from conftest import make_settings
 
@@ -102,7 +102,7 @@ def test_require_personal_needs_qr_session(tmp_path):
     settings = make_settings(tmp_path, RECEIVE_MODE="personal", GEMINI_API_KEY="k")
     with pytest.raises(ConfigError, match="Chưa đăng nhập"):
         settings.require()
-    session = tmp_path / "data" / "zalo_session.json"
+    session = tmp_path / "userdata" / "config" / "zalo_login_session.json"
     session.parent.mkdir(parents=True, exist_ok=True)
     session.write_text(json.dumps({"imei": "i", "cookies": {"zpw_sek": "x"}}), encoding="utf-8")
     settings.require()  # không cần ZALO_BOT_TOKEN
@@ -110,7 +110,7 @@ def test_require_personal_needs_qr_session(tmp_path):
 
 async def test_send_picks_thread_type_from_activity(tmp_path):
     zalo = make_personal(tmp_path)
-    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    ActivityStore(zalo.settings.data_dir / "chat_activity.txt").touch("g1", "GROUP", "An")
     await zalo.send_message("g1", "a")
     await zalo.send_message("u9", "b")
     await zalo.send_chat_action("g1")
@@ -171,7 +171,7 @@ async def test_members_merge_group_list_and_recent_speakers(tmp_path):
     api.group_info = {"memVerList": ["u1_0", "u2_0", "me-1_0"], "currentMems": [{"id": "u1", "dName": "An"}]}
     api.profiles = {"u2": {"displayName": "Bình"}, "me-1": {"displayName": "Bot"}}
     zalo = make_personal(tmp_path, api)
-    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    ActivityStore(zalo.settings.data_dir / "chat_activity.txt").touch("g1", "GROUP", "An")
     zalo._memory.add_user("g1", msg_id="1", uid="u3", name="Lan", text="hi", is_text=True, decision={})
     assert zalo.members("g1") == {"u1": "An", "u2": "Bình", "u3": "Lan"}  # không có chính acc bot
     zalo.members("g1")
@@ -182,7 +182,7 @@ async def test_send_in_group_attaches_mentions_but_not_in_private(tmp_path):
     api = FakeApi()
     api.group_info = {"currentMems": [{"id": "u2", "dName": "Thái Toàn"}]}
     zalo = make_personal(tmp_path, api)
-    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    ActivityStore(zalo.settings.data_dir / "chat_activity.txt").touch("g1", "GROUP", "An")
     await zalo.send_message("g1", "@Thái Toàn ơi nộp bài nhé")
     assert json.loads(api.mentions) == [{"pos": 0, "len": 10, "uid": "u2", "type": 0}]
     await zalo.send_message("u9", "@Thái Toàn ơi")
@@ -191,7 +191,7 @@ async def test_send_in_group_attaches_mentions_but_not_in_private(tmp_path):
 
 async def test_bot_tells_model_member_names(tmp_path):
     from bot.agent import PromptBuilder
-    from bot.app import Bot
+    from bot.core.message_handler import Bot
 
     from conftest import GROUP, FakeAgent, FakeZalo, event
 
@@ -229,7 +229,7 @@ def test_add_tags_only_for_names_requested_with_tag_intent():
 
 async def test_bot_adds_missing_at_sign_end_to_end(tmp_path):
     from bot.agent import PromptBuilder
-    from bot.app import Bot
+    from bot.core.message_handler import Bot
 
     from conftest import GROUP, FakeAgent, FakeZalo, event
 
@@ -254,5 +254,5 @@ def test_names_learned_from_incoming_tags(tmp_path):
     zalo = make_personal(tmp_path)
     zalo._on_message("m1", "u1", text, {"ts": "1", "mentions": mentions}, "g1", ThreadType.GROUP)
     assert zalo._learned["g1"] == {"u5": "Phúc Xo"}
-    ActivityStore(zalo.settings.data_dir / "activity.txt").touch("g1", "GROUP", "An")
+    ActivityStore(zalo.settings.data_dir / "chat_activity.txt").touch("g1", "GROUP", "An")
     assert zalo.members("g1")["u5"] == "Phúc Xo"

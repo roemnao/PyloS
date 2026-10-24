@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from bot.config import ConfigError, Settings
-from bot.logging_setup import RedactFilter
-from bot.sources.webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
+from bot.system.log_files import RedactFilter
+from bot.zalo.receive_webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
 from bot.zalo import ZaloClient, ZaloError
 
 TOKEN = "123456:SECRET-TOKEN"
@@ -26,7 +26,8 @@ def test_defaults_and_validation(tmp_path):
     s = Settings.from_env({"BOT_TRIGGERS": "/bot, @Trợ lý ", "ALLOWED_CHAT_IDS": "a,,b"}, base_dir=tmp_path)
     assert s.bot_triggers == ("/bot", "@Trợ lý")
     assert s.allowed_chat_ids == ("a", "b")
-    assert s.receive_mode == "polling" and s.data_dir == tmp_path / "data"
+    assert s.receive_mode == "polling" and s.data_dir == tmp_path / "userdata" / "data"
+    assert s.system_dir == tmp_path / "userdata" / "system" and s.log_dir == tmp_path / "userdata" / "system" / "logs"
     with pytest.raises(ConfigError):
         Settings.from_env({"RECEIVE_MODE": "carrier-pigeon"}, base_dir=tmp_path)
     with pytest.raises(ConfigError):
