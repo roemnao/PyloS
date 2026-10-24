@@ -189,6 +189,39 @@ Lưu ý:
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
 - Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `data/zalo_session.json` và điền `ZALO_IMEI` trong `.env`.
 
+## Gọi bot trong nhóm bằng tên hoặc @tag
+
+Ở chế độ `default`, ngoài tin bắt đầu bằng `/bot`, bot còn trả lời khi:
+- tin **nhắc tới tên bot**: các tên trong `BOT_NAMES` (mặc định `bot`), không phân biệt hoa thường hay có dấu, ví dụ "Bot ơi mai mấy giờ họp?". Chỉ tính khi đứng thành từ riêng, nên "robot" không làm bot trả lời;
+- (acc Zalo cá nhân) tin **@tag acc bot**, hoặc nhắc tới **tên acc Zalo của bot**.
+
+Muốn tắt, để `BOT_NAMES=` trống. Muốn thêm tên gọi khác, ghi cách nhau dấu phẩy, ví dụ `BOT_NAMES=bot,trợ lý,Pylos`.
+
+Với `GROUP_CONTEXT=true` (mặc định), bot **lưu cả những tin không gọi nó** trong nhóm đã được cho phép, làm ngữ cảnh. Nhờ vậy khi được gọi ("bot chốt lại giúp"), bot biết mọi người vừa nói gì. Số tin đưa vào mỗi lần trả lời do `HISTORY_TURNS` quyết định.
+
+Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
+
+## Nối với web Quản lý thời gian (quanlythoigian)
+
+Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot gọi API của web [quanlythoigian](https://quanlythoigian-azure.vercel.app) để thêm lịch hẹn hoặc việc cần làm. Lịch thêm vào hiện trên web, tự lên Google Lịch (nếu web đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
+
+1. Trên web, vào **Cài đặt → Kết nối AI agent → Tạo khoá cho agent** và chép khoá.
+2. Trong `.env` của bot (hoặc giao diện quản lý → Cài đặt → mục Lịch và Khóa bí mật):
+
+   ```
+   SCHEDULE_API_URL=https://quanlythoigian-azure.vercel.app
+   SCHEDULE_API_KEY=<khoá vừa tạo>
+   SCHEDULE_OWNER_ONLY=true
+   ```
+
+3. Khởi động lại bot. Log sẽ in `Đã nạp tool: them_lich_hen, them_viec, xem_lich, danh_sach_viec, xong_viec`.
+
+Ví dụ nhắn bot: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nhắc tôi 8h sáng mai gọi cho mẹ", "thêm việc nộp báo cáo trước thứ 2", "mai tôi có lịch gì?", "đánh dấu xong việc nộp báo cáo".
+
+- Với `SCHEDULE_OWNER_ONLY=true` (mặc định), chỉ chủ bot (`OWNER_ZALO_ID`) nhờ thêm hoặc xem lịch được. Người khác nhờ thì bot từ chối. Đặt `false` nếu muốn ai cũng nhờ được.
+- Ghi chú của mỗi lịch có tên người nhờ.
+- Muốn web nhắc việc qua Zalo, cấu hình phía web như trong README của quanlythoigian (mục "Dùng chung bot Zalo với AI agent khác").
+
 ## Thêm tool cho trợ lý
 
 1. Sao chép `src/bot/agent/tools/_example.py` thành một file mới không có dấu `_` ở đầu tên.

@@ -264,6 +264,9 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "RECEIVE_MODE": settings.receive_mode, "LOG_LEVEL": settings.log_level,
             "ADMIN_SHOW_HISTORY": "true" if settings.admin_show_history else "false",
             "ALLOW_ALL_CHATS": "true" if settings.allow_all_chats else "false",
+            "SCHEDULE_OWNER_ONLY": "true",
+            "BOT_NAMES": ",".join(settings.bot_names),
+            "GROUP_CONTEXT": "true" if settings.group_context else "false",
         }
         return {
             "fields": [

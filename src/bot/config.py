@@ -115,6 +115,11 @@ class Settings:
     allow_all_chats: bool = False
     # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal.py)
     zalo_imei: str = ""
+    # Tên gọi bot: tin trong nhóm nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, không cần /bot
+    bot_names: tuple[str, ...] = ("bot",)
+    # Ghi cả tin trong nhóm không gọi bot vào lịch sử, để lúc được gọi bot hiểu mọi người đang nói gì
+    group_context: bool = True
+    schedule_api_key: str = ""
     zalo_session_file: Path = Path("data/zalo_session.json")
 
     @classmethod
@@ -169,6 +174,9 @@ class Settings:
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
             allow_all_chats=_bool(env, "ALLOW_ALL_CHATS", False),
             zalo_imei=env.get("ZALO_IMEI", "").strip(),
+            bot_names=_csv(env["BOT_NAMES"]) if "BOT_NAMES" in env else ("bot",),
+            group_context=_bool(env, "GROUP_CONTEXT", True),
+            schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
             zalo_session_file=path("ZALO_SESSION_FILE", "data/zalo_session.json"),
         )
 
@@ -198,6 +206,7 @@ class Settings:
     @property
     def secrets(self) -> list[str]:
         return [
-            s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei)
+            s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei,
+                        self.schedule_api_key)
             if s
         ]

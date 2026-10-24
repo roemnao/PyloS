@@ -33,6 +33,12 @@ FIELDS: tuple[FieldSpec, ...] = (
               "Bật: bot trả lời ở mọi nhóm và chat riêng, không cần /allow (chat bị /deny vẫn bị chặn). "
               "Tắt: chỉ các chat đã /allow.", kind="bool"),
     FieldSpec("BOT_TRIGGERS", "Từ gọi bot", "Ở chế độ default, chỉ trả lời tin bắt đầu bằng các từ này (cách nhau dấu phẩy)."),
+    FieldSpec("BOT_NAMES", "Tên gọi bot",
+              "Ở chế độ default, tin trong nhóm có nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, "
+              "không cần /bot. Tên acc Zalo của bot được tự thêm. Cách nhau dấu phẩy; để trống để tắt."),
+    FieldSpec("GROUP_CONTEXT", "Đọc cả tin không gọi bot trong nhóm",
+              "Bật: bot lưu mọi tin trong nhóm đã cho phép làm ngữ cảnh, nên hiểu câu hỏi kiểu \"bot nghĩ sao về chuyện này?\".",
+              kind="bool"),
     FieldSpec("GEMINI_MODEL", "Model Gemini", "Ví dụ gemini-3.1-flash-lite.", group="Gemini"),
     FieldSpec("MAX_OUTPUT_TOKENS", "Token tối đa mỗi câu trả lời", kind="int", group="Gemini"),
     FieldSpec("LLM_TIMEOUT_SECONDS", "Thời gian chờ Gemini (giây)", kind="int", group="Gemini"),
@@ -47,6 +53,12 @@ FIELDS: tuple[FieldSpec, ...] = (
               kind="choice", choices=("polling", "webhook", "personal"), group="Kết nối"),
     FieldSpec("WEBHOOK_HOST", "Webhook: địa chỉ lắng nghe", group="Kết nối"),
     FieldSpec("WEBHOOK_PORT", "Webhook: cổng", kind="int", group="Kết nối"),
+    FieldSpec("SCHEDULE_API_URL", "Địa chỉ web quản lý thời gian",
+              "Ví dụ https://quanlythoigian-azure.vercel.app (để trống = địa chỉ này). Cần đặt thêm khoá SCHEDULE_API_KEY bên dưới.",
+              group="Lịch (quanlythoigian)"),
+    FieldSpec("SCHEDULE_OWNER_ONLY", "Chỉ chủ bot được thêm/xem lịch",
+              "Bật: chỉ OWNER_ZALO_ID nhờ bot thêm lịch, xem lịch được. Tắt: ai nhắn bot cũng được.",
+              kind="bool", group="Lịch (quanlythoigian)"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )
@@ -56,6 +68,7 @@ SECRETS: dict[str, str] = {
     "ZALO_BOT_TOKEN": "Bot token Zalo",
     "GEMINI_API_KEY": "API key Gemini",
     "WEBHOOK_SECRET": "Webhook secret (8–256 ký tự)",
+    "SCHEDULE_API_KEY": "Khoá agent của web quản lý thời gian",
 }
 
 _LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=")
