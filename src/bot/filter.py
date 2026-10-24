@@ -150,8 +150,9 @@ class MessageFilter:
                 FILTER_SYSTEM.format(names=names), user, model=self.settings.filter_model or None,
             )
         except Exception as exc:  # noqa: BLE001 - lỗi bộ lọc không được làm sập bot: coi như không gọi bot
-            log.warning("Bộ lọc AI lỗi ở chat %s: %s", msg.chat_id, exc)
-            return Decision(False, "error", f"bộ lọc AI lỗi: {type(exc).__name__}")
+            detail = f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__
+            log.warning("Bộ lọc AI lỗi ở chat %s: %s", msg.chat_id, detail)
+            return Decision(False, "error", f"bộ lọc AI lỗi: {detail[:150]}")
         reply = data.get("reply")
         reason = str(data.get("reason") or "")[:200]
         if reply is True or str(reply).lower() == "true":

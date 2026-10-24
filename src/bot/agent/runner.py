@@ -13,6 +13,7 @@ from bot.agent.tools import ToolContext, ToolRegistry
 log = logging.getLogger(__name__)
 
 EMPTY_REPLY = "Xin lỗi, mình chưa trả lời được câu này."
+CLASSIFY_TIMEOUT = 30  # giây chờ bộ lọc AI mỗi lần gọi
 TOO_MANY_STEPS = "Xin lỗi, việc này cần quá nhiều bước, bạn thử hỏi cụ thể hơn nhé."
 
 
@@ -36,6 +37,11 @@ class Agent(Protocol):
 def _usage_tokens(response: Any) -> int:
     usage = getattr(response, "usage_metadata", None)
     return int(getattr(usage, "total_token_count", 0) or 0) if usage else 0
+
+
+def _rejects_thinking(exc: BaseException) -> bool:
+    """Lỗi 400 do model không hỗ trợ tham số thinking (ví dụ model cũ)."""
+    return getattr(exc, "code", None) == 400 and "think" in str(exc).lower()
 
 
 def _is_transient(exc: BaseException) -> bool:
@@ -73,6 +79,7 @@ class GeminiAgent:
         self._max_rounds = max_tool_rounds
         self._max_output_tokens = max_output_tokens
         self._timeout = timeout_seconds
+        self._classify_thinking = True  # tắt khi model báo không nhận thinking_level
 
     def _contents(self, turns: list[Turn]) -> list[Any]:
         types = self._types
@@ -134,16 +141,39 @@ class GeminiAgent:
 
 
     async def classify(self, system: str, text: str, *, model: str | None = None,
-                       timeout: float = 15) -> tuple[dict[str, Any], int]:
-        """Câu hỏi có/không ngắn, trả JSON (dùng cho bộ lọc tin). Lỗi thì ném ngoại lệ cho bên gọi xử lý."""
-        config = self._types.GenerateContentConfig(
-            system_instruction=system,
-            temperature=0,
-            max_output_tokens=200,
-            response_mime_type="application/json",
-        )
-        response = await self._generate(text, config, model=model, timeout=timeout)
+                       timeout: float = CLASSIFY_TIMEOUT) -> tuple[dict[str, Any], int]:
+        """Câu hỏi có/không ngắn, trả JSON (dùng cho bộ lọc tin). Lỗi thì ném ngoại lệ cho bên gọi xử lý.
+
+        Gemini quá tải hay trả chậm: chờ tới `timeout` giây, hết giờ thì thử thêm một lần.
+        Tắt bớt "suy nghĩ" (thinking) cho câu hỏi đơn giản này để nhanh và rẻ; model nào không nhận
+        tham số đó (lỗi 400) thì bỏ hẳn và gọi lại.
+        """
+        attempts = 0
+        while True:
+            attempts += 1
+            config = self._types.GenerateContentConfig(
+                system_instruction=system,
+                temperature=0,
+                max_output_tokens=256,
+                response_mime_type="application/json",
+                thinking_config=self._types.ThinkingConfig(thinking_level="low") if self._classify_thinking else None,
+            )
+            try:
+                response = await self._generate(text, config, model=model, timeout=timeout)
+                break
+            except asyncio.TimeoutError:
+                if attempts >= 2:
+                    raise TimeoutError(f"Gemini không trả lời sau {timeout:.0f} giây (đã thử {attempts} lần)") from None
+                log.warning("Bộ lọc: Gemini chưa trả lời sau %.0f giây, thử lại", timeout)
+            except Exception as exc:  # noqa: BLE001 - chỉ xử lý riêng lỗi do tham số thinking
+                if self._classify_thinking and _rejects_thinking(exc) and attempts < 3:
+                    log.info("Model không nhận thinking_level, gọi lại không có tham số này: %s", exc)
+                    self._classify_thinking = False
+                    continue
+                raise
         raw = (response.text or "").strip()
+        if not raw:
+            raise ValueError("Gemini trả về rỗng (có thể bị chặn bởi bộ lọc an toàn hoặc hết token)")
         try:
             data = json.loads(raw)
         except ValueError:
