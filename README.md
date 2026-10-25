@@ -408,6 +408,17 @@ roemnao các lịch đã giao trong nhóm?                           # lich_da_g
 | `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: ai được giao lịch cho người khác |
 | `SCHEDULE_OWNER_ONLY` | `true` (mặc định): chỉ chủ bot dùng các tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec` (lịch riêng của chủ web) |
 
+### Đặt quyền giao lịch (`ASSIGN_ALLOWED`)
+Giá trị: `owner` (mặc định, chỉ chủ bot nhờ bot giao lịch) hoặc `all` (ai trong nhóm cũng nhờ được). Đặt ở một trong ba chỗ:
+
+| Cách | Thao tác | Hiệu lực |
+|---|---|---|
+| Trang quản trị web | Hệ thống → nhóm Quyền → *Ai được giao lịch cho người khác* → `owner` hoặc `all` → Lưu | Tự áp dụng sau tối đa 60 giây (nhịp tim), không cần khởi động lại. Cần `SCHEDULE_API_KEY` |
+| Cài đặt của app bot | Trang Cài đặt → nhóm *Web iforgotmywayhome* → *Ai được giao lịch cho người khác* | Khởi động lại bot |
+| File cấu hình | Thêm dòng `ASSIGN_ALLOWED=all` vào `userdata\config\settings.env` | Khởi động lại bot (`PY -m bot gateway restart`) |
+
+Giá trị đặt trên web ghi đè giá trị trong `settings.env` khi bot đang nối với web. Đi cùng là `SCHEDULE_OWNER_ONLY=true|false` (lịch riêng của chủ web), đặt ở cùng các chỗ trên.
+
 ## Thêm tool cho trợ lý
 
 1. Sao chép `userdata\data\custom_tools\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
