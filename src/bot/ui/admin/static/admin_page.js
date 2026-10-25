@@ -4,8 +4,10 @@
 // (không dùng innerHTML) vì tin nhắn, tên người dùng, log là dữ liệu không đáng tin.
 
 const TOKEN_KEY = "zalo-bot-admin-token";
+const TARGET_KEY = "zalo-bot-admin-target";
 const PAGES = [
   ["overview", "Tổng quan"],
+  ["servers", "Máy chủ"],
   ["groups", "Nhóm"],
   ["history", "Hội thoại"],
   ["workspace", "Chỉ dẫn"],
@@ -18,6 +20,8 @@ const PAGES = [
 
 const state = {
   token: null,
+  target: "local",    // "local": điều khiển bot ở máy này; "vps": mọi trang đi qua /api/remote tới VPS
+  remote: null,       // kết quả /api/remote-status (đã cấu hình VPS chưa, có kết nối được không)
   page: "overview",
   status: null,
   cleanup: [],        // hàm dọn dẹp của trang hiện tại (timer, kết nối log...)
@@ -87,9 +91,15 @@ function num(n) {
 
 class ApiError extends Error {}
 
-async function api(path, { method = "GET", body, signal } = {}) {
+// Đường dẫn thật cho bên được chọn: bên VPS đi qua proxy /api/remote của server ở máy này.
+function sidePath(path, side = state.target) {
+  return side === "vps" && path.startsWith("/api/") ? `/api/remote/${path.slice(5)}` : path;
+}
+
+async function api(path, { method = "GET", body, signal, side } = {}) {
   const headers = { Authorization: `Bearer ${state.token}` };
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  path = sidePath(path, side);
   const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal });
   if (res.status === 401) {
     showLogin("Mã truy cập không đúng hoặc đã đổi.");
@@ -170,6 +180,42 @@ function render() {
   Promise.resolve(RENDERERS[state.page](main)).catch(reportError);
 }
 
+// ---------- bên được điều khiển: máy này hay VPS ----------
+
+function applyTarget() {
+  const vps = state.target === "vps";
+  document.body.classList.toggle("target-vps", vps);
+  const box = document.getElementById("target-switch");
+  box.hidden = !(state.remote && state.remote.configured);
+  for (const b of box.querySelectorAll("button")) {
+    if (b.dataset.target === state.target) b.setAttribute("aria-pressed", "true");
+    else b.removeAttribute("aria-pressed");
+  }
+}
+
+function setTarget(target) {
+  if (target === state.target) return;
+  if (state.dirty && state.dirty() && !confirm("Có thay đổi chưa lưu. Rời trang này?")) return;
+  state.target = target;
+  storageSet(TARGET_KEY, target);
+  state.status = null;
+  applyTarget();
+  render();
+  pollStatus();
+}
+
+async function pollRemote() {
+  try {
+    state.remote = await api("/api/remote-status", { side: "local" });
+  } catch { return; }
+  if (!state.remote.configured && state.target === "vps") {
+    state.target = "local";
+    storageSet(TARGET_KEY, null);
+    render();
+  }
+  applyTarget();
+}
+
 // ---------- trạng thái chung (góc trên) ----------
 
 async function pollStatus() {
@@ -181,7 +227,7 @@ async function pollStatus() {
   }
   const pill = document.getElementById("status-pill");
   const s = state.status;
-  pill.textContent = s.running ? "Đang chạy" : "Đã dừng";
+  pill.textContent = s.running ? "Đang chạy" : s.standby ? "Đang chờ" : "Đã dừng";
   pill.className = `pill ${s.running ? (s.alerts.length ? "warn" : "ok") : "off"}`;
   if (state.page === "overview" && !state.busy) renderOverview(document.getElementById("main"));
 }
@@ -284,6 +330,109 @@ function renderOverview(main) {
             h("span", { class: "muted", text: ` · chế độ ${g.mode}` }))))
         : h("p", { class: "muted", text: "Chưa có nhóm nào. Thêm bot vào nhóm, nhắn một tin, rồi bật ở trang Nhóm." })),
   );
+}
+
+// ---------- Máy chủ: so sánh máy này với VPS ----------
+
+function bytesText(n) {
+  if (!n) return "—";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
+function durationText(seconds) {
+  if (seconds === null || seconds === undefined) return "—";
+  const d = Math.floor(seconds / 86400), hrs = Math.floor((seconds % 86400) / 3600), min = Math.floor((seconds % 3600) / 60);
+  return d ? `${d} ngày ${hrs} giờ` : hrs ? `${hrs} giờ ${min} phút` : `${min} phút`;
+}
+
+async function serverAction(side, action, label, button) {
+  const old = button.textContent;
+  button.disabled = true;
+  button.textContent = `${label}…`;
+  try {
+    const res = await api(action === "update" ? "/api/update" : `/api/bot/${action}`, { method: "POST", side });
+    toast(res.message, res.ok ? "ok" : "error");
+  } catch (err) { reportError(err); }
+  button.textContent = old;
+  await loadServers();
+}
+
+function serverCard(side, title, data, error) {
+  if (error) {
+    return h("div", { class: `card server ${side}` }, h("h2", { text: title }),
+      h("p", { class: "error", text: error }));
+  }
+  const bot = data.bot, v = data.version || {}, mem = data.memory;
+  const badge = bot.running ? ["ok", "Bot đang chạy"] : bot.standby ? ["warn", "Đang chờ (bot ở máy khác)"] : ["off", "Bot đã dừng"];
+  const rows = [
+    ["Máy", `${data.hostname} · ${data.os}`],
+    ["Máy đã chạy", durationText(data.uptime_seconds)],
+    data.load ? ["Tải (1/5/15 phút)", data.load.join(" · ")] : null,
+    mem ? ["RAM", `${bytesText(mem.total - mem.available)} / ${bytesText(mem.total)}`] : null,
+    data.disk ? ["Ổ đĩa trống", `${bytesText(data.disk.free)} / ${bytesText(data.disk.total)}`] : null,
+    ["Code", v.git ? `${(v.head || "").slice(0, 7)} · ${v.subject || ""}` : "không phải bản git (exe)"],
+    ["Zalo phản hồi lần cuối", bot.running ? ago(bot.last_poll_at) : "—"],
+    ["Nhận tin", `${bot.receive_mode} · ${bot.model}`],
+    data.units ? ["Service", Object.entries(data.units).map(([k, val]) => `${k}: ${val || "?"}`).join(" · ")] : null,
+    data.last_update && data.last_update.at ? ["Cập nhật tự động cuối", `${data.last_update.at} (${data.last_update.result})`] : null,
+    bot.standby ? ["Chế độ chờ", bot.standby.reason] : null,
+  ].filter(Boolean);
+  const buttons = [];
+  const act = (action, label, text, cls = "btn", disabled = false) => buttons.push(
+    h("button", { class: cls, type: "button", text, disabled, onclick: (e) => {
+      if (action === "stop" && !confirm(`Tắt bot trên ${title}?`)) return;
+      serverAction(side, action, label, e.target);
+    } }));
+  act("start", "Đang bật", "Bật bot", "btn primary", bot.running);
+  act("restart", "Đang khởi động lại", "Khởi động lại", "btn", !bot.running);
+  act("stop", "Đang tắt", "Tắt bot", "btn danger", !bot.running);
+  if (v.git || data.supervisor === "systemd") {
+    act("update", "Đang cập nhật", v.behind ? "Cập nhật ngay" : "Cập nhật code", v.behind ? "btn primary" : "btn");
+  }
+  return h("div", { class: `card server ${side}` },
+    h("div", { class: "row between" }, h("h2", { text: title }), h("span", { class: `pill ${badge[0]}`, text: badge[1] })),
+    v.behind ? h("div", { class: "banner" }, h("span", { text: "Có code mới hơn trên GitHub." })) : null,
+    h("dl", { class: "kv" }, rows.flatMap(([k, val]) => [h("dt", { text: k }), h("dd", { text: val })])),
+    h("div", { class: "row" }, buttons));
+}
+
+async function loadServers() {
+  if (!document.getElementById("servers-grid")) return;
+  const configured = state.remote && state.remote.configured;
+  const [local, vps] = await Promise.allSettled([
+    api("/api/server", { side: "local" }),
+    configured ? api("/api/server", { side: "vps" }) : Promise.reject(new Error("")),
+  ]);
+  const host = document.getElementById("servers-grid");
+  if (!host) return;
+  fill(host,
+    serverCard("local", "Máy này", local.value, local.status === "rejected" ? local.reason.message : null),
+    configured
+      ? serverCard("vps", "VPS", vps.value, vps.status === "rejected" ? vps.reason.message : null)
+      : h("div", { class: "card server vps" }, h("h2", { text: "VPS" }),
+          h("p", { class: "muted", text: "Chưa kết nối VPS. Vào Cài đặt, điền địa chỉ trang quản lý trên VPS (REMOTE_URL) " +
+            "và mã truy cập của VPS (REMOTE_ADMIN_TOKEN)." }),
+          h("button", { class: "btn", type: "button", text: "Mở Cài đặt", onclick: () => { setTarget("local"); go("settings"); } })));
+  const bothOn = Boolean(local.value && vps.value && local.value.bot.running && vps.value.bot.running);
+  const note = document.getElementById("servers-note");
+  if (note) {
+    note.hidden = !bothOn;
+    note.textContent = bothOn ? "Cảnh báo: bot đang chạy ở cả hai nơi. Cùng một tài khoản Zalo sẽ trả lời trùng. Hãy tắt một bên." : "";
+  }
+}
+
+async function renderServers(main) {
+  fill(main, h("h1", { text: "Máy chủ" }),
+    h("p", { class: "muted", text: "Xem và điều khiển bot ở máy này và trên VPS. Chỉ nên bật bot ở một nơi tại một thời điểm." }),
+    h("p", { id: "servers-note", class: "error", hidden: true }),
+    h("div", { id: "servers-grid", class: "servers" }, h("p", { class: "muted", text: "Đang tải…" })));
+  await pollRemote();
+  await loadServers();
+  const timer = setInterval(() => { if (!document.hidden) loadServers(); }, 10000);
+  state.cleanup.push(() => clearInterval(timer));
 }
 
 // ---------- Nhóm ----------
@@ -551,7 +700,7 @@ function renderLogs(main) {
     controller = new AbortController();
     const signal = controller.signal;
     try {
-      const res = await fetch(`/api/logs/stream?source=${source.value}`, { headers: { Authorization: `Bearer ${state.token}` }, signal });
+      const res = await fetch(sidePath(`/api/logs/stream?source=${source.value}`), { headers: { Authorization: `Bearer ${state.token}` }, signal });
       if (!res.ok || !res.body) throw new ApiError(`Không theo dõi được log (HTTP ${res.status})`);
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buffer = "";
@@ -777,6 +926,7 @@ async function renderTools(main) {
 
 const RENDERERS = {
   overview: renderOverview,
+  servers: renderServers,
   groups: renderGroups,
   history: renderHistory,
   workspace: (main) => renderWorkspace(main, "SYSTEM"),
@@ -859,6 +1009,9 @@ async function boot() {
     if (value && await tryLogin(value)) start();
   });
   document.getElementById("logout").addEventListener("click", () => showLogin(""));
+  for (const b of document.querySelectorAll("#target-switch button")) b.addEventListener("click", () => setTarget(b.dataset.target));
+  state.target = storageGet(TARGET_KEY) === "vps" ? "vps" : "local";
+  document.body.classList.toggle("target-vps", state.target === "vps");
   window.addEventListener("hashchange", () => { if (state.token) render(); });
   window.addEventListener("beforeunload", (e) => {
     if (state.dirty && state.dirty()) { e.preventDefault(); e.returnValue = ""; }
@@ -882,9 +1035,9 @@ let started = false;
 function start() {
   if (started) { render(); return; }
   started = true;
-  render();
-  pollStatus();
+  pollRemote().finally(() => { render(); pollStatus(); });
   setInterval(() => { if (state.token && !document.hidden) pollStatus(); }, 4000);
+  setInterval(() => { if (state.token && !document.hidden) pollRemote(); }, 30000);
 }
 
 boot();

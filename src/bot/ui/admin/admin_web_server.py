@@ -22,10 +22,10 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import bot_process, server_client
+from bot.system import bot_process, remote_server, server_client
 from bot.ui.admin.admin_sessions import AdminSessions
 from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
@@ -228,6 +228,44 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
         settings = ctx.settings()
         return {**server_info.collect(settings), "bot": bot_process.status_info(settings)}
+
+    # ---------- điều khiển bot trên VPS (proxy tới trang quản lý của VPS) ----------
+
+    @app.get("/api/remote-status")
+    async def remote_status() -> dict[str, Any]:
+        """Đã cấu hình VPS chưa và có kết nối được không (trang dùng để hiện công tắc Máy này | VPS)."""
+        import time
+
+        settings = ctx.settings()
+        out: dict[str, Any] = {"configured": remote_server.configured(settings), "url": settings.remote_url,
+                               "ok": False, "latency_ms": None, "error": None}
+        if not out["configured"]:
+            return out
+        started = time.monotonic()
+        try:
+            data = await remote_server.json_request(settings, "GET", "status", timeout=10)
+        except remote_server.RemoteError as exc:
+            out["error"] = str(exc)
+            return out
+        out.update(ok=True, latency_ms=int((time.monotonic() - started) * 1000),
+                   running=bool(data.get("running")), standby=data.get("standby"))
+        return out
+
+    @app.api_route("/api/remote/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+    async def remote_proxy(path: str, request: Request):
+        if remote_server.blocked(path):
+            return _error(403, "Không điều khiển phần này của VPS từ xa được. Hãy mở trang quản lý ngay trên VPS.")
+        settings = ctx.settings()
+        params = dict(request.query_params)
+        try:
+            if path == "logs/stream":
+                body = await remote_server.stream(settings, path, params)
+                return StreamingResponse(body, media_type="text/plain; charset=utf-8", headers=SECURITY_HEADERS)
+            reply = await remote_server.request(settings, request.method, path, params=params, content=await request.body(),
+                                                headers=dict(request.headers))
+        except remote_server.RemoteError as exc:
+            return _error(502, str(exc))
+        return Response(reply.body, status_code=reply.status, media_type=reply.content_type, headers=SECURITY_HEADERS)
 
     # ---------- nhóm ----------
 
