@@ -106,6 +106,19 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     allowed_origins = {f"http://{h}" for h in allowed_hosts}
     sessions = AdminSessions()
 
+    def _public_origin() -> str | None:
+        """Origin của ADMIN_PUBLIC_URL (chỉ scheme://host[:port]), None nếu chưa đặt hoặc đặt sai."""
+        from urllib.parse import urlsplit
+
+        try:
+            url = ctx.settings().admin_public_url
+        except ConfigError:
+            return None
+        parts = urlsplit(url)
+        if parts.scheme not in ("https", "http") or not parts.netloc:
+            return None
+        return f"{parts.scheme}://{parts.netloc}".lower()
+
     def devices() -> AdminDevices:
         return AdminDevices(ctx.settings().system_dir / ADMIN_DEVICES_FILE)
 
@@ -115,7 +128,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return _error(400, "Host không hợp lệ. Hãy mở bằng http://127.0.0.1:%d" % port)
         if request.method not in ("GET", "HEAD", "OPTIONS"):
             origin = request.headers.get("origin")
-            if origin is not None and origin not in allowed_origins:
+            if origin is not None and origin not in allowed_origins and origin != _public_origin():
                 return _error(403, "Origin không hợp lệ")
             if request.headers.get("sec-fetch-site") == "cross-site":
                 return _error(403, "Yêu cầu từ trang khác bị chặn")

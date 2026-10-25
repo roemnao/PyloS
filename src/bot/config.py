@@ -114,6 +114,9 @@ class Settings:
     bot_supervisor: str = "process"
     # Trang quản lý trên VPS mà ứng dụng ở máy này điều khiển (xem bot/system/remote_server.py)
     remote_url: str = ""
+    # Địa chỉ công khai của chính trang quản lý này khi chạy sau nginx (VPS), ví dụ https://unousgrowth.com.
+    # Trình duyệt mở qua địa chỉ đó gửi Origin này; không đặt thì chỉ nhận Origin http://127.0.0.1:<cổng>.
+    admin_public_url: str = ""
     remote_admin_token: str = ""
 
     @classmethod
@@ -189,6 +192,7 @@ class Settings:
             bot_supervisor=bot_supervisor,
             remote_url=(env.get("REMOTE_URL", "").strip() or DEFAULT_REMOTE_URL).rstrip("/"),
             remote_admin_token=env.get("REMOTE_ADMIN_TOKEN", "").strip(),
+            admin_public_url=env.get("ADMIN_PUBLIC_URL", "").strip().rstrip("/"),
         )
 
     @property
