@@ -15,6 +15,11 @@ Chỉ người có ID trùng `OWNER_ZALO_ID` mới dùng được. Người khá
 | `/reset` | Xóa lịch sử hội thoại của nhóm |
 | `/id` | Xem `chat_id` và `user_id` của bạn |
 | `/help` | Danh sách lệnh |
+| `/leader` | Xem ai được nhờ bot giao lịch trong nhóm |
+| `/leader @a @b` | Cho a, b giao lịch trong nhóm này (gõ tên hoặc Zalo ID nếu không tag được) |
+| `/leader all` | Cả nhóm giao lịch được |
+| `/leader bo @a` | Bỏ a khỏi danh sách |
+| `/leader off` | Xoá hết, chỉ chủ bot giao lịch |
 
 Nhóm mới thêm luôn ở chế độ `default`.
 
@@ -30,7 +35,7 @@ Cần `SCHEDULE_API_KEY` (xem README, mục "Nối với web iforgotmywayhome").
 
 **Mỗi người nhận lịch làm một lần:** mở web app (link chủ hệ thống gửi, vd `https://iforgotmywayhome.vercel.app/`), đăng nhập Gmail, bấm *Lấy mã liên kết*, rồi **nhắn riêng** cho acc bot đúng mã 6 số đó (hoặc `/lienket 123456`). Bot trả lời "Đã liên kết…". Sau đó bấm *Kết nối Google Lịch* trong app.
 
-**Trong nhóm** (người được phép theo `ASSIGN_ALLOWED`, mặc định chỉ chủ bot):
+**Trong nhóm** (chủ bot, leader của nhóm đặt bằng `/leader`, hoặc mọi người khi `ASSIGN_ALLOWED=all`):
 
 ```
 roemnao giao @An @Bình họp kế hoạch 9h sáng mai ở phòng 301

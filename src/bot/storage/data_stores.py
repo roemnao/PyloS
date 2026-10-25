@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 import re
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +30,8 @@ class GroupState:
     mode: str = MODE_DEFAULT
     label: str = ""
     blocked: bool = False  # bị /deny rõ ràng: vẫn bị chặn cả khi ALLOW_ALL_CHATS=true
+    leaders: list[str] = field(default_factory=list)  # Zalo ID được nhờ bot giao lịch trong nhóm (/leader)
+    leaders_all: bool = False  # /leader all: ai trong nhóm cũng giao lịch được
 
 
 def _mtime(path: Path) -> float | None:
@@ -65,8 +67,10 @@ class GroupStore:
             if not chat_id:
                 continue
             mode = record.get("mode") if record.get("mode") in MODES else MODE_DEFAULT
+            leaders = record.get("leaders")
             groups[chat_id] = GroupState(
-                chat_id, bool(record.get("allowed")), mode, str(record.get("label") or ""), bool(record.get("blocked"))
+                chat_id, bool(record.get("allowed")), mode, str(record.get("label") or ""), bool(record.get("blocked")),
+                [str(x) for x in leaders if x] if isinstance(leaders, list) else [], bool(record.get("leaders_all")),
             )
         self._groups = groups
         self._loaded_mtime = _mtime(self._file.path)
@@ -90,7 +94,7 @@ class GroupStore:
         stamp = now_ms()
         self._file.rewrite([
             {"chat_id": g.chat_id, "allowed": g.allowed, "mode": g.mode, "label": g.label, "blocked": g.blocked,
-             "updated_at": stamp}
+             "leaders": g.leaders, "leaders_all": g.leaders_all, "updated_at": stamp}
             for g in self._groups.values()
         ])
         self._loaded_mtime = _mtime(self._file.path)
@@ -117,6 +121,26 @@ class GroupStore:
     def set_label(self, chat_id: str, label: str) -> GroupState:
         self._update([chat_id], lambda s: setattr(s, "label", label.strip()[:60]))
         return self._groups[chat_id]
+
+    def set_leaders(self, chat_id: str, *, add: tuple[str, ...] | list[str] = (),
+                    remove: tuple[str, ...] | list[str] = (), all_: bool | None = None,
+                    clear: bool = False) -> GroupState:
+        """Danh sách người được nhờ bot giao lịch trong nhóm (lệnh /leader)."""
+        def change(state: GroupState) -> None:
+            if clear:
+                state.leaders, state.leaders_all = [], False
+            if all_ is not None:
+                state.leaders_all = all_
+            leaders = [uid for uid in state.leaders if uid not in remove]
+            leaders += [uid for uid in dict.fromkeys(add) if uid and uid not in leaders]
+            state.leaders = leaders
+
+        self._update([chat_id], change)
+        return self._groups[chat_id]
+
+    def can_assign(self, chat_id: str, user_id: str) -> bool:
+        state = self.get(chat_id)
+        return state.leaders_all or user_id in state.leaders
 
 
 class SeenStore:

@@ -29,7 +29,8 @@ from bot.system import server_client
 from bot.userdata_paths import ASSIGNED_EVENTS_FILE
 
 KEEP = 500
-NO_PERMISSION = "Chỉ chủ bot được giao lịch cho người khác (ASSIGN_ALLOWED=owner). Chủ hệ thống có thể đổi trên web."
+NO_PERMISSION = ("Bạn chưa có quyền giao lịch trong nhóm này. Chủ bot dùng /leader @tên để cho phép "
+                 "(hoặc /leader all cho cả nhóm).")
 _TIME_HINT = ("ISO 8601 kèm múi giờ Việt Nam, ví dụ 2026-10-30T14:00:00+07:00 (tính từ ngày giờ trong phần Bối cảnh). "
               "Lịch cả ngày: YYYY-MM-DD và ca_ngay=true.")
 

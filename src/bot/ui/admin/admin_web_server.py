@@ -207,6 +207,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 "allowed": store.is_allowed(chat_id, settings.allow_all_chats),
                 "blocked": bool(g and g.blocked),
                 "mode": g.mode if g else "default",
+                "leaders": list(g.leaders) if g else [],
+                "leaders_all": bool(g and g.leaders_all),
                 "last_seen": seen.get("last_seen"),
                 "last_name": seen.get("last_name", ""),
                 "owner_private": chat_type == "PRIVATE" and chat_id == settings.owner_zalo_id,

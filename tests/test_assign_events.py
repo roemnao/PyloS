@@ -98,7 +98,7 @@ async def test_list_shows_who_has_it_in_their_app(tmp_path, calbot):
 async def test_only_allowed_people_can_assign(tmp_path, calbot):
     res = await assign_events._assign({"tieu_de": "Họp", "bat_dau": "2026-10-30T09:00:00+07:00", "nguoi_nhan": ["An"]},
                                       ctx(tmp_path, is_owner=False, can_assign=False))
-    assert "chủ bot" in res["error"] and calbot.bodies("POST", "/assign") == []
+    assert "/leader" in res["error"] and calbot.bodies("POST", "/assign") == []
 
 
 def test_tools_need_web_key(monkeypatch, tmp_path):

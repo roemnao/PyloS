@@ -121,3 +121,20 @@ def test_instance_lock_blocks_second_instance(tmp_path):
         first.release()
     with InstanceLock(tmp_path / "bot.lock"):
         pass
+
+
+def test_group_leaders_persist_and_old_records_load(tmp_path):
+    from bot.storage import GroupStore
+    path = tmp_path / "groups.txt"
+    path.write_text('{"chat_id": "g", "allowed": true, "mode": "all"}\n', encoding="utf-8")
+    store = GroupStore(path)
+    assert store.get("g").leaders == [] and not store.can_assign("g", "a")
+    store.set_leaders("g", add=["a", "b", "a"])
+    store.set_leaders("g", remove=["b"])
+    again = GroupStore(path)
+    assert again.get("g").leaders == ["a"] and again.get("g").mode == "all"
+    assert again.can_assign("g", "a") and not again.can_assign("g", "b")
+    again.set_leaders("g", all_=True)
+    assert GroupStore(path).can_assign("g", "anyone")
+    again.set_leaders("g", clear=True)
+    assert GroupStore(path).get("g").leaders == [] and not GroupStore(path).can_assign("g", "a")

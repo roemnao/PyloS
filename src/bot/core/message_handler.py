@@ -190,7 +190,8 @@ class Bot:
         if cmd is not None:
             # Chưa đặt chủ bot thì chỉ cho /id để lấy ID; người khác gõ lệnh thì bỏ qua.
             if is_owner or (cmd.name == "id" and not self.settings.owner_zalo_id):
-                await self._send(msg.chat_id, self.commands.handle(cmd, msg))
+                members = await self._members(msg.chat_id) if cmd.name == "leader" and msg.is_group else {}
+                await self._send(msg.chat_id, self.commands.handle(cmd, msg, members, self._self_identity()[0]))
             else:
                 log.info("Bỏ qua lệnh /%s từ người không phải chủ bot (%s)", cmd.name, msg.from_id)
             return
@@ -356,7 +357,8 @@ class Bot:
             msg.chat_id, msg.from_id, msg.from_name, is_owner, self.settings.data_dir,
             is_group=msg.is_group, chat_name=self._chat_name(msg), message_id=msg.message_id,
             mentions=tuple(m for m in msg.mentions if m != self_id), members=members, self_id=self_id,
-            can_assign=is_owner or self.settings.assign_allowed == "all",
+            can_assign=is_owner or self.settings.assign_allowed == "all"
+            or (msg.is_group and self.groups.can_assign(msg.chat_id, msg.from_id)),
         )
         system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names, members=list(members.values()))
 

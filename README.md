@@ -385,6 +385,11 @@ Lệnh `/…` chỉ chủ bot (`OWNER_ZALO_ID`) dùng được. Người khác g
 | `/reset` | Xoá lịch sử hội thoại của nhóm |
 | `/id` | Xem `chat_id` và `user_id` của bạn |
 | `/help` | Danh sách lệnh |
+| `/leader` | Xem ai được nhờ bot giao lịch trong nhóm này |
+| `/leader @a @b` | Cho a, b nhờ bot giao lịch trong nhóm này (cộng dồn). Không tag được thì gõ tên hoặc Zalo ID |
+| `/leader all` | Ai trong nhóm này cũng giao lịch được |
+| `/leader bo @a` | Bỏ a khỏi danh sách leader của nhóm |
+| `/leader off` | Xoá hết, nhóm quay về chỉ chủ bot (hoặc theo `ASSIGN_ALLOWED`) |
 | `/bot <câu hỏi>` | Gọi bot ở chế độ `default` |
 | `123456` hoặc `/lienket 123456` | Nhắn riêng cho bot mã 6 số lấy từ web app để liên kết Zalo với tài khoản Gmail |
 
@@ -405,7 +410,8 @@ roemnao các lịch đã giao trong nhóm?                           # lich_da_g
 | Cài đặt | Ý nghĩa |
 |---|---|
 | `OWNER_ZALO_ID` | Zalo ID của chủ bot. Để trống hoặc điền sai thì bạn không được tính là chủ bot, bot sẽ trả lời "chỉ có quyền thêm việc cho chủ nhân" |
-| `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: ai được giao lịch cho người khác |
+| `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: ai được giao lịch cho người khác, áp dụng mọi nhóm |
+| `/leader` (theo nhóm) | Cộng thêm với `ASSIGN_ALLOWED`: khi là `owner`, chủ bot vẫn giao được, và thêm những người (hoặc cả nhóm) được chọn bằng `/leader` trong nhóm đó. Leader nhóm A không tự thành leader nhóm B |
 | `SCHEDULE_OWNER_ONLY` | `true` (mặc định): chỉ chủ bot dùng các tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec` (lịch riêng của chủ web) |
 
 ### Đặt quyền giao lịch (`ASSIGN_ALLOWED`)

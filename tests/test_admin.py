@@ -165,6 +165,13 @@ def test_groups_list_includes_seen_but_not_allowed_chats(client, tmp_path):
     rows = {r["chat_id"]: r for r in client.get("/api/groups", headers=AUTH).json()["groups"]}
     assert not rows["new-group"]["allowed"] and rows["new-group"]["last_name"] == "An"
     assert rows["owner"]["owner_private"]
+    assert rows["new-group"]["leaders"] == [] and not rows["new-group"]["leaders_all"]
+
+
+def test_groups_list_shows_leaders(client, tmp_path):
+    GroupStore(tmp_path / "data" / "group_settings.txt").set_leaders("g1", add=["u-an"])
+    rows = {r["chat_id"]: r for r in client.get("/api/groups", headers=AUTH).json()["groups"]}
+    assert rows["g1"]["leaders"] == ["u-an"]
 
 
 # ---------- hội thoại ----------
