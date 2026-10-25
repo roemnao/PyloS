@@ -158,3 +158,20 @@ def test_default_remote_url_and_off(tmp_path):
     assert Settings.from_env({}, base_dir=tmp_path).remote_url == DEFAULT_REMOTE_URL
     off = Settings.from_env({"REMOTE_URL": "off", "REMOTE_ADMIN_TOKEN": "x"}, base_dir=tmp_path)
     assert not remote_server.configured(off)
+
+
+def test_public_url_origin_is_accepted_only_when_configured(tmp_path, monkeypatch):
+    for key in ("ADMIN_TOKEN", "ADMIN_PUBLIC_URL", "REMOTE_URL", "REMOTE_ADMIN_TOKEN"):
+        monkeypatch.delenv(key, raising=False)
+    env = tmp_path / ".env"
+    env.write_text("ADMIN_TOKEN=x\nDATA_DIR=data\nLOG_DIR=logs\nSYSTEM_DIR=system\n", encoding="utf-8")
+    client = TestClient(create_app(AdminContext(env, tmp_path), 8081), base_url=BASE)
+    public = {"Origin": "https://unousgrowth.com"}
+    assert client.post("/api/auth/gmail/poll", json={"code": "x"}, headers=public).status_code == 403
+
+    env.write_text(env.read_text(encoding="utf-8") + "ADMIN_PUBLIC_URL=https://unousgrowth.com/\n", encoding="utf-8")
+    assert client.post("/api/auth/gmail/poll", json={"code": "x"}, headers=public).status_code == 400  # qua lớp Origin
+    assert client.post("/api/auth/gmail/poll", json={"code": "x"},
+                       headers={"Origin": "https://evil.example"}).status_code == 403
+    assert client.post("/api/auth/gmail/poll", json={"code": "x"},
+                       headers={"Origin": "https://unousgrowth.com.evil.example"}).status_code == 403
