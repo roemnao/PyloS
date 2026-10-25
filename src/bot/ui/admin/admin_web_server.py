@@ -22,10 +22,11 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from starlette.background import BackgroundTask
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import bot_process, server_client
+from bot.system import bot_process, handover, handover_job, remote_server, server_client
 from bot.ui.admin.admin_sessions import AdminSessions
 from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
@@ -222,6 +223,119 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return {"ok": False, "message": f"Lỗi cấu hình: {exc}"}
         return {"ok": result.ok, "message": result.message}
 
+    @app.get("/api/server")
+    def server() -> dict[str, Any]:
+        from bot.system import server_info
+
+        settings = ctx.settings()
+        return {**server_info.collect(settings), "bot": bot_process.status_info(settings)}
+
+    # ---------- điều khiển bot trên VPS (proxy tới trang quản lý của VPS) ----------
+
+    @app.get("/api/remote-status")
+    async def remote_status() -> dict[str, Any]:
+        """Đã cấu hình VPS chưa và có kết nối được không (trang dùng để hiện công tắc Máy này | VPS)."""
+        import time
+
+        settings = ctx.settings()
+        out: dict[str, Any] = {"configured": remote_server.configured(settings), "url": settings.remote_url,
+                               "ok": False, "latency_ms": None, "error": None}
+        if not out["configured"]:
+            return out
+        started = time.monotonic()
+        try:
+            data = await remote_server.json_request(settings, "GET", "status", timeout=10)
+        except remote_server.RemoteError as exc:
+            out["error"] = str(exc)
+            return out
+        out.update(ok=True, latency_ms=int((time.monotonic() - started) * 1000),
+                   running=bool(data.get("running")), standby=data.get("standby"))
+        return out
+
+    @app.api_route("/api/remote/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+    async def remote_proxy(path: str, request: Request):
+        if remote_server.blocked(path):
+            return _error(403, "Không điều khiển phần này của VPS từ xa được. Hãy mở trang quản lý ngay trên VPS.")
+        settings = ctx.settings()
+        params = dict(request.query_params)
+        try:
+            if path == "logs/stream":
+                body = await remote_server.stream(settings, path, params)
+                return StreamingResponse(body, media_type="text/plain; charset=utf-8", headers=SECURITY_HEADERS)
+            reply = await remote_server.request(settings, request.method, path, params=params, content=await request.body(),
+                                                headers=dict(request.headers))
+        except remote_server.RemoteError as exc:
+            return _error(502, str(exc))
+        return Response(reply.body, status_code=reply.status, media_type=reply.content_type, headers=SECURITY_HEADERS)
+
+    # ---------- chuyển bot giữa máy này và VPS ----------
+
+    @app.post("/api/handover/standby")
+    def handover_standby(body: dict[str, Any] = Body(default={})) -> dict[str, Any]:
+        """Đặt cờ chờ (máy này không được chạy bot) rồi tắt bot. Đặt cờ trước để không ai bật lại trong lúc đó."""
+        settings = ctx.settings()
+        bot_process.set_standby(settings, str(body.get("reason") or "Bot đang chạy ở máy khác."))
+        result = bot_process.stop(settings, bot_process.BOT)
+        return {"ok": result.ok, "message": result.message, "running": bot_process.is_running(settings, bot_process.BOT)}
+
+    @app.delete("/api/handover/standby")
+    def handover_clear_standby() -> dict[str, Any]:
+        bot_process.clear_standby(ctx.settings())
+        return {"ok": True}
+
+    @app.get("/api/handover/export")
+    def handover_export() -> FileResponse:
+        import shutil
+        import tempfile
+
+        settings = ctx.settings()
+        folder = Path(tempfile.mkdtemp(prefix="handover-"))
+        dest = folder / "bundle.zip"
+        handover.export_bundle(settings, dest)
+        return FileResponse(dest, media_type="application/zip", filename="bundle.zip",
+                            background=BackgroundTask(shutil.rmtree, folder, ignore_errors=True))
+
+    @app.post("/api/handover/import")
+    async def handover_import(request: Request) -> JSONResponse:
+        import shutil
+        import tempfile
+
+        settings = ctx.settings()
+        if bot_process.is_running(settings, bot_process.BOT):
+            return _error(409, "Bot đang chạy ở máy nhận. Hãy tắt bot trước khi nhận dữ liệu.")
+        folder = Path(tempfile.mkdtemp(prefix="handover-"))
+        try:
+            dest = folder / "bundle.zip"
+            size = 0
+            with open(dest, "wb") as out:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > handover.MAX_TOTAL_BYTES:
+                        return _error(413, "Gói dữ liệu quá lớn.")
+                    out.write(chunk)
+            try:
+                manifest = await asyncio.to_thread(handover.import_bundle, settings, dest)
+            except handover.HandoverError as exc:
+                return _error(400, str(exc))
+        finally:
+            shutil.rmtree(folder, ignore_errors=True)
+        return JSONResponse({"ok": True, "files": manifest.get("files"), "origin": manifest.get("origin")},
+                            headers=SECURITY_HEADERS)
+
+    @app.post("/api/handover")
+    def handover_start(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        """Chỉ có ý nghĩa ở máy local (có mã truy cập VPS): chuyển bot sang VPS hoặc về máy này."""
+        try:
+            job = handover_job.start(ctx.settings, str(body.get("to") or ""))
+        except handover_job.JobError as exc:
+            raise HTTPException(400, str(exc)) from None
+        return job.public()
+
+    @app.get("/api/handover/job")
+    def handover_progress() -> dict[str, Any]:
+        job = handover_job.current()
+        return job.public() if job else {"state": "idle", "steps": [], "message": "", "to": ""}
+
     # ---------- nhóm ----------
 
     def _groups(settings: Settings) -> GroupStore:
@@ -401,6 +515,11 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if reason:
             return {"ok": False, "message": reason}
         settings = ctx.settings()
+        if settings.bot_supervisor == "systemd" and os.name != "nt":
+            # VPS: code do pylos-update (git pull + khởi động lại service) lo; chỉ nhờ nó chạy ngay.
+            result = bot_process.run_update_service()
+            return {"ok": result.ok, "message": "Đã nhờ VPS cập nhật, khoảng một phút sau sẽ có code mới."
+                    if result.ok else result.message}
         if bot_process.gui_running(settings):
             # Ứng dụng quản lý tự cập nhật, khởi động lại bot và mở lại chính nó (có thể đang chứa trang này).
             atomic_write_text(settings.system_dir / UPDATE_REQUEST, "1")

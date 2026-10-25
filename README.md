@@ -188,6 +188,12 @@ Mở http://127.0.0.1:8081. Có hai cách vào:
 
 Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được từ máy khác), bắt buộc mã truy cập, chặn yêu cầu từ trang web khác. Đừng đưa cổng 8081 ra Internet.
 
+## Điều khiển bot trên VPS từ ứng dụng ở máy này
+
+Điền `REMOTE_URL` và `REMOTE_ADMIN_TOKEN` (trang Cài đặt → "Máy chủ VPS") là có công tắc **Máy này | VPS** trên đầu trang,
+trang **Máy chủ** (so sánh hai bên, cập nhật code VPS) và nút **Chuyển bot sang VPS / về máy này** (kèm dữ liệu, tự hoàn tác
+nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc cần chủ VPS làm một lần và chi tiết: [docs/vps-dieu-khien.md](docs/vps-dieu-khien.md).
+
 ## Quản lý bot chạy nền (gateway)
 
 ```powershell

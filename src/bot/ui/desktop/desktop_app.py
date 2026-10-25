@@ -19,7 +19,7 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
-from bot.system import bot_process
+from bot.system import bot_process, remote_server
 from bot.system.first_run_setup import ensure_admin_token, ensure_home
 from bot.config import APP_HOME, ENV_FILE, ConfigError, Settings
 from bot.system.log_files import setup_logging
@@ -75,6 +75,7 @@ class Desktop:
         self._told_about_tray = False
         self._stopped = threading.Event()
         self.updates_pending = 0  # số thay đổi mới trên GitHub (chỉ khi chạy từ mã nguồn)
+        self.vps: dict[str, Any] = {"configured": False}  # trạng thái VPS lần hỏi gần nhất (menu khay)
         self._told_about_update = False
 
     # ---------- server giao diện ----------
@@ -245,6 +246,59 @@ class Desktop:
         subprocess.Popen(args, cwd=APP_HOME, **kwargs)
         self.quit()
 
+    # ---------- VPS ----------
+
+    def refresh_vps(self) -> None:
+        try:
+            self.vps = remote_server.status_sync(self.settings_now())
+        except ConfigError:
+            return
+        self.refresh_tray()
+
+    def vps_label(self) -> str:
+        v = self.vps
+        if not v.get("ok"):
+            return "VPS: không kết nối được"
+        if v.get("running"):
+            return "VPS: bot đang chạy"
+        return "VPS: bot đang chờ" if v.get("standby") else "VPS: bot đã dừng"
+
+    def move_bot(self, *_: Any) -> None:
+        """Chuyển bot sang VPS (nếu đang ở máy này) hoặc về máy này, như nút ở trang Máy chủ."""
+        from bot.system import handover_job
+
+        to = handover_job.LOCAL if self.vps.get("running") else handover_job.VPS
+        try:
+            handover_job.start(self.settings_now, to)
+        except handover_job.JobError as exc:
+            if self.tray is not None:
+                self.tray.notify(str(exc))
+            return
+        if self.tray is not None:
+            self.tray.notify(f"Đang chuyển bot sang {handover_job.WHERE[to]}… Xem tiến trình ở trang Máy chủ.")
+
+        def watch() -> None:
+            while (job := handover_job.current()) and job.state == "running":
+                time.sleep(1)
+            if job and self.tray is not None:
+                self.tray.notify(job.message)
+            self.update_status()
+            self.refresh_vps()
+
+        threading.Thread(target=watch, name="handover-watch", daemon=True).start()
+
+    def update_vps(self, *_: Any) -> None:
+        def work() -> None:
+            try:
+                data = remote_server.call_sync(self.settings_now(), "POST", "update", timeout=60)
+                message = str(data.get("message") or "Đã gửi yêu cầu cập nhật VPS.")
+            except remote_server.RemoteError as exc:
+                message = str(exc)
+            if self.tray is not None:
+                self.tray.notify(message.splitlines()[0])
+
+        threading.Thread(target=work, name="vps-update", daemon=True).start()
+
     # ---------- vòng nền ----------
 
     def _background(self) -> None:
@@ -253,6 +307,7 @@ class Desktop:
         update_request = self.settings.system_dir / UPDATE_REQUEST
         last_status = 0.0
         next_update_check = time.monotonic() + 20
+        next_vps_check = time.monotonic() + 3
         while not self._stopped.is_set():
             if show_flag.exists():
                 show_flag.unlink(missing_ok=True)
@@ -266,6 +321,9 @@ class Desktop:
             if self.can_update and time.monotonic() > next_update_check:
                 next_update_check = time.monotonic() + 6 * 3600
                 threading.Thread(target=self.check_updates, name="update-check", daemon=True).start()
+            if time.monotonic() > next_vps_check:
+                next_vps_check = time.monotonic() + 30
+                threading.Thread(target=self.refresh_vps, name="vps-check", daemon=True).start()
             self._stopped.wait(0.5)
 
     @property
@@ -276,6 +334,11 @@ class Desktop:
 
     def _auto_start_bot(self) -> None:
         if bot_process.is_running(self.settings, bot_process.BOT):
+            return
+        standby = bot_process.standby_info(self.settings_now())
+        if standby:
+            if self.tray is not None:
+                self.tray.notify(f"Không tự bật bot: {standby['reason']}")
             return
         try:
             self.settings_now().require(zalo=True, gemini=True)

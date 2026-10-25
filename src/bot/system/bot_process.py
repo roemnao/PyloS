@@ -26,8 +26,14 @@ from bot.userdata_paths import (
     FAILED_REPLIES_FILE,
     GROUP_SETTINGS_FILE,
     GUI_LOCK_FILE,
+    STANDBY_FILE,
     TOKEN_USAGE_FILE,
 )
+
+# Mã thoát của `bot run` khi máy đang ở chế độ chờ (bot đã chuyển sang máy khác). systemd không bật lại
+# với mã này (RestartPreventExitStatus=5), scripts/run-forever.ps1 cũng không.
+EXIT_STANDBY = 5
+SYSTEMD_UNIT = "pylos-bot"
 
 
 @dataclass(frozen=True)
@@ -205,11 +211,105 @@ def _spawn(service: Service) -> subprocess.Popen:
     )
 
 
-def start(settings: Settings, service: Service = BOT) -> Result:
+# ---------- chế độ chờ: bot đã chuyển sang máy khác ----------
+
+def standby_path(settings: Settings) -> Path:
+    return settings.system_dir / STANDBY_FILE
+
+
+def standby_info(settings: Settings) -> dict[str, Any] | None:
+    """{reason, at} nếu máy này đang chờ (không được bật bot), ngược lại None."""
+    path = standby_path(settings)
+    try:
+        text = path.read_text(encoding="utf-8").strip()
+        at = int(path.stat().st_mtime * 1000)
+    except OSError:
+        return None
+    return {"reason": text or "Bot đang chạy ở máy khác.", "at": at}
+
+
+def set_standby(settings: Settings, reason: str) -> None:
+    settings.system_dir.mkdir(parents=True, exist_ok=True)
+    standby_path(settings).write_text(reason.strip()[:300] or "Bot đang chạy ở máy khác.", encoding="utf-8")
+
+
+def clear_standby(settings: Settings) -> None:
+    standby_path(settings).unlink(missing_ok=True)
+
+
+# ---------- systemd (VPS: BOT_SUPERVISOR=systemd) ----------
+
+def uses_systemd(settings: Settings, service: Service) -> bool:
+    """Trên VPS bot là service pylos-bot của systemd; giao diện thì do systemd quản lý riêng (pylos-admin)."""
+    return service is BOT and settings.bot_supervisor == "systemd" and os.name != "nt"
+
+
+def systemctl(action: str, unit: str, *flags: str, timeout: float = 60) -> Result:
+    """Điều khiển service qua systemctl.
+
+    Thử `systemctl` thường trước (polkit cho phép user pylos điều khiển đúng các unit pylos-*; chạy được cả khi
+    service admin đặt NoNewPrivileges), không được thì `sudo -n systemctl` (sudoers). Xem docs/vps-dieu-khien.md.
+    """
+    errors: list[str] = []
+    for prefix in ([], ["sudo", "-n"]):
+        try:
+            done = run_hidden([*prefix, "systemctl", action, *flags, unit], timeout=timeout)
+        except (OSError, subprocess.SubprocessError) as exc:
+            errors.append(str(exc))
+            continue
+        if done.returncode == 0:
+            return Result(0, "")
+        detail = (done.stderr or done.stdout).decode("utf-8", errors="replace").strip().splitlines()
+        errors.append(detail[-1] if detail else str(done.returncode))
+    return Result(1, f"systemctl {action} {unit} lỗi: {errors[-1]}. "
+                     "Nhờ chủ VPS cấp quyền (docs/vps-dieu-khien.md).")
+
+
+def run_update_service() -> Result:
+    """VPS: chạy ngay pylos-update (git pull + khởi động lại); --no-block để không chờ nó xong."""
+    return systemctl("start", "pylos-update.service", "--no-block", timeout=30)
+
+
+def _start_systemd(settings: Settings) -> Result:
+    started = now_ms()
+    result = systemctl("start", SYSTEMD_UNIT)
+    if not result.ok:
+        return result
+
+    def ready() -> bool:
+        return int(StateStore(settings.system_dir / BOT_STATUS_FILE).data.get("ready_at") or 0) >= started
+
+    if _wait(ready, 40):
+        return Result(0, "Đã bật bot (service pylos-bot).")
+    if not is_running(settings, BOT):
+        return Result(1, f"Bot không khởi động được. Log gần nhất:\n{tail_log(settings, 10, BOT)}")
+    return Result(0, "Bot đã chạy (service pylos-bot) nhưng chưa xác nhận được sẵn sàng. Xem log.")
+
+
+def _stop_systemd(settings: Settings) -> Result:
+    was_running = is_running(settings, BOT)
+    result = systemctl("stop", SYSTEMD_UNIT)
+    if not result.ok:
+        return result
+    if _wait(lambda: not is_running(settings, BOT), 15):
+        clear_pid(settings, BOT)
+        return Result(0, "Đã dừng bot." if was_running else "Bot không chạy.")
+    return Result(1, "Đã gửi lệnh dừng service pylos-bot nhưng bot vẫn còn giữ khóa. Xem log.")
+
+
+def start(settings: Settings, service: Service = BOT, *, force: bool = False) -> Result:
     if is_running(settings, service):
         return Result(0, f"{service.label} đã đang chạy.")
     if service is BOT:
+        standby = standby_info(settings)
+        if standby and not force:
+            return Result(1, f"Máy này đang ở chế độ chờ: {standby['reason']} "
+                             "Chuyển bot về máy này ở trang Máy chủ (hoặc bỏ chế độ chờ) rồi bật lại.")
+        if force:
+            clear_standby(settings)
         settings.require(zalo=True, gemini=True)
+        if uses_systemd(settings, service):
+            return _start_systemd(settings)
     started = now_ms()
     child = _spawn(service)
 
@@ -236,6 +336,8 @@ def start(settings: Settings, service: Service = BOT) -> Result:
 
 
 def stop(settings: Settings, service: Service = BOT) -> Result:
+    if uses_systemd(settings, service):
+        return _stop_systemd(settings)
     was_running = is_running(settings, service)
     _end_task(service)
     pid = read_pid(settings, service)
@@ -300,6 +402,10 @@ def status_info(settings: Settings) -> dict[str, Any]:
         "autostart": _registry_autostart(),
         "zalo_token_set": bool(settings.zalo_bot_token),
         "gemini_key_set": bool(settings.gemini_api_key),
+        "zalo_session_set": settings.zalo_session_file.is_file(),
+        "personal": settings.personal,
+        "standby": standby_info(settings),
+        "supervisor": settings.bot_supervisor,
     }
 
 

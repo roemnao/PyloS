@@ -250,3 +250,21 @@ label.field > span { display: flex; align-items: center; flex-wrap: wrap; gap: .
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kv { grid-template-columns: minmax(0, auto) minmax(0, 1fr); }
 }
+
+/* ---------- chọn bên điều khiển: máy này | VPS ---------- */
+.seg { display: inline-flex; border: 1px solid currentColor; border-radius: 999px; overflow: hidden; }
+.seg[hidden] { display: none; }
+.seg button { border: 0; background: transparent; color: inherit; font: inherit; font-size: .85rem; padding: .25rem .8rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--lake-mark); color: var(--on-pastel); }
+body.target-vps .seg button[aria-pressed="true"] { background: var(--terra-mark); }
+body.target-vps .topbar-wrap { box-shadow: inset 0 -4px 0 var(--terra-mark); }
+body.target-vps .wordmark::after { content: " · VPS"; color: var(--terra-mark); }
+.servers { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.server.vps { border-top: 3px solid var(--terra-mark); }
+.server.local { border-top: 3px solid var(--lake-mark); }
+.server .row { flex-wrap: wrap; gap: .5rem; }
+
+.steps { list-style: none; padding: 0; margin: .75rem 0 0; }
+.steps li.error { color: var(--terra-mark); }
+.steps li.ok { color: inherit; }
+.ok-text { color: var(--moss); font-weight: 600; }

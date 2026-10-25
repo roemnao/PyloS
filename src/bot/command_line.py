@@ -569,6 +569,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
 
+    if command == "run":
+        from bot.system import bot_process
+
+        standby = bot_process.standby_info(settings)
+        if standby:
+            log.warning("Máy này đang ở chế độ chờ, không chạy bot: %s", standby["reason"])
+            print(f"Chế độ chờ: {standby['reason']}", file=sys.stderr)
+            return bot_process.EXIT_STANDBY
+
     lock_dir = settings.data_dir / CONSOLE_TEST_DIR if command == "console" else settings.system_dir
     lock = InstanceLock(Path(lock_dir) / "bot.lock")
     try:

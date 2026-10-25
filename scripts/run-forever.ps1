@@ -30,5 +30,9 @@ while ($true) {
         # Another instance already holds the lock in userdata\system\.
         exit 3
     }
+    if ($code -eq 5) {
+        # Standby: the bot was handed over to another machine (userdata\system\standby.txt). Do not restart it.
+        exit 5
+    }
     Start-Sleep -Seconds 10
 }
