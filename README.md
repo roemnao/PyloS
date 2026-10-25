@@ -354,6 +354,60 @@ Ví dụ: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nhắc tôi 8h
 - Với `SCHEDULE_OWNER_ONLY=true` (mặc định), chỉ chủ bot (`OWNER_ZALO_ID`) dùng được các tool này. Đặt `false` nếu muốn ai cũng nhờ được.
 - Muốn web nhắc việc qua Zalo, cấu hình phía web như trong README của quanlythoigian (mục "Dùng chung bot Zalo với AI agent khác").
 
+## Bảng lệnh
+
+### Dòng lệnh (Windows, trong thư mục dự án)
+Viết tắt: `PY` = `.venv\Scripts\python.exe`.
+
+| Lệnh | Tác dụng |
+|---|---|
+| `PY -m bot run` | Chạy bot ở cửa sổ này (Ctrl+C để dừng) |
+| `PY -m bot gateway start` / `stop` / `restart` / `status` | Bật, tắt, khởi động lại, xem tình trạng bot chạy nền |
+| `PY -m bot gateway logs -n 50` (thêm `-f` để theo dõi) | Xem log |
+| `PY -m bot gui` (`--tray`, `--start-bot`) | Ứng dụng quản lý (cửa sổ và biểu tượng khay) |
+| `PY -m bot admin` (`run`, `start`, `stop`, `restart`, `status`, `--open`) | Giao diện web quản lý bot tại `http://127.0.0.1:8081` |
+| `PY -m bot console` (`--chat-id`, `--user-id`, `--name`, `--private`) | Chat thử trên terminal, không cần Zalo |
+| `PY -m bot health` (`--max-age 180`) | Kiểm tra bot còn chạy |
+| `PY -m bot update` | Lấy code mới từ GitHub và khởi động lại bot |
+| `PY -m bot zalo-login` (`--no-open`) | Đăng nhập acc Zalo cá nhân bằng mã QR |
+| `PY -m bot me` | Gọi `getMe` của Zalo Bot |
+| `PY -m bot set-webhook <url>` / `webhook-info` / `delete-webhook` | Đăng ký, xem, gỡ webhook |
+| `PY -m pytest` | Chạy toàn bộ test |
+
+### Lệnh trên Zalo
+Lệnh `/…` chỉ chủ bot (`OWNER_ZALO_ID`) dùng được. Người khác gõ thì bot im lặng bỏ qua.
+
+| Lệnh | Tác dụng |
+|---|---|
+| `/allow`, `/deny` | Cho phép hoặc chặn nhóm hiện tại |
+| `/mode`, `/mode all`, `/mode default` | Xem hoặc đổi chế độ nhóm |
+| `/status` | Nhóm có được phép không, chế độ, token hôm nay |
+| `/reset` | Xoá lịch sử hội thoại của nhóm |
+| `/id` | Xem `chat_id` và `user_id` của bạn |
+| `/help` | Danh sách lệnh |
+| `/bot <câu hỏi>` | Gọi bot ở chế độ `default` |
+| `123456` hoặc `/lienket 123456` | Nhắn riêng cho bot mã 6 số lấy từ web app để liên kết Zalo với tài khoản Gmail |
+
+### Nhờ bot bằng lời (không cần lệnh `/`)
+Gọi tên bot rồi nói tự nhiên:
+
+```
+roemnao giao @An @Bình họp kế hoạch 9h sáng mai ở phòng 301   # giao_lich
+roemnao giao cho tôi: nộp báo cáo 9h sáng mai                  # giao_lich cho chính người gửi
+roemnao dời cuộc họp lúc nãy sang 10h, thêm @Chi, bỏ Bình      # sua_lich
+roemnao huỷ cuộc họp lúc nãy                                   # huy_lich
+roemnao các lịch đã giao trong nhóm?                           # lich_da_giao
+```
+
+Điều kiện: `SCHEDULE_API_KEY` đã đặt và người nhắn được phép giao lịch.
+
+### Ai dùng được gì
+| Cài đặt | Ý nghĩa |
+|---|---|
+| `OWNER_ZALO_ID` | Zalo ID của chủ bot. Để trống hoặc điền sai thì bạn không được tính là chủ bot, bot sẽ trả lời "chỉ có quyền thêm việc cho chủ nhân" |
+| `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: ai được giao lịch cho người khác |
+| `SCHEDULE_OWNER_ONLY` | `true` (mặc định): chỉ chủ bot dùng các tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec` (lịch riêng của chủ web) |
+
 ## Thêm tool cho trợ lý
 
 1. Sao chép `userdata\data\custom_tools\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
