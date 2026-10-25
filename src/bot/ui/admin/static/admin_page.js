@@ -118,6 +118,9 @@ function showLogin(message) {
   error.hidden = !message;
   error.textContent = message || "";
   document.getElementById("login-token").focus();
+  clearInterval(gmailTimer);
+  document.getElementById("gmail-btn").disabled = false;
+  gmailMessage("");
 }
 
 async function tryLogin(token) {
@@ -784,9 +787,71 @@ const RENDERERS = {
   tools: renderTools,
 };
 
+// ---------- đăng nhập bằng Gmail ----------
+// Web iforgotmywayhome làm chứng: mở link ở tab mới, đăng nhập Gmail và bấm Cho phép; trang này hỏi lại mỗi 2 giây.
+
+let gmailTimer = null;
+
+function gmailMessage(text, isError) {
+  const el = document.getElementById("gmail-msg");
+  el.hidden = !text;
+  el.textContent = text || "";
+  el.classList.toggle("error", Boolean(isError));
+}
+
+async function gmailLogin() {
+  const button = document.getElementById("gmail-btn");
+  clearInterval(gmailTimer);
+  button.disabled = true;
+  gmailMessage("Đang xin mã đăng nhập…");
+  let started;
+  try {
+    started = await rawApi("/api/auth/gmail/start", { method: "POST" });
+  } catch (err) {
+    button.disabled = false;
+    gmailMessage(err.message, true);
+    return;
+  }
+  const tab = window.open(started.url, "_blank", "noopener");
+  gmailMessage(tab ? "Đã mở web iforgotmywayhome ở tab mới. Đăng nhập Gmail và bấm Cho phép, trang này tự vào."
+    : `Trình duyệt chặn tab mới. Mở link này, đăng nhập Gmail và bấm Cho phép: ${started.url}`);
+  const deadline = Date.now() + (started.expiresIn || 600) * 1000;
+  const finish = (message, isError) => { clearInterval(gmailTimer); button.disabled = false; gmailMessage(message, isError); };
+  gmailTimer = setInterval(async () => {
+    if (Date.now() > deadline) { finish("Hết thời gian chờ, bấm lại để thử lần nữa.", true); return; }
+    let result;
+    try { result = await rawApi("/api/auth/gmail/poll", { method: "POST", body: { code: started.code } }); } catch { return; }
+    if (result.status === "ok") {
+      clearInterval(gmailTimer);
+      button.disabled = false;
+      gmailMessage("");
+      if (await tryLogin(result.token)) start();
+    } else if (result.status === "denied") finish(result.message, true);
+    else if (result.status === "expired") finish("Mã đã hết hạn, bấm lại để thử lần nữa.", true);
+  }, 2000);
+}
+
+async function rawApi(path, { method = "GET", body } = {}) {
+  const res = await fetch(path, { method, headers: body ? { "Content-Type": "application/json" } : {},
+    body: body === undefined ? undefined : JSON.stringify(body) });
+  let data = null;
+  try { data = await res.json(); } catch { /* không phải JSON */ }
+  if (!res.ok) throw new Error((data && (data.error || data.detail)) || `Lỗi HTTP ${res.status}`);
+  return data;
+}
+
+async function setupGmailLogin() {
+  document.getElementById("gmail-btn").addEventListener("click", gmailLogin);
+  try {
+    const options = await rawApi("/api/auth/options");
+    document.getElementById("gmail-login").hidden = !options.gmail;
+  } catch { /* không có thì chỉ dùng mã truy cập */ }
+}
+
 // ---------- khởi động ----------
 
 async function boot() {
+  setupGmailLogin();
   buildNav();
   document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
