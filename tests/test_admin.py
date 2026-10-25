@@ -352,3 +352,64 @@ def test_settings_show_values_set_on_the_web(env_path, tmp_path):
     assert data["remote"]["version"] == 7 and data["remote"]["count"] == 2
     assert client.get("/api/workspace/SYSTEM", headers=AUTH).json()["managed_by_web"] is True
     assert client.get("/api/workspace/MEMORY", headers=AUTH).json()["managed_by_web"] is False
+
+
+# ---------- đăng nhập bằng Gmail (web iforgotmywayhome làm chứng) ----------
+
+CODE = "a1" * 16
+
+
+def gmail_login(client, web, result):
+    web.on("POST", "/device-login", {"code": CODE, "url": f"https://app.example/?device={CODE}", "expiresIn": 600})
+    web.on("GET", f"/device-login/{CODE}", result)
+    started = client.post("/api/auth/gmail/start")
+    assert started.status_code == 200 and started.json()["url"].endswith(f"?device={CODE}")
+    return client.post("/api/auth/gmail/poll", json={"code": started.json()["code"]})
+
+
+def test_auth_endpoints_open_but_everything_else_needs_a_token(client, web):
+    assert client.get("/api/auth/options").json() == {"gmail": True}
+    assert client.get("/api/status", headers={"Authorization": "Bearer chua-dang-nhap"}).status_code == 401
+
+
+def test_gmail_option_hidden_without_web_key(client, monkeypatch, tmp_path):
+    monkeypatch.setattr("bot.config.APP_HOME", tmp_path)
+    monkeypatch.delenv("SCHEDULE_API_KEY", raising=False)
+    assert client.get("/api/auth/options").json() == {"gmail": False}
+    assert client.post("/api/auth/gmail/start").status_code == 502
+
+
+def test_gmail_login_gives_a_session_token(client, web):
+    assert gmail_login(client, web, {"status": "pending"}).json() == {"status": "pending"}
+    done = gmail_login(client, web, {"status": "approved", "email": "chu@gmail.com", "isAdmin": True}).json()
+    assert done["status"] == "ok" and done["email"] == "chu@gmail.com"
+    session = {"Authorization": f"Bearer {done['token']}"}
+    assert client.get("/api/status", headers=session).status_code == 200
+    assert done["token"] != ADMIN_TOKEN
+    assert client.get("/api/status", headers=AUTH).status_code == 200  # mã truy cập vẫn dùng được
+    assert client.get("/api/status", headers={"Authorization": f"Bearer {done['token']}x"}).status_code == 401
+
+
+def test_gmail_login_refuses_other_accounts_and_expired_codes(client, web):
+    denied = gmail_login(client, web, {"status": "approved", "email": "khac@gmail.com", "isAdmin": False}).json()
+    assert denied["status"] == "denied" and "khac@gmail.com" in denied["message"] and "token" not in denied
+    assert gmail_login(client, web, {"status": "expired"}).json() == {"status": "expired"}
+    assert client.post("/api/auth/gmail/poll", json={"code": "../../x"}).status_code == 400
+    web.offline = True
+    assert client.post("/api/auth/gmail/start").status_code == 502
+
+
+def test_session_tokens_expire_and_are_capped():
+    from bot.ui.admin.admin_sessions import MAX_SESSIONS, AdminSessions
+
+    now = [0.0]
+    sessions = AdminSessions(ttl=100, clock=lambda: now[0])
+    token = sessions.issue("a@gmail.com")
+    assert sessions.valid(token) and not sessions.valid("") and not sessions.valid("khac")
+    now[0] = 101
+    assert not sessions.valid(token)
+    first = sessions.issue()
+    for _ in range(MAX_SESSIONS + 3):
+        now[0] += 1
+        sessions.issue()
+    assert not sessions.valid(first)

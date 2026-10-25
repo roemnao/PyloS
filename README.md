@@ -170,7 +170,10 @@ Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gatewa
 .venv\Scripts\python.exe -m bot admin stop
 ```
 
-Mở http://127.0.0.1:8081. Mã đăng nhập là `ADMIN_TOKEN` trong `userdata\config\settings.env`; nếu còn trống, lần chạy đầu sẽ tự tạo.
+Mở http://127.0.0.1:8081. Có hai cách vào:
+
+- **Đăng nhập bằng Gmail (khuyên dùng).** Bấm **Đăng nhập bằng Gmail**: trang mở web iforgotmywayhome ở tab mới, bạn đăng nhập Gmail và bấm **Cho phép**, trang quản lý tự vào (phiên 12 giờ). Chỉ Gmail đã liên kết vào **tài khoản quản trị của web** (trang quản trị → Cài đặt → Liên kết Google) được vào; Gmail khác bị từ chối. Cần `SCHEDULE_API_KEY` trong `settings.env` (không có thì nút này ẩn).
+- **Mã truy cập (dự phòng).** `ADMIN_TOKEN` trong `userdata\config\settings.env`; nếu còn trống, lần chạy đầu sẽ tự tạo. Quên mã thì chạy `.venv\Scripts\python.exe -m bot admin --open` để mở và tự đăng nhập.
 
 | Trang | Làm được gì |
 |---|---|

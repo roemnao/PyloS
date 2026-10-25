@@ -1,7 +1,8 @@
 """Server giao diện quản lý: FastAPI, chỉ lắng nghe 127.0.0.1.
 
 Bảo mật (PLAN.md mục 11.5):
-- Mọi /api/* cần header `Authorization: Bearer <ADMIN_TOKEN>`.
+- Mọi /api/* (trừ /api/auth/*) cần header `Authorization: Bearer <ADMIN_TOKEN>` hoặc token phiên của đăng nhập Gmail
+  (web iforgotmywayhome làm chứng, chỉ Gmail của chủ web được nhận; xem /api/auth/gmail/*).
 - Header Host phải là 127.0.0.1/localhost đúng cổng (chặn DNS rebinding).
 - Yêu cầu ghi có Origin thì Origin phải là chính trang này; không bật CORS.
 - API không bao giờ trả về token/khóa; chỉ trả "đã đặt / chưa đặt".
@@ -24,7 +25,8 @@ from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import bot_process
+from bot.system import bot_process, server_client
+from bot.ui.admin.admin_sessions import AdminSessions
 from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
@@ -100,6 +102,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     allowed_hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
     allowed_origins = {f"http://{h}" for h in allowed_hosts}
+    sessions = AdminSessions()
 
     @app.middleware("http")
     async def guard(request: Request, call_next):
@@ -111,13 +114,15 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 return _error(403, "Origin không hợp lệ")
             if request.headers.get("sec-fetch-site") == "cross-site":
                 return _error(403, "Yêu cầu từ trang khác bị chặn")
-        if request.url.path.startswith("/api/"):
+        path = request.url.path
+        if path.startswith("/api/") and not path.startswith("/api/auth/"):
             try:
                 token = ctx.settings().admin_token
             except ConfigError as exc:
                 return _error(500, f"Lỗi cấu hình .env: {exc}")
             supplied = request.headers.get("authorization", "")
-            if not token or not hmac.compare_digest(supplied.encode(), f"Bearer {token}".encode()):
+            by_token = bool(token) and hmac.compare_digest(supplied.encode(), f"Bearer {token}".encode())
+            if not by_token and not sessions.valid(supplied.removeprefix("Bearer ").strip()):
                 return _error(401, "Sai hoặc thiếu mã truy cập")
         response = await call_next(request)
         for name, value in SECURITY_HEADERS.items():
@@ -127,6 +132,39 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.exception_handler(ConfigError)
     async def config_error(request: Request, exc: ConfigError) -> JSONResponse:
         return _error(400, str(exc))
+
+    # ---------- đăng nhập bằng Gmail (không cần mã truy cập) ----------
+
+    @app.get("/api/auth/options")
+    async def auth_options() -> dict[str, Any]:
+        return {"gmail": server_client.configured()}
+
+    @app.post("/api/auth/gmail/start")
+    async def gmail_start() -> JSONResponse:
+        data = await server_client.request("POST", "/device-login", timeout=15)
+        if not isinstance(data, dict) or "error" in data or not data.get("code") or not data.get("url"):
+            message = (data or {}).get("message") or (data or {}).get("error") or "Không gọi được web iforgotmywayhome"
+            return _error(502, str(message))
+        return JSONResponse({"code": data["code"], "url": data["url"], "expiresIn": data.get("expiresIn", 600)},
+                            headers=SECURITY_HEADERS)
+
+    @app.post("/api/auth/gmail/poll")
+    async def gmail_poll(body: dict[str, Any] = Body(...)) -> JSONResponse:
+        code = str(body.get("code") or "")
+        if not re.fullmatch(r"[0-9a-f]{32}", code):
+            return _error(400, "Mã không hợp lệ")
+        data = await server_client.request("GET", f"/device-login/{code}", timeout=15)
+        if not isinstance(data, dict) or "error" in data:
+            return _error(502, str((data or {}).get("message") or "Không gọi được web iforgotmywayhome"))
+        status = data.get("status")
+        if status == "approved":
+            email = str(data.get("email") or "")
+            if not data.get("isAdmin"):
+                return JSONResponse({"status": "denied", "message": f"Gmail {email} không phải tài khoản quản trị của web. "
+                                     "Đăng nhập bằng đúng Gmail đã liên kết vào tài khoản quản trị."}, headers=SECURITY_HEADERS)
+            log.info("Đăng nhập trang quản lý bằng Gmail %s", email)
+            return JSONResponse({"status": "ok", "token": sessions.issue(email), "email": email}, headers=SECURITY_HEADERS)
+        return JSONResponse({"status": "expired" if status == "expired" else "pending"}, headers=SECURITY_HEADERS)
 
     # ---------- trang tĩnh ----------
 
