@@ -136,7 +136,7 @@ function showLogin(message) {
 async function tryLogin(token) {
   state.token = token;
   try {
-    await api("/api/status");
+    await api("/api/status", { side: "local" });  // mã truy cập là của máy này, kể cả khi đang chọn VPS
   } catch (err) {
     if (!(err instanceof ApiError && err.message === "Chưa đăng nhập")) showLogin(err.message);
     return false;
@@ -182,11 +182,16 @@ function render() {
 
 // ---------- bên được điều khiển: máy này hay VPS ----------
 
+// Đã kết nối VPS và khoá còn hiệu lực (khoá hết hạn/bị thu hồi thì quay về máy này, chờ đăng nhập Gmail lại).
+function vpsUsable() {
+  return Boolean(state.remote && state.remote.configured && !state.remote.auth_failed);
+}
+
 function applyTarget() {
   const vps = state.target === "vps";
   document.body.classList.toggle("target-vps", vps);
   const box = document.getElementById("target-switch");
-  box.hidden = !(state.remote && state.remote.configured);
+  box.hidden = !vpsUsable();
   for (const b of box.querySelectorAll("button")) {
     if (b.dataset.target === state.target) b.setAttribute("aria-pressed", "true");
     else b.removeAttribute("aria-pressed");
@@ -208,7 +213,7 @@ async function pollRemote() {
   try {
     state.remote = await api("/api/remote-status", { side: "local" });
   } catch { return; }
-  if (!state.remote.configured && state.target === "vps") {
+  if (!vpsUsable() && state.target === "vps") {
     state.target = "local";
     storageSet(TARGET_KEY, null);
     render();
@@ -360,10 +365,80 @@ async function serverAction(side, action, label, button) {
   await loadServers();
 }
 
-function serverCard(side, title, data, error) {
+// ---- kết nối VPS bằng Gmail: đăng nhập một lần, máy này giữ khoá thiết bị của VPS ----
+
+let vpsLoginTimer = null;
+let vpsLoginCard = null;  // thẻ đang đăng nhập: giữ nguyên khi trang Máy chủ tự vẽ lại mỗi 10 giây
+
+function vpsConnectCard() {
+  if (vpsLoginTimer && vpsLoginCard) return vpsLoginCard;
+  const r = state.remote || {};
+  const msg = h("p", { class: "muted small", id: "vps-login-msg" });
+  const button = h("button", { class: "btn primary", type: "button", text: "Kết nối VPS bằng Gmail", onclick: () => connectVps(button, msg) });
+  return vpsLoginCard = h("div", { class: "card server vps" }, h("h2", { text: "VPS" }),
+    h("p", { class: "muted", text: r.auth_failed
+      ? "Khoá kết nối VPS đã hết hạn hoặc bị thu hồi. Đăng nhập Gmail lại để kết nối."
+      : "Chưa kết nối VPS. Đăng nhập bằng Gmail quản trị của web iforgotmywayhome một lần, máy này sẽ nhớ." }),
+    h("p", { class: "muted small", text: `Địa chỉ: ${r.url || "chưa đặt (REMOTE_URL)"}` }),
+    h("div", { class: "row" }, button), msg);
+}
+
+async function connectVps(button, msg) {
+  clearInterval(vpsLoginTimer);
+  button.disabled = true;
+  msg.className = "muted small";
+  msg.textContent = "Đang xin mã đăng nhập từ VPS…";
+  let started;
+  try {
+    started = await api("/api/remote-login/start", { method: "POST", side: "local" });
+  } catch (err) {
+    button.disabled = false;
+    msg.className = "error";
+    msg.textContent = err.message;
+    return;
+  }
+  const tab = window.open(started.url, "_blank", "noopener");
+  msg.textContent = tab ? "Đã mở web iforgotmywayhome ở tab mới. Đăng nhập Gmail và bấm Cho phép, trang này tự kết nối."
+    : `Mở link này, đăng nhập Gmail và bấm Cho phép: ${started.url}`;
+  const deadline = Date.now() + (started.expiresIn || 600) * 1000;
+  const finish = (text, isError) => {
+    clearInterval(vpsLoginTimer);
+    vpsLoginTimer = null;
+    button.disabled = false;
+    msg.className = isError ? "error" : "muted small";
+    msg.textContent = text;
+  };
+  vpsLoginTimer = setInterval(async () => {
+    if (!document.getElementById("servers-grid")) { clearInterval(vpsLoginTimer); vpsLoginTimer = null; return; }
+    if (Date.now() > deadline) { finish("Hết thời gian chờ, bấm lại để thử lần nữa.", true); return; }
+    let result;
+    try { result = await api("/api/remote-login/poll", { method: "POST", body: { code: started.code }, side: "local" }); } catch { return; }
+    if (result.status === "ok") {
+      clearInterval(vpsLoginTimer);
+      vpsLoginTimer = null;
+      toast(`Đã kết nối VPS bằng ${result.email}.`, "ok");
+      await pollRemote();
+      await loadServers();
+    } else if (result.status === "denied") finish(result.message, true);
+    else if (result.status === "expired") finish("Mã đã hết hạn, bấm lại để thử lần nữa.", true);
+  }, 2000);
+}
+
+async function disconnectVps() {
+  if (!confirm("Ngắt kết nối VPS ở máy này? Muốn kết nối lại thì đăng nhập Gmail lại.")) return;
+  try {
+    await api("/api/remote-login", { method: "DELETE", side: "local" });
+    if (state.target === "vps") setTarget("local");
+    await pollRemote();
+    await loadServers();
+  } catch (err) { reportError(err); }
+}
+
+function serverCard(side, title, data, error, remote = false) {
   if (error) {
     return h("div", { class: `card server ${side}` }, h("h2", { text: title }),
-      h("p", { class: "error", text: error }));
+      h("p", { class: "error", text: error }),
+      remote ? h("button", { class: "btn small ghost", type: "button", text: "Ngắt kết nối VPS", onclick: disconnectVps }) : null);
   }
   const bot = data.bot, v = data.version || {}, mem = data.memory;
   const badge = bot.running ? ["ok", "Bot đang chạy"] : bot.standby ? ["warn", "Đang chờ (bot ở máy khác)"] : ["off", "Bot đã dừng"];
@@ -392,6 +467,7 @@ function serverCard(side, title, data, error) {
   if (v.git || data.supervisor === "systemd") {
     act("update", "Đang cập nhật", v.behind ? "Cập nhật ngay" : "Cập nhật code", v.behind ? "btn primary" : "btn");
   }
+  if (remote) buttons.push(h("button", { class: "btn ghost", type: "button", text: "Ngắt kết nối", onclick: disconnectVps }));
   return h("div", { class: `card server ${side}` },
     h("div", { class: "row between" }, h("h2", { text: title }), h("span", { class: `pill ${badge[0]}`, text: badge[1] })),
     v.behind ? h("div", { class: "banner" }, h("span", { text: "Có code mới hơn trên GitHub." })) : null,
@@ -468,12 +544,9 @@ async function loadServers() {
   if (!host) return;
   fill(host,
     serverCard("local", "Máy này", local.value, local.status === "rejected" ? local.reason.message : null),
-    configured
-      ? serverCard("vps", "VPS", vps.value, vps.status === "rejected" ? vps.reason.message : null)
-      : h("div", { class: "card server vps" }, h("h2", { text: "VPS" }),
-          h("p", { class: "muted", text: "Chưa kết nối VPS. Vào Cài đặt, điền địa chỉ trang quản lý trên VPS (REMOTE_URL) " +
-            "và mã truy cập của VPS (REMOTE_ADMIN_TOKEN)." }),
-          h("button", { class: "btn", type: "button", text: "Mở Cài đặt", onclick: () => { setTarget("local"); go("settings"); } })));
+    configured && !state.remote.auth_failed
+      ? serverCard("vps", "VPS", vps.value, vps.status === "rejected" ? vps.reason.message : null, true)
+      : vpsConnectCard());
   drawHandover(local.value, configured ? vps.value : null);
   const bothOn = Boolean(local.value && vps.value && local.value.bot.running && vps.value.bot.running);
   const note = document.getElementById("servers-note");

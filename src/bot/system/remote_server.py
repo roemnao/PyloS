@@ -35,7 +35,7 @@ class Reply:
 
 
 def configured(settings: Settings) -> bool:
-    return bool(settings.remote_url and settings.remote_admin_token)
+    return bool(settings.remote_url and settings.remote_url != "off" and settings.remote_admin_token)
 
 
 def blocked(path: str) -> bool:
@@ -43,9 +43,11 @@ def blocked(path: str) -> bool:
     return first in BLOCKED_PREFIXES
 
 
-def _url(settings: Settings, path: str) -> str:
-    if not configured(settings):
-        raise RemoteError("Chưa cấu hình VPS: điền REMOTE_URL và REMOTE_ADMIN_TOKEN ở trang Cài đặt.")
+def _url(settings: Settings, path: str, *, auth: bool = True) -> str:
+    if not settings.remote_url or settings.remote_url == "off":
+        raise RemoteError("Chưa đặt địa chỉ VPS (REMOTE_URL).")
+    if auth and not configured(settings):
+        raise RemoteError("Chưa kết nối VPS: vào trang Máy chủ, bấm Kết nối VPS bằng Gmail.")
     if not settings.remote_url.startswith(("https://", "http://127.0.0.1", "http://localhost")):
         raise RemoteError("REMOTE_URL phải bắt đầu bằng https:// (mã truy cập không được gửi qua http).")
     return f"{settings.remote_url}/api/{path.lstrip('/')}"
@@ -69,10 +71,11 @@ def _check_status(status: int) -> None:
 
 async def request(settings: Settings, method: str, path: str, *, params: dict[str, str] | None = None,
                   content: bytes | None = None, headers: dict[str, str] | None = None,
-                  timeout: float = TIMEOUT) -> Reply:
-    url = _url(settings, path)
+                  timeout: float = TIMEOUT, auth: bool = True) -> Reply:
+    url = _url(settings, path, auth=auth)
     send = {k: v for k, v in (headers or {}).items() if k.lower() in FORWARD_HEADERS}
-    send["Authorization"] = f"Bearer {settings.remote_admin_token}"
+    if auth:
+        send["Authorization"] = f"Bearer {settings.remote_admin_token}"
     async with _client(timeout) as client:
         try:
             response = await client.request(method, url, params=params, content=content, headers=send)
@@ -82,12 +85,13 @@ async def request(settings: Settings, method: str, path: str, *, params: dict[st
     return Reply(response.status_code, response.content, response.headers.get("content-type", "application/json"))
 
 
-async def json_request(settings: Settings, method: str, path: str, *, json: Any = None, timeout: float = TIMEOUT) -> Any:
+async def json_request(settings: Settings, method: str, path: str, *, json: Any = None, timeout: float = TIMEOUT,
+                       auth: bool = True) -> Any:
     """Gọi và đọc JSON; lỗi HTTP >= 400 thành RemoteError kèm câu báo lỗi của VPS."""
     import json as jsonlib
 
     content = jsonlib.dumps(json).encode() if json is not None else None
-    reply = await request(settings, method, path, content=content, timeout=timeout,
+    reply = await request(settings, method, path, content=content, timeout=timeout, auth=auth,
                           headers={"content-type": "application/json"} if content else None)
     try:
         data = jsonlib.loads(reply.body or b"null")

@@ -190,7 +190,7 @@ Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được 
 
 ## Điều khiển bot trên VPS từ ứng dụng ở máy này
 
-Điền `REMOTE_URL` và `REMOTE_ADMIN_TOKEN` (trang Cài đặt → "Máy chủ VPS") là có công tắc **Máy này | VPS** trên đầu trang,
+Trang **Máy chủ** → **Kết nối VPS bằng Gmail** (đăng nhập Gmail quản trị một lần, không cần chép mã) là có công tắc **Máy này | VPS** trên đầu trang,
 trang **Máy chủ** (so sánh hai bên, cập nhật code VPS) và nút **Chuyển bot sang VPS / về máy này** (kèm dữ liệu, tự hoàn tác
 nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc cần chủ VPS làm một lần và chi tiết: [docs/vps-dieu-khien.md](docs/vps-dieu-khien.md).
 
