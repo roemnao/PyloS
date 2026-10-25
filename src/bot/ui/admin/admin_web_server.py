@@ -27,7 +27,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 
 from bot.system import bot_process, handover, handover_job, remote_server, server_client
-from bot.ui.admin.admin_sessions import AdminSessions
+from bot.ui.admin.admin_sessions import AdminDevices, AdminSessions
 from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
@@ -47,6 +47,7 @@ from bot.core.reply_formatting import split_message
 from bot.core.vietnam_time import now_ms, now_vn
 from bot.zalo import ZaloClient, ZaloError
 from bot.userdata_paths import (
+    ADMIN_DEVICES_FILE,
     CHAT_ACTIVITY_FILE,
     DAILY_STATS_FILE,
     FAILED_REPLIES_FILE,
@@ -105,6 +106,9 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     allowed_origins = {f"http://{h}" for h in allowed_hosts}
     sessions = AdminSessions()
 
+    def devices() -> AdminDevices:
+        return AdminDevices(ctx.settings().system_dir / ADMIN_DEVICES_FILE)
+
     @app.middleware("http")
     async def guard(request: Request, call_next):
         if request.headers.get("host", "") not in allowed_hosts:
@@ -123,7 +127,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 return _error(500, f"Lỗi cấu hình .env: {exc}")
             supplied = request.headers.get("authorization", "")
             by_token = bool(token) and hmac.compare_digest(supplied.encode(), f"Bearer {token}".encode())
-            if not by_token and not sessions.valid(supplied.removeprefix("Bearer ").strip()):
+            bearer = supplied.removeprefix("Bearer ").strip()
+            if not by_token and not sessions.valid(bearer) and not devices().valid(bearer):
                 return _error(401, "Sai hoặc thiếu mã truy cập")
         response = await call_next(request)
         for name, value in SECURITY_HEADERS.items():
@@ -163,6 +168,12 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             if not data.get("isAdmin"):
                 return JSONResponse({"status": "denied", "message": f"Gmail {email} không phải tài khoản quản trị của web. "
                                      "Đăng nhập bằng đúng Gmail đã liên kết vào tài khoản quản trị."}, headers=SECURITY_HEADERS)
+            device = str(body.get("device") or "").strip()
+            if device:
+                # Ứng dụng ở máy khác (ZaloBot.exe) xin khoá dài hạn để điều khiển trang này.
+                log.info("Cấp khoá thiết bị cho %s (Gmail %s)", device[:80], email)
+                return JSONResponse({"status": "ok", "token": devices().issue(email, device), "email": email},
+                                    headers=SECURITY_HEADERS)
             log.info("Đăng nhập trang quản lý bằng Gmail %s", email)
             return JSONResponse({"status": "ok", "token": sessions.issue(email), "email": email}, headers=SECURITY_HEADERS)
         return JSONResponse({"status": "expired" if status == "expired" else "pending"}, headers=SECURITY_HEADERS)
@@ -232,6 +243,57 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     # ---------- điều khiển bot trên VPS (proxy tới trang quản lý của VPS) ----------
 
+    @app.get("/api/devices")
+    def list_devices() -> dict[str, Any]:
+        """Các máy đã đăng nhập Gmail để điều khiển trang này (không bao giờ có khoá)."""
+        return {"devices": devices().list()}
+
+    @app.delete("/api/devices/{device_id}")
+    def revoke_device(device_id: str) -> dict[str, Any]:
+        if not devices().revoke(device_id):
+            raise HTTPException(404, "Không có máy này")
+        return {"ok": True}
+
+    @app.post("/api/remote-login/start")
+    async def remote_login_start() -> JSONResponse:
+        """Kết nối VPS bằng Gmail, bước 1: nhờ VPS xin mã đăng nhập từ web iforgotmywayhome."""
+        try:
+            data = await remote_server.json_request(ctx.settings(), "POST", "auth/gmail/start", auth=False, timeout=20)
+        except remote_server.RemoteError as exc:
+            return _error(502, f"{exc} (VPS cần đặt SCHEDULE_API_KEY để đăng nhập bằng Gmail.)"
+                          if "502" in str(exc) else str(exc))
+        return JSONResponse({"code": data.get("code"), "url": data.get("url"), "expiresIn": data.get("expiresIn", 600)},
+                            headers=SECURITY_HEADERS)
+
+    @app.post("/api/remote-login/poll")
+    async def remote_login_poll(body: dict[str, Any] = Body(...)) -> JSONResponse:
+        """Bước 2: hỏi VPS đã duyệt chưa; được thì lưu khoá thiết bị vào settings.env (không trả xuống trang)."""
+        import socket
+
+        code = str(body.get("code") or "")
+        if not re.fullmatch(r"[0-9a-f]{32}", code):
+            return _error(400, "Mã không hợp lệ")
+        settings = ctx.settings()
+        try:
+            data = await remote_server.json_request(settings, "POST", "auth/gmail/poll", auth=False, timeout=20,
+                                                    json={"code": code, "device": f"ZaloBot trên {socket.gethostname()}"})
+        except remote_server.RemoteError as exc:
+            return _error(502, str(exc))
+        if data.get("status") != "ok":
+            return JSONResponse({k: data.get(k) for k in ("status", "message") if k in data}, headers=SECURITY_HEADERS)
+        token = str(data.get("token") or "")
+        if not token:
+            return _error(502, "VPS không trả về khoá.")
+        settings_file.update(ctx.env_path, settings_file.validate(ctx.env_path, {"REMOTE_ADMIN_TOKEN": token}, ctx.base_dir))
+        log.info("Đã kết nối VPS %s bằng Gmail %s", settings.remote_url, data.get("email"))
+        return JSONResponse({"status": "ok", "email": data.get("email")}, headers=SECURITY_HEADERS)
+
+    @app.delete("/api/remote-login")
+    def remote_logout() -> dict[str, Any]:
+        """Ngắt kết nối VPS ở máy này (xoá khoá khỏi settings.env)."""
+        settings_file.update(ctx.env_path, {"REMOTE_ADMIN_TOKEN": ""})
+        return {"ok": True}
+
     @app.get("/api/remote-status")
     async def remote_status() -> dict[str, Any]:
         """Đã cấu hình VPS chưa và có kết nối được không (trang dùng để hiện công tắc Máy này | VPS)."""
@@ -239,7 +301,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
         settings = ctx.settings()
         out: dict[str, Any] = {"configured": remote_server.configured(settings), "url": settings.remote_url,
-                               "ok": False, "latency_ms": None, "error": None}
+                               "ok": False, "latency_ms": None, "error": None, "auth_failed": False}
         if not out["configured"]:
             return out
         started = time.monotonic()
@@ -247,6 +309,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             data = await remote_server.json_request(settings, "GET", "status", timeout=10)
         except remote_server.RemoteError as exc:
             out["error"] = str(exc)
+            out["auth_failed"] = "từ chối mã truy cập" in str(exc)
             return out
         out.update(ok=True, latency_ms=int((time.monotonic() - started) * 1000),
                    running=bool(data.get("running")), standby=data.get("standby"))

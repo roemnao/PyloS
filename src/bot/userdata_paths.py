@@ -55,6 +55,7 @@ ZALO_LOGIN_QR_FILE = "zalo_login_qr.png"           # ảnh mã QR tạm khi đă
 GUI_LOCK_FILE = "gui.lock"                         # chỉ một ứng dụng quản lý chạy cùng lúc
 SHOW_WINDOW_REQUEST = "show_window.request"        # nhờ ứng dụng đang chạy hiện cửa sổ
 UPDATE_REQUEST = "update.request"                  # nhờ ứng dụng đang chạy tự cập nhật (nút trên Tổng quan)
+ADMIN_DEVICES_FILE = "admin_devices.json"         # khoá thiết bị (băm) của ứng dụng ở máy khác, cấp khi đăng nhập Gmail
 STANDBY_FILE = "standby.txt"                       # bot đã chuyển sang máy khác: máy này không được bật bot
 HANDOVER_BACKUP_DIR = "handover_backups"           # dữ liệu cũ trước mỗi lần nhận bot từ máy khác
 

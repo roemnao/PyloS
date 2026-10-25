@@ -24,16 +24,21 @@ Cửa sổ ZaloBot.exe ──► server giao diện ở máy này ──/api/rem
 - Chỉ chuyển được khi cả hai bên cùng `RECEIVE_MODE` là `polling` hoặc `personal` (webhook gắn với một địa chỉ cố định).
   Acc Zalo cá nhân đổi IP có thể bị Zalo đòi đăng nhập lại: quét QR ở trang Cài đặt của VPS (công tắc VPS).
 
-## Cấu hình ở máy Windows
+## Kết nối từ máy Windows: đăng nhập Gmail
 
-Trang Cài đặt (nhóm "Máy chủ VPS") hoặc `userdata/config/settings.env`:
+Trang **Máy chủ** → thẻ VPS → **Kết nối VPS bằng Gmail** → đăng nhập Gmail quản trị của web iforgotmywayhome, bấm Cho phép.
+Xong là máy này nhớ kết nối, không cần chép mã nào.
 
-```
-REMOTE_URL=https://unousgrowth.com
-REMOTE_ADMIN_TOKEN=<ADMIN_TOKEN trong /opt/pylos/userdata/config/settings.env của VPS>
-```
+- VPS cấp cho máy này một **khoá thiết bị** (`dev_…`), lưu vào `REMOTE_ADMIN_TOKEN` trong `settings.env` ở máy này. Khoá không bao giờ
+  xuống trang web. Trên VPS chỉ lưu SHA-256 của khoá (`userdata/system/admin_devices.json`), nên khoá vẫn còn sau khi VPS khởi động lại
+  hay tự cập nhật.
+- Khoá hết hạn sau 180 ngày không dùng. Cùng một máy đăng nhập lại thì khoá cũ bị thay. Xem và thu hồi các máy đã kết nối bằng
+  `GET /api/devices` và `DELETE /api/devices/{id}`. Ở máy này có nút **Ngắt kết nối** trên thẻ VPS.
+- Chỉ Gmail có quyền quản trị trên web iforgotmywayhome mới được cấp khoá (web trả `isAdmin`).
+- `REMOTE_URL` để trống thì dùng `https://unousgrowth.com`. Đặt `off` để tắt hẳn phần VPS.
+- Vẫn dán `ADMIN_TOKEN` của VPS vào `REMOTE_ADMIN_TOKEN` được, nếu không muốn dùng Gmail.
 
-`REMOTE_URL` phải là https (trừ localhost, để thử).
+**Điều kiện:** VPS phải đặt `SCHEDULE_API_KEY` (khoá agent của web iforgotmywayhome) thì mới đăng nhập Gmail được. Hiện VPS chưa có khoá này.
 
 ## Việc chủ VPS làm một lần (user `em` và `pylos` không tự làm được)
 

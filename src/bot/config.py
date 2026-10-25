@@ -30,6 +30,10 @@ PROJECT_ROOT = APP_HOME
 LOADED_FROM_DOTENV: set[str] = set()
 
 
+# Trang quản lý bot trên VPS (REMOTE_URL để trống thì dùng địa chỉ này; đặt "off" để tắt hẳn).
+DEFAULT_REMOTE_URL = "https://unousgrowth.com"
+
+
 class ConfigError(Exception):
     """Cấu hình thiếu hoặc sai; thông báo đã sẵn sàng để in cho người dùng."""
 
@@ -183,7 +187,7 @@ class Settings:
             session_upload=_bool(env, "SESSION_UPLOAD", True),
             zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
             bot_supervisor=bot_supervisor,
-            remote_url=env.get("REMOTE_URL", "").strip().rstrip("/"),
+            remote_url=(env.get("REMOTE_URL", "").strip() or DEFAULT_REMOTE_URL).rstrip("/"),
             remote_admin_token=env.get("REMOTE_ADMIN_TOKEN", "").strip(),
         )
 
