@@ -399,6 +399,64 @@ function serverCard(side, title, data, error) {
     h("div", { class: "row" }, buttons));
 }
 
+// ---- chuyển bot giữa máy này và VPS ----
+
+function stepIcon(status) {
+  return status === "ok" ? "✓" : status === "error" ? "✗" : "…";
+}
+
+function drawJob(box, job) {
+  fill(box,
+    h("ul", { class: "steps" }, job.steps.map((s) => h("li", { class: s.status },
+      h("span", { text: `${stepIcon(s.status)} ${s.label}` }),
+      s.detail ? h("span", { class: "muted small", text: ` — ${s.detail}` }) : null))),
+    job.state === "done" ? h("p", { class: "ok-text", text: job.message }) : null,
+    job.state === "error" ? h("p", { class: "error", text: job.message }) : null);
+}
+
+async function moveBot(to) {
+  const where = to === "vps" ? "VPS" : "máy này";
+  if (!confirm(`Chuyển bot sang ${where}?\n\nBot sẽ tắt ở bên kia, dữ liệu (nhóm, lịch sử, ghi nhớ) được chép sang, rồi bật ở ${where}. ` +
+    "Bot ngừng trả lời trong khoảng một phút.")) return;
+  const box = document.getElementById("handover-progress");
+  state.handoverBusy = true;
+  for (const b of document.querySelectorAll("[data-move]")) b.disabled = true;
+  try {
+    await api("/api/handover", { method: "POST", body: { to }, side: "local" });
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      if (!document.getElementById("handover-progress")) return;
+      const job = await api("/api/handover/job", { side: "local" });
+      state.lastJob = job;
+      drawJob(box, job);
+      if (job.state !== "running") {
+        toast(job.message, job.state === "done" ? "ok" : "error");
+        break;
+      }
+    }
+  } catch (err) { reportError(err); }
+  state.handoverBusy = false;
+  await loadServers();
+}
+
+function drawHandover(local, vps) {
+  const box = document.getElementById("handover");
+  if (!box || state.handoverBusy) return;
+  const at = local && local.bot.running ? "máy này" : vps && vps.bot.running ? "VPS" : null;
+  const standbyHere = Boolean(local && local.bot.standby);
+  const move = (to, text, primary) => h("button", { class: primary ? "btn primary" : "btn", type: "button", "data-move": to, text,
+    onclick: () => moveBot(to) });
+  fill(box, h("div", { class: "card" },
+    h("h2", { text: "Bot đang chạy ở" }),
+    h("p", {}, h("strong", { text: at || "không nơi nào" }),
+      at === null && standbyHere ? h("span", { class: "muted", text: " (máy này đang chờ, bot được giao cho VPS)" }) : null),
+    h("div", { class: "row" },
+      at !== "VPS" && vps ? move("vps", "Chuyển bot sang VPS", true) : null,
+      at !== "máy này" && vps ? move("local", "Chuyển bot về máy này", at === "VPS") : null),
+    h("div", { id: "handover-progress" })));
+  if (state.lastJob) drawJob(document.getElementById("handover-progress"), state.lastJob);
+}
+
 async function loadServers() {
   if (!document.getElementById("servers-grid")) return;
   const configured = state.remote && state.remote.configured;
@@ -416,6 +474,7 @@ async function loadServers() {
           h("p", { class: "muted", text: "Chưa kết nối VPS. Vào Cài đặt, điền địa chỉ trang quản lý trên VPS (REMOTE_URL) " +
             "và mã truy cập của VPS (REMOTE_ADMIN_TOKEN)." }),
           h("button", { class: "btn", type: "button", text: "Mở Cài đặt", onclick: () => { setTarget("local"); go("settings"); } })));
+  drawHandover(local.value, configured ? vps.value : null);
   const bothOn = Boolean(local.value && vps.value && local.value.bot.running && vps.value.bot.running);
   const note = document.getElementById("servers-note");
   if (note) {
@@ -428,6 +487,7 @@ async function renderServers(main) {
   fill(main, h("h1", { text: "Máy chủ" }),
     h("p", { class: "muted", text: "Xem và điều khiển bot ở máy này và trên VPS. Chỉ nên bật bot ở một nơi tại một thời điểm." }),
     h("p", { id: "servers-note", class: "error", hidden: true }),
+    h("div", { id: "handover" }),
     h("div", { id: "servers-grid", class: "servers" }, h("p", { class: "muted", text: "Đang tải…" })));
   await pollRemote();
   await loadServers();

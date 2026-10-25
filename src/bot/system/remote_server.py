@@ -129,15 +129,23 @@ async def stream(settings: Settings, path: str, params: dict[str, str] | None = 
     return body()
 
 
+# Test thay bằng httpx.MockTransport.
+sync_transport: httpx.BaseTransport | None = None
+
+
+def _sync_client(timeout: float | None) -> httpx.Client:
+    return httpx.Client(timeout=timeout, transport=sync_transport)
+
+
 # ---------- bản đồng bộ cho ứng dụng khay (chạy trong luồng nền, không có vòng lặp asyncio) ----------
 
-def call_sync(settings: Settings, method: str, path: str, *, timeout: float = 15.0) -> Any:
+def call_sync(settings: Settings, method: str, path: str, *, json: Any = None, timeout: float = 15.0) -> Any:
     """Gọi VPS và trả JSON; ném RemoteError (thông báo tiếng Việt) khi lỗi."""
     url = _url(settings, path)
     headers = {"Authorization": f"Bearer {settings.remote_admin_token}"}
     try:
-        with httpx.Client(timeout=timeout) as client:
-            response = client.request(method, url, headers=headers)
+        with _sync_client(timeout) as client:
+            response = client.request(method, url, headers=headers, json=json)
     except httpx.HTTPError as exc:
         raise _explain(exc) from None
     _check_status(response.status_code)
@@ -163,3 +171,39 @@ def status_sync(settings: Settings) -> dict[str, Any]:
         return out
     out.update(ok=True, running=bool(data.get("running")), standby=data.get("standby"))
     return out
+
+
+def download_sync(settings: Settings, path: str, dest: Any, *, timeout: float = 600.0) -> None:
+    """Tải một file (gói chuyển bot) từ VPS về dest."""
+    url = _url(settings, path)
+    headers = {"Authorization": f"Bearer {settings.remote_admin_token}"}
+    try:
+        with _sync_client(timeout) as client, client.stream("GET", url, headers=headers) as response:
+            _check_status(response.status_code)
+            if response.status_code >= 400:
+                raise RemoteError(f"VPS báo lỗi HTTP {response.status_code} khi tải dữ liệu.")
+            with open(dest, "wb") as out:
+                for chunk in response.iter_bytes():
+                    out.write(chunk)
+    except httpx.HTTPError as exc:
+        raise _explain(exc) from None
+
+
+def upload_sync(settings: Settings, path: str, source: Any, *, timeout: float = 600.0) -> Any:
+    """Gửi một file (gói chuyển bot) lên VPS; trả JSON phản hồi."""
+    url = _url(settings, path)
+    headers = {"Authorization": f"Bearer {settings.remote_admin_token}", "Content-Type": "application/zip"}
+    try:
+        with _sync_client(timeout) as client, open(source, "rb") as fh:
+            response = client.post(url, headers=headers, content=fh)
+    except httpx.HTTPError as exc:
+        raise _explain(exc) from None
+    _check_status(response.status_code)
+    try:
+        data = response.json()
+    except ValueError:
+        data = {}
+    if response.status_code >= 400:
+        message = data.get("error") or data.get("detail") if isinstance(data, dict) else None
+        raise RemoteError(f"VPS không nhận được dữ liệu (HTTP {response.status_code}): {message or ''}".strip())
+    return data

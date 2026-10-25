@@ -263,3 +263,8 @@ body.target-vps .wordmark::after { content: " · VPS"; color: var(--terra-mark);
 .server.vps { border-top: 3px solid var(--terra-mark); }
 .server.local { border-top: 3px solid var(--lake-mark); }
 .server .row { flex-wrap: wrap; gap: .5rem; }
+
+.steps { list-style: none; padding: 0; margin: .75rem 0 0; }
+.steps li.error { color: var(--terra-mark); }
+.steps li.ok { color: inherit; }
+.ok-text { color: var(--moss); font-weight: 600; }

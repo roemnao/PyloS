@@ -72,6 +72,21 @@ def _git(*args: str, timeout: float = 20) -> str | None:
         return None
 
 
+_latest_cache: dict[str, tuple[float, str | None]] = {}
+LATEST_TTL = 60.0
+
+
+def _latest_remote(branch: str) -> str | None:
+    """Commit mới nhất của nhánh trên GitHub; nhớ 60 giây vì trang Máy chủ hỏi mỗi 10 giây."""
+    cached = _latest_cache.get(branch)
+    if cached and time.monotonic() - cached[0] < LATEST_TTL:
+        return cached[1]
+    out = _git("ls-remote", "origin", f"refs/heads/{branch}")
+    latest = out.split()[0] if out else None
+    _latest_cache[branch] = (time.monotonic(), latest)
+    return latest
+
+
 def code_version() -> dict[str, Any]:
     """Commit đang chạy và commit mới nhất trên nhánh theo dõi (git ls-remote: không ghi gì vào .git)."""
     if auto_update.unavailable_reason():
@@ -79,10 +94,7 @@ def code_version() -> dict[str, Any]:
     head = _git("rev-parse", "HEAD")
     branch = _git("rev-parse", "--abbrev-ref", "HEAD")
     subject = _git("log", "-1", "--format=%s")
-    latest = None
-    if branch and branch != "HEAD":
-        out = _git("ls-remote", "origin", f"refs/heads/{branch}")
-        latest = out.split()[0] if out else None
+    latest = _latest_remote(branch) if branch and branch != "HEAD" else None
     return {"git": True, "head": head, "branch": branch, "subject": subject, "latest": latest,
             "behind": bool(head and latest and head != latest)}
 

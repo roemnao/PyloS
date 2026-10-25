@@ -244,28 +244,30 @@ def uses_systemd(settings: Settings, service: Service) -> bool:
     return service is BOT and settings.bot_supervisor == "systemd" and os.name != "nt"
 
 
-def systemctl(action: str, unit: str, *, timeout: float = 60) -> Result:
-    """`sudo -n systemctl <action> <unit>`: user pylos chỉ được sudo đúng các lệnh này (xem docs/PLAN.md)."""
-    try:
-        done = run_hidden(["sudo", "-n", "systemctl", action, unit], timeout=timeout)
-    except (OSError, subprocess.SubprocessError) as exc:
-        return Result(1, f"Không chạy được systemctl {action} {unit}: {exc}")
-    if done.returncode != 0:
+def systemctl(action: str, unit: str, *flags: str, timeout: float = 60) -> Result:
+    """Điều khiển service qua systemctl.
+
+    Thử `systemctl` thường trước (polkit cho phép user pylos điều khiển đúng các unit pylos-*; chạy được cả khi
+    service admin đặt NoNewPrivileges), không được thì `sudo -n systemctl` (sudoers). Xem docs/vps-dieu-khien.md.
+    """
+    errors: list[str] = []
+    for prefix in ([], ["sudo", "-n"]):
+        try:
+            done = run_hidden([*prefix, "systemctl", action, *flags, unit], timeout=timeout)
+        except (OSError, subprocess.SubprocessError) as exc:
+            errors.append(str(exc))
+            continue
+        if done.returncode == 0:
+            return Result(0, "")
         detail = (done.stderr or done.stdout).decode("utf-8", errors="replace").strip().splitlines()
-        return Result(1, f"systemctl {action} {unit} lỗi: {detail[-1] if detail else done.returncode}")
-    return Result(0, "")
+        errors.append(detail[-1] if detail else str(done.returncode))
+    return Result(1, f"systemctl {action} {unit} lỗi: {errors[-1]}. "
+                     "Nhờ chủ VPS cấp quyền (docs/vps-dieu-khien.md).")
 
 
 def run_update_service() -> Result:
     """VPS: chạy ngay pylos-update (git pull + khởi động lại); --no-block để không chờ nó xong."""
-    try:
-        done = run_hidden(["sudo", "-n", "systemctl", "start", "--no-block", "pylos-update.service"], timeout=30)
-    except (OSError, subprocess.SubprocessError) as exc:
-        return Result(1, f"Không chạy được pylos-update: {exc}")
-    if done.returncode != 0:
-        detail = (done.stderr or done.stdout).decode("utf-8", errors="replace").strip().splitlines()
-        return Result(1, f"Không nhờ được pylos-update: {detail[-1] if detail else done.returncode}")
-    return Result(0, "")
+    return systemctl("start", "pylos-update.service", "--no-block", timeout=30)
 
 
 def _start_systemd(settings: Settings) -> Result:

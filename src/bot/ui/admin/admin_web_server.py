@@ -22,10 +22,11 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Request
+from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import bot_process, remote_server, server_client
+from bot.system import bot_process, handover, handover_job, remote_server, server_client
 from bot.ui.admin.admin_sessions import AdminSessions
 from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
@@ -266,6 +267,74 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         except remote_server.RemoteError as exc:
             return _error(502, str(exc))
         return Response(reply.body, status_code=reply.status, media_type=reply.content_type, headers=SECURITY_HEADERS)
+
+    # ---------- chuyển bot giữa máy này và VPS ----------
+
+    @app.post("/api/handover/standby")
+    def handover_standby(body: dict[str, Any] = Body(default={})) -> dict[str, Any]:
+        """Đặt cờ chờ (máy này không được chạy bot) rồi tắt bot. Đặt cờ trước để không ai bật lại trong lúc đó."""
+        settings = ctx.settings()
+        bot_process.set_standby(settings, str(body.get("reason") or "Bot đang chạy ở máy khác."))
+        result = bot_process.stop(settings, bot_process.BOT)
+        return {"ok": result.ok, "message": result.message, "running": bot_process.is_running(settings, bot_process.BOT)}
+
+    @app.delete("/api/handover/standby")
+    def handover_clear_standby() -> dict[str, Any]:
+        bot_process.clear_standby(ctx.settings())
+        return {"ok": True}
+
+    @app.get("/api/handover/export")
+    def handover_export() -> FileResponse:
+        import shutil
+        import tempfile
+
+        settings = ctx.settings()
+        folder = Path(tempfile.mkdtemp(prefix="handover-"))
+        dest = folder / "bundle.zip"
+        handover.export_bundle(settings, dest)
+        return FileResponse(dest, media_type="application/zip", filename="bundle.zip",
+                            background=BackgroundTask(shutil.rmtree, folder, ignore_errors=True))
+
+    @app.post("/api/handover/import")
+    async def handover_import(request: Request) -> JSONResponse:
+        import shutil
+        import tempfile
+
+        settings = ctx.settings()
+        if bot_process.is_running(settings, bot_process.BOT):
+            return _error(409, "Bot đang chạy ở máy nhận. Hãy tắt bot trước khi nhận dữ liệu.")
+        folder = Path(tempfile.mkdtemp(prefix="handover-"))
+        try:
+            dest = folder / "bundle.zip"
+            size = 0
+            with open(dest, "wb") as out:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > handover.MAX_TOTAL_BYTES:
+                        return _error(413, "Gói dữ liệu quá lớn.")
+                    out.write(chunk)
+            try:
+                manifest = await asyncio.to_thread(handover.import_bundle, settings, dest)
+            except handover.HandoverError as exc:
+                return _error(400, str(exc))
+        finally:
+            shutil.rmtree(folder, ignore_errors=True)
+        return JSONResponse({"ok": True, "files": manifest.get("files"), "origin": manifest.get("origin")},
+                            headers=SECURITY_HEADERS)
+
+    @app.post("/api/handover")
+    def handover_start(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+        """Chỉ có ý nghĩa ở máy local (có mã truy cập VPS): chuyển bot sang VPS hoặc về máy này."""
+        try:
+            job = handover_job.start(ctx.settings, str(body.get("to") or ""))
+        except handover_job.JobError as exc:
+            raise HTTPException(400, str(exc)) from None
+        return job.public()
+
+    @app.get("/api/handover/job")
+    def handover_progress() -> dict[str, Any]:
+        job = handover_job.current()
+        return job.public() if job else {"state": "idle", "steps": [], "message": "", "to": ""}
 
     # ---------- nhóm ----------
 

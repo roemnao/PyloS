@@ -49,9 +49,30 @@ def test_systemd_start_and_stop_call_sudo_systemctl(tmp_path, monkeypatch):
     monkeypatch.setattr(bot_process, "run_hidden", fake_run)
     monkeypatch.setattr(bot_process, "_wait", lambda predicate, seconds: True)
     assert bot_process.start(settings).ok
-    assert calls[-1] == ["sudo", "-n", "systemctl", "start", "pylos-bot"]
+    assert calls[-1] == ["systemctl", "start", "pylos-bot"]  # polkit: không cần sudo
     assert bot_process.stop(settings).ok
-    assert calls[-1] == ["sudo", "-n", "systemctl", "stop", "pylos-bot"]
+    assert calls[-1] == ["systemctl", "stop", "pylos-bot"]
+
+
+def test_systemctl_falls_back_to_sudo(monkeypatch):
+    calls = []
+
+    def fake_run(cmd, timeout=20, cwd=None):
+        calls.append(cmd)
+        code = 0 if cmd[0] == "sudo" else 1
+        return subprocess.CompletedProcess(cmd, code, b"", b"Interactive authentication required")
+
+    monkeypatch.setattr(bot_process, "run_hidden", fake_run)
+    assert bot_process.systemctl("restart", "pylos-bot").ok
+    assert calls == [["systemctl", "restart", "pylos-bot"], ["sudo", "-n", "systemctl", "restart", "pylos-bot"]]
+
+
+def test_update_service_uses_no_block(monkeypatch):
+    calls = []
+    monkeypatch.setattr(bot_process, "run_hidden",
+                        lambda cmd, timeout=20, cwd=None: calls.append(cmd) or subprocess.CompletedProcess(cmd, 0, b"", b""))
+    assert bot_process.run_update_service().ok
+    assert calls == [["systemctl", "start", "--no-block", "pylos-update.service"]]
 
 
 def test_systemd_failure_is_reported(tmp_path, monkeypatch):
@@ -60,7 +81,7 @@ def test_systemd_failure_is_reported(tmp_path, monkeypatch):
     monkeypatch.setattr(bot_process, "run_hidden",
                         lambda cmd, timeout=20, cwd=None: subprocess.CompletedProcess(cmd, 1, b"", b"sudo: a password is required"))
     result = bot_process.start(settings)
-    assert not result.ok and "password" in result.message
+    assert not result.ok and "password" in result.message and "docs/vps-dieu-khien.md" in result.message
 
 
 def test_run_command_exits_in_standby(tmp_path, monkeypatch):

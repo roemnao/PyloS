@@ -263,6 +263,30 @@ class Desktop:
             return "VPS: bot đang chạy"
         return "VPS: bot đang chờ" if v.get("standby") else "VPS: bot đã dừng"
 
+    def move_bot(self, *_: Any) -> None:
+        """Chuyển bot sang VPS (nếu đang ở máy này) hoặc về máy này, như nút ở trang Máy chủ."""
+        from bot.system import handover_job
+
+        to = handover_job.LOCAL if self.vps.get("running") else handover_job.VPS
+        try:
+            handover_job.start(self.settings_now, to)
+        except handover_job.JobError as exc:
+            if self.tray is not None:
+                self.tray.notify(str(exc))
+            return
+        if self.tray is not None:
+            self.tray.notify(f"Đang chuyển bot sang {handover_job.WHERE[to]}… Xem tiến trình ở trang Máy chủ.")
+
+        def watch() -> None:
+            while (job := handover_job.current()) and job.state == "running":
+                time.sleep(1)
+            if job and self.tray is not None:
+                self.tray.notify(job.message)
+            self.update_status()
+            self.refresh_vps()
+
+        threading.Thread(target=watch, name="handover-watch", daemon=True).start()
+
     def update_vps(self, *_: Any) -> None:
         def work() -> None:
             try:

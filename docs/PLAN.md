@@ -608,3 +608,17 @@ Chưa kiểm chứng / còn rủi ro:
 - **Smart App Control đang bật trên máy này** và đã chặn một lần chạy exe mới build (Code Integrity event 3077); lần bấm đúp từ Explorer sau đó thì chạy. Mỗi lần build lại có thể bị chặn lại; cách chắc chắn là chữ ký số, hoặc chạy `pythonw -m bot gui` từ mã nguồn.
 - Một lần chạy thử exe đầu tiên mở trang Tổng quan thay vì Cài đặt; không tái hiện được ở các lần sau (cả exe lẫn mã nguồn).
 - Chưa thử trên máy khác / Windows Sandbox không có Python.
+
+## 13. Điều khiển bot trên VPS từ ứng dụng ở máy này
+
+Hướng dẫn dùng và việc của chủ VPS: [vps-dieu-khien.md](vps-dieu-khien.md). Quyết định đã chốt: kết nối bằng API HTTPS của trang quản lý
+trên VPS (không dùng SSH); "cập nhật" = nút nhờ `pylos-update` kéo code từ `main` ngay (không đẩy file lẻ); chuyển bot mang dữ liệu theo.
+
+- `bot/system/remote_server.py`: client tới VPS (bản async cho proxy, bản đồng bộ cho khay và việc chuyển bot).
+- `GET /api/remote-status`, `/api/remote/{path}`: proxy của server giao diện; chặn `remote`, `auth`, `secrets`; 401 của VPS đổi thành 502.
+- `bot/system/server_info.py` + `GET /api/server`: thông tin máy, commit đang chạy so với GitHub, trạng thái service.
+- `BOT_SUPERVISOR=systemd` (VPS): bật/tắt bot qua `systemctl` (polkit, dự phòng `sudo -n`) thay vì tự spawn.
+- Chế độ chờ `userdata/system/standby.txt`: `bot run` thoát mã 5, ứng dụng không tự bật bot.
+- `bot/system/handover.py` (gói zip, kiểm tra tên file, sao lưu, bản sao giống hệt nơi gửi) và `handover_job.py` (kiểm tra, dừng bên cũ,
+  chép, bật bên mới, hoàn tác khi lỗi); API `/api/handover/*`.
+
