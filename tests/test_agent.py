@@ -153,3 +153,12 @@ def test_prompt_builder_reads_workspace_and_strips_comments(tmp_path):
 def test_prompt_builder_without_files(tmp_path):
     prompt = PromptBuilder(tmp_path).build(is_group=False, tool_names=["a"])
     assert "trợ lý" in prompt and "Ghi nhớ" not in prompt and "a" in prompt
+
+
+def test_prompt_tells_model_the_sender_role(tmp_path):
+    tools = ["giao_lich"]
+    basic = PromptBuilder(tmp_path).build(is_group=True, tool_names=tools, sender_role="basic")
+    assert "basic-user" in basic and "CHÍNH HỌ" in basic
+    leader = PromptBuilder(tmp_path).build(is_group=True, tool_names=tools, sender_role="leader", team_names=["Thiết kế"])
+    assert "basic-user" not in leader and "Thiết kế" in leader and "nhom" in leader
+    assert "basic-user" not in PromptBuilder(tmp_path).build(is_group=True, tool_names=[], sender_role="basic")

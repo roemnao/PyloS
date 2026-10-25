@@ -99,7 +99,7 @@ class Settings:
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
     schedule_api_key: str = ""
-    # Ai được giao lịch cho người khác qua bot lịch: "owner" (chỉ chủ bot) hoặc "all"
+    # Ai được giao lịch cho người khác qua bot lịch: "owner" (owner và leader từng nhóm) hoặc "all"
     assign_allowed: str = "owner"
     # Gửi session bộ lọc ↔ agent lên web để chủ hệ thống xem lại (trang Hệ thống → Session)
     session_upload: bool = True

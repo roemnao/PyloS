@@ -44,7 +44,8 @@ class PromptBuilder:
         self._system = _CachedFile(workspace_dir / "SYSTEM.md")
         self._memory = _CachedFile(workspace_dir / "MEMORY.md")
 
-    def build(self, *, is_group: bool, tool_names: list[str], members: list[str] | None = None) -> str:
+    def build(self, *, is_group: bool, tool_names: list[str], members: list[str] | None = None,
+              sender_role: str = "", team_names: list[str] | None = None) -> str:
         now = now_vn()
         parts = [self._system.read() or FALLBACK_SYSTEM]
         parts.append(
@@ -62,6 +63,17 @@ class PromptBuilder:
                 "ví dụ @" + names[0] + ". Chỉ tag khi được nhờ gọi/nhắc người đó, không tag bừa. "
                 "Thành viên: " + ", ".join(names) + "."
             )
+        if sender_role and "giao_lich" in tool_names:
+            if sender_role == "basic":
+                parts[-1] += (
+                    "\n- Người đang nhắn là basic-user: chỉ được thêm lịch cho CHÍNH HỌ (giao_lich, không @tag hay nêu người "
+                    "khác, không dùng nhom) và sửa / huỷ lịch do chính họ tạo. Nếu họ nhờ giao việc cho người khác thì từ chối "
+                    "ngắn gọn và bảo nhờ leader."
+                )
+            else:
+                parts[-1] += "\n- Người đang nhắn là " + sender_role + ": được giao lịch cho người khác (@tag) hoặc cho đội."
+                if team_names:
+                    parts[-1] += " Các đội của nhóm này (dùng tham số nhom): " + ", ".join(team_names) + "."
         if is_group and "doc_memorydata" in tool_names:
             parts[-1] += (
                 "\n- Lịch sử bạn thấy chỉ gồm các tin gọi bạn. Mọi người còn nói chuyện khác trong nhóm; "

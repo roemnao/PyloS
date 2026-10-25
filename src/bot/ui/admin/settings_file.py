@@ -69,7 +69,7 @@ FIELDS: tuple[FieldSpec, ...] = (
               "Lịch riêng của chủ web (them_lich_hen, xem_lich...). Bật: chỉ OWNER_ZALO_ID. Tắt: ai nhắn bot cũng được.",
               kind="bool", group="Web iforgotmywayhome"),
     FieldSpec("ASSIGN_ALLOWED", "Ai được giao lịch cho người khác",
-              "owner: chỉ chủ bot nhờ bot giao lịch cho người được tag. all: ai trong nhóm cũng nhờ được.",
+              "owner: chỉ owner và các leader (đặt bằng /add leader trong từng nhóm) giao lịch cho người khác; basic-user chỉ thêm lịch cho chính mình. all: ai cũng giao được (coi mọi người là leader).",
               kind="choice", choices=("owner", "all"), group="Web iforgotmywayhome"),
     FieldSpec("SESSION_UPLOAD", "Gửi session lên web",
               "Bật: các bước tin → bộ lọc → agent → tool được gửi lên trang Hệ thống → Session của web để xem lại "

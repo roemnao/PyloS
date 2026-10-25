@@ -374,39 +374,73 @@ Viết tắt: `PY` = `.venv\Scripts\python.exe`.
 | `PY -m bot set-webhook <url>` / `webhook-info` / `delete-webhook` | Đăng ký, xem, gỡ webhook |
 | `PY -m pytest` | Chạy toàn bộ test |
 
-### Lệnh trên Zalo
-Lệnh `/…` chỉ chủ bot (`OWNER_ZALO_ID`) dùng được. Người khác gõ thì bot im lặng bỏ qua.
+### Ba vai trò
+| Vai trò | Là ai | Được làm |
+|---|---|---|
+| **basic-user** | Mọi người trong chat đã được phép | Nhận việc; dùng lệnh xem; tự thêm lịch vào Google Lịch của **chính mình**; sửa / huỷ lịch do mình tạo cho mình. Không giao việc cho người khác |
+| **leader** | Do owner hoặc leader khác thêm, **theo từng nhóm Zalo** | Mọi quyền của basic, cộng: giao việc cho người khác (`@a @b`) hoặc cho cả đội; tạo / sửa đội; cho người khác lên leader |
+| **owner** | `OWNER_ZALO_ID` (mọi nơi) | Mọi quyền của leader, cộng: lệnh về bộ lọc và chỉnh bot; gỡ leader; `/leader all` |
 
-| Lệnh | Tác dụng |
-|---|---|
-| `/allow`, `/deny` | Cho phép hoặc chặn nhóm hiện tại |
-| `/mode`, `/mode all`, `/mode default` | Xem hoặc đổi chế độ nhóm |
-| `/status` | Nhóm có được phép không, chế độ, token hôm nay |
-| `/reset` | Xoá lịch sử hội thoại của nhóm |
-| `/id` | Xem `chat_id` và `user_id` của bạn |
-| `/help` | Danh sách lệnh |
-| `/bot <câu hỏi>` | Gọi bot ở chế độ `default` |
-| `123456` hoặc `/lienket 123456` | Nhắn riêng cho bot mã 6 số lấy từ web app để liên kết Zalo với tài khoản Gmail |
+Người không đủ quyền gõ lệnh trong chat đã được phép thì bot trả lời "cần quyền …". Ở chat chưa được phép bot im lặng như thường. Gõ `/help` để xem đúng các lệnh bạn dùng được, `/vaitro` để xem vai trò của mình.
+
+### Lệnh trên Zalo
+| Lệnh | basic | leader | owner | Tác dụng |
+|---|:-:|:-:|:-:|---|
+| `/help` | ✓ | ✓ | ✓ | Các lệnh bạn dùng được |
+| `/id` | ✓ | ✓ | ✓ | Xem `chat_id` và `user_id` của bạn |
+| `/vaitro` (`/role`) | ✓ | ✓ | ✓ | Vai trò của bạn trong chat này |
+| `/leader` | ✓ | ✓ | ✓ | Xem ai là leader của nhóm |
+| `/team`, `/team tên` | ✓ | ✓ | ✓ | Xem các đội, hoặc thành viên một đội |
+| `123456` hoặc `/lienket 123456` | ✓ | ✓ | ✓ | Nhắn riêng cho bot mã 6 số lấy từ web app để liên kết Zalo với Gmail |
+| `/bot <câu hỏi>` | ✓ | ✓ | ✓ | Gọi bot ở chế độ `default` |
+| `/add leader @a @b` | | ✓ | ✓ | Cho a, b làm leader trong nhóm này (cộng dồn) |
+| `/team tên @a @b` | | ✓ | ✓ | Tạo đội hoặc thêm người vào đội |
+| `/team tên bo @a` | | ✓ | ✓ | Bỏ người khỏi đội |
+| `/team xoa tên` | | ✓ | ✓ | Xoá đội |
+| `/remove leader @a` | | | ✓ | Gỡ leader (chỉ owner) |
+| `/leader all`, `/leader off` | | | ✓ | Cả nhóm là leader, hoặc xoá hết leader |
+| `/allow`, `/deny` | | | ✓ | Cho phép hoặc chặn nhóm hiện tại |
+| `/mode`, `/mode all`, `/mode default` | | | ✓ | Xem hoặc đổi chế độ nhóm (bộ lọc AI) |
+| `/status` | | | ✓ | Nhóm có được phép không, chế độ, token hôm nay |
+| `/reset` | | | ✓ | Xoá lịch sử hội thoại của nhóm |
+
+- Tag không được (bot Zalo chính thức không gửi @tag) thì gõ tên (`/add leader An`) hoặc Zalo ID (`/add leader 123456789`).
+- Tên đội không phân biệt hoa thường và dấu: `/team Thiết Kế @a` cũng là đội `thiet ke`.
+- Dạng cũ vẫn chạy: `/leader @a` = `/add leader @a`, `/leader bo @a` = `/remove leader @a` (chỉ owner).
 
 ### Nhờ bot bằng lời (không cần lệnh `/`)
 Gọi tên bot rồi nói tự nhiên:
 
 ```
-roemnao giao @An @Bình họp kế hoạch 9h sáng mai ở phòng 301   # giao_lich
-roemnao giao cho tôi: nộp báo cáo 9h sáng mai                  # giao_lich cho chính người gửi
-roemnao dời cuộc họp lúc nãy sang 10h, thêm @Chi, bỏ Bình      # sua_lich
-roemnao huỷ cuộc họp lúc nãy                                   # huy_lich
-roemnao các lịch đã giao trong nhóm?                           # lich_da_giao
+roemnao nhắc tôi nộp báo cáo 9h sáng mai                        # basic trở lên: lịch vào Google Lịch của chính người nói
+roemnao lịch sắp tới của tôi?                                   # lich_cua_toi (ai cũng dùng được)
+roemnao giao @An @Bình họp kế hoạch 9h sáng mai ở phòng 301    # leader / owner: giao_lich
+roemnao giao cho nhóm thiết kế họp 9h sáng mai                  # leader / owner: giao cho cả đội thiết kế
+roemnao dời cuộc họp lúc nãy sang 10h, thêm @Chi, bỏ Bình       # leader / owner: sua_lich
+roemnao huỷ cuộc họp lúc nãy                                    # huy_lich (basic: chỉ lịch do chính mình tạo cho mình)
+roemnao các lịch đã giao trong nhóm?                            # lich_da_giao
 ```
 
-Điều kiện: `SCHEDULE_API_KEY` đã đặt và người nhắn được phép giao lịch.
+Điều kiện: `SCHEDULE_API_KEY` đã đặt, và người nhận đã liên kết Zalo với app iforgotmywayhome. Quyền được kiểm tra trong code của từng tool, không dựa vào lời của model.
 
-### Ai dùng được gì
+### Ai dùng được gì (cài đặt)
 | Cài đặt | Ý nghĩa |
 |---|---|
-| `OWNER_ZALO_ID` | Zalo ID của chủ bot. Để trống hoặc điền sai thì bạn không được tính là chủ bot, bot sẽ trả lời "chỉ có quyền thêm việc cho chủ nhân" |
-| `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: ai được giao lịch cho người khác |
-| `SCHEDULE_OWNER_ONLY` | `true` (mặc định): chỉ chủ bot dùng các tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec` (lịch riêng của chủ web) |
+| `OWNER_ZALO_ID` | Zalo ID của owner. Để trống hoặc điền sai thì bạn chỉ là basic-user, bot sẽ nói "chỉ thêm được lịch cho chính mình" |
+| `ASSIGN_ALLOWED` | `owner` (mặc định) hoặc `all`: `all` coi **mọi người** là leader ở mọi nhóm |
+| `/add leader` (theo nhóm) | Cộng thêm với `ASSIGN_ALLOWED`. Leader nhóm A không tự thành leader nhóm B |
+| `SCHEDULE_OWNER_ONLY` | `true` (mặc định): chỉ owner dùng các tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec` (lịch riêng của chủ web) |
+
+### Đặt quyền giao lịch (`ASSIGN_ALLOWED`)
+Giá trị: `owner` (mặc định, chỉ owner và leader từng nhóm giao lịch được) hoặc `all` (ai cũng giao được). Đặt ở một trong ba chỗ:
+
+| Cách | Thao tác | Hiệu lực |
+|---|---|---|
+| Trang quản trị web | Hệ thống → nhóm Quyền → *Ai được giao lịch cho người khác* → `owner` hoặc `all` → Lưu | Tự áp dụng sau tối đa 60 giây (nhịp tim), không cần khởi động lại. Cần `SCHEDULE_API_KEY` |
+| Cài đặt của app bot | Trang Cài đặt → nhóm *Web iforgotmywayhome* → *Ai được giao lịch cho người khác* | Khởi động lại bot |
+| File cấu hình | Thêm dòng `ASSIGN_ALLOWED=all` vào `userdata\config\settings.env` | Khởi động lại bot (`PY -m bot gateway restart`) |
+
+Giá trị đặt trên web ghi đè giá trị trong `settings.env` khi bot đang nối với web. Đi cùng là `SCHEDULE_OWNER_ONLY=true|false` (lịch riêng của chủ web), đặt ở cùng các chỗ trên.
 
 ## Thêm tool cho trợ lý
 
