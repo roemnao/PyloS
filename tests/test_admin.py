@@ -89,7 +89,8 @@ def test_secrets_never_leave_the_server(client):
         text = client.get(path, headers=AUTH).text
         assert ZALO_TOKEN not in text and ADMIN_TOKEN not in text, path
     secrets = {s["key"]: s["set"] for s in client.get("/api/settings", headers=AUTH).json()["secrets"]}
-    assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False, "SCHEDULE_API_KEY": False}
+    assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False, "SCHEDULE_API_KEY": False,
+                       "REMOTE_ADMIN_TOKEN": False}
 
 
 # ---------- cài đặt / .env ----------

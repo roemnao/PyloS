@@ -75,6 +75,12 @@ FIELDS: tuple[FieldSpec, ...] = (
               "Bật: các bước tin → bộ lọc → agent → tool được gửi lên trang Hệ thống → Session của web để xem lại "
               "(nội dung chat được lưu trên web có thời hạn). Tắt: không gửi.",
               kind="bool", group="Web iforgotmywayhome"),
+    FieldSpec("BOT_SUPERVISOR", "Ai bật/tắt bot",
+              "process: ứng dụng tự bật tiến trình nền (máy Windows). systemd: dùng service pylos-bot (chỉ VPS Linux).",
+              kind="choice", choices=("process", "systemd"), group="Kết nối"),
+    FieldSpec("REMOTE_URL", "Địa chỉ trang quản lý trên VPS",
+              "Ví dụ https://unousgrowth.com. Điền cùng REMOTE_ADMIN_TOKEN bên dưới để điều khiển VPS từ ứng dụng này.",
+              group="Máy chủ VPS"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )
@@ -85,6 +91,7 @@ SECRETS: dict[str, str] = {
     "GEMINI_API_KEY": "API key Gemini",
     "WEBHOOK_SECRET": "Webhook secret (8–256 ký tự)",
     "SCHEDULE_API_KEY": "Khoá agent của web iforgotmywayhome",
+    "REMOTE_ADMIN_TOKEN": "Mã truy cập (ADMIN_TOKEN) của trang quản lý trên VPS",
 }
 
 _LINE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=")

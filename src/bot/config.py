@@ -106,6 +106,11 @@ class Settings:
     zalo_session_file: Path = Path(SESSION_REL)
     # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
+    # Ai bật/tắt bot: "process" (giao diện tự bật tiến trình nền) hoặc "systemd" (VPS: service pylos-bot)
+    bot_supervisor: str = "process"
+    # Trang quản lý trên VPS mà ứng dụng ở máy này điều khiển (xem bot/system/remote_server.py)
+    remote_url: str = ""
+    remote_admin_token: str = ""
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -135,6 +140,10 @@ class Settings:
         assign_allowed = env.get("ASSIGN_ALLOWED", "").strip().lower() or "owner"
         if assign_allowed not in ("owner", "all"):
             raise ConfigError(f"ASSIGN_ALLOWED phải là 'owner' hoặc 'all', đang là {assign_allowed!r}")
+
+        bot_supervisor = env.get("BOT_SUPERVISOR", "").strip().lower() or "process"
+        if bot_supervisor not in ("process", "systemd"):
+            raise ConfigError(f"BOT_SUPERVISOR phải là 'process' hoặc 'systemd', đang là {bot_supervisor!r}")
 
         return cls(
             zalo_bot_token=env.get("ZALO_BOT_TOKEN", "").strip(),
@@ -173,6 +182,9 @@ class Settings:
             assign_allowed=assign_allowed,
             session_upload=_bool(env, "SESSION_UPLOAD", True),
             zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
+            bot_supervisor=bot_supervisor,
+            remote_url=env.get("REMOTE_URL", "").strip().rstrip("/"),
+            remote_admin_token=env.get("REMOTE_ADMIN_TOKEN", "").strip(),
         )
 
     @property
@@ -202,6 +214,6 @@ class Settings:
     def secrets(self) -> list[str]:
         return [
             s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei,
-                        self.schedule_api_key)
+                        self.schedule_api_key, self.remote_admin_token)
             if s
         ]

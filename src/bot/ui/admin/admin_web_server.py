@@ -222,6 +222,13 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return {"ok": False, "message": f"Lỗi cấu hình: {exc}"}
         return {"ok": result.ok, "message": result.message}
 
+    @app.get("/api/server")
+    def server() -> dict[str, Any]:
+        from bot.system import server_info
+
+        settings = ctx.settings()
+        return {**server_info.collect(settings), "bot": bot_process.status_info(settings)}
+
     # ---------- nhóm ----------
 
     def _groups(settings: Settings) -> GroupStore:
@@ -401,6 +408,11 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         if reason:
             return {"ok": False, "message": reason}
         settings = ctx.settings()
+        if settings.bot_supervisor == "systemd" and os.name != "nt":
+            # VPS: code do pylos-update (git pull + khởi động lại service) lo; chỉ nhờ nó chạy ngay.
+            result = bot_process.run_update_service()
+            return {"ok": result.ok, "message": "Đã nhờ VPS cập nhật, khoảng một phút sau sẽ có code mới."
+                    if result.ok else result.message}
         if bot_process.gui_running(settings):
             # Ứng dụng quản lý tự cập nhật, khởi động lại bot và mở lại chính nó (có thể đang chứa trang này).
             atomic_write_text(settings.system_dir / UPDATE_REQUEST, "1")

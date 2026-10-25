@@ -277,6 +277,11 @@ class Desktop:
     def _auto_start_bot(self) -> None:
         if bot_process.is_running(self.settings, bot_process.BOT):
             return
+        standby = bot_process.standby_info(self.settings_now())
+        if standby:
+            if self.tray is not None:
+                self.tray.notify(f"Không tự bật bot: {standby['reason']}")
+            return
         try:
             self.settings_now().require(zalo=True, gemini=True)
         except ConfigError as exc:
