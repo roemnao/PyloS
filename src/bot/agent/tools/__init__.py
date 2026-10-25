@@ -34,7 +34,9 @@ class ToolContext:
     mentions: tuple[str, ...] = ()  # ID những người được @tag thật trong tin
     members: dict[str, str] = field(default_factory=dict)  # {uid: tên} thành viên nhóm
     self_id: str = ""  # ID acc bot (không tự giao lịch cho mình)
-    can_assign: bool = False  # được giao lịch cho người khác không (ASSIGN_ALLOWED)
+    can_assign: bool = False  # leader hoặc owner: được giao lịch cho người khác (basic chỉ thêm lịch cho chính mình)
+    role: str = "basic"  # basic | leader | owner (core/roles.py)
+    teams: dict[str, list[str]] = field(default_factory=dict)  # {tên đội đã fold: [uid]} của nhóm này
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]

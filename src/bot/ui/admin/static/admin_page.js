@@ -314,7 +314,9 @@ async function renderGroups(main) {
       h("div", {}, label, h("div", { class: "id", text: `${isPrivate ? "Chat riêng" : "Nhóm"} · ${g.chat_id}` }),
         isPrivate ? null : h("div", { class: "muted small", title: "Đổi bằng lệnh /leader trong nhóm",
           text: g.leaders_all ? "Giao lịch: mọi người (/leader all)"
-            : g.leaders.length ? `Leader giao lịch: ${g.leaders.join(", ")}` : "Giao lịch: chỉ chủ bot" })),
+            : g.leaders.length ? `Leader giao lịch: ${g.leaders.join(", ")}` : "Giao lịch: chỉ chủ bot" }),
+        isPrivate || !g.teams.length ? null : h("div", { class: "muted small", title: "Đổi bằng lệnh /team trong nhóm",
+          text: `Đội: ${g.teams.map((t) => `${t.name} (${t.members})`).join(", ")}` })),
       h("div", { class: "small" },
         h("div", { text: g.last_name ? `Người nhắn cuối: ${g.last_name}` : "" }),
         h("div", { class: "muted", text: g.last_seen ? ago(g.last_seen) : "chưa nhắn từ khi theo dõi" })),

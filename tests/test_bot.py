@@ -76,13 +76,18 @@ async def test_reply_name_prefix_is_removed(make_bot, agent, zalo):
     assert bot.history.recent(GROUP, 5)[-1]["text"] == "chào bạn nhé"
 
 
-async def test_non_owner_commands_are_ignored(make_bot, zalo, agent):
+async def test_non_owner_commands_need_role_and_do_nothing(make_bot, zalo, agent):
     bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
     await send(bot, event("/mode all", from_id="stranger"))
     await send(bot, event("/deny", from_id="stranger"))
     assert bot.groups.get(GROUP).mode == "default"
     assert bot.groups.get(GROUP).allowed
-    assert zalo.sent == [] and agent.calls == []
+    assert agent.calls == []
+    assert all("cần quyền owner" in t for t in zalo.texts(GROUP)) and len(zalo.texts(GROUP)) == 2
+    # Nhóm chưa được phép: bot im lặng như trước.
+    zalo.sent.clear()
+    await send(bot, event("/mode all", from_id="stranger", chat_id="g-khac"))
+    assert zalo.sent == []
 
 
 async def test_id_command_open_only_while_owner_unset(make_bot, zalo):
@@ -406,7 +411,7 @@ async def test_leader_all_and_off(make_bot, zalo, agent):
 async def test_leader_only_owner_and_only_in_groups(make_bot, zalo, agent):
     bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
     await send(bot, event("/leader all", from_id="stranger"))
-    assert not bot.groups.get(GROUP).leaders_all and zalo.sent == []
+    assert not bot.groups.get(GROUP).leaders_all and "cần quyền owner" in zalo.texts(GROUP)[-1]
     await send(bot, event("/leader all", from_id=OWNER, chat_id=OWNER, chat_type="PRIVATE"))
     assert "trong nhóm" in zalo.texts(OWNER)[-1]
 
@@ -421,3 +426,57 @@ def test_pick_people_prefers_real_tags_and_skips_bot():
     from bot.core.owner_commands import _pick_people
     assert _pick_people("@an @bot", ("u-an", "bot-id"), {}, "bot-id") == (["u-an"], [])
     assert _pick_people("an, chi", (), {"u-an": "An", "u-an2": "An Nhiên", "u-chi": "Chi"}, "") == (["u-an", "u-chi"], [])
+
+
+async def test_roles_help_and_commands(make_bot, zalo, agent):
+    zalo.members = lambda chat_id: {"u-an": "Nguyễn An", "u-binh": "Trần Bình", "u-chi": "Lê Chi"}
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+
+    await send(bot, event("/vaitro", from_id="u-an"))
+    assert "basic-user" in zalo.texts(GROUP)[-1]
+    await send(bot, event("/help", from_id="u-an"))
+    assert "/id" in zalo.texts(GROUP)[-1] and "/mode" not in zalo.texts(GROUP)[-1] and "/add leader" not in zalo.texts(GROUP)[-1]
+    await send(bot, event("/add leader @Chi", from_id="u-an"))
+    assert "cần quyền leader" in zalo.texts(GROUP)[-1] and bot.groups.get(GROUP).leaders == []
+
+    # Owner cho An làm leader; An cho Bình làm leader, nhưng không gỡ được ai.
+    await send(bot, event("/add leader @An", from_id=OWNER))
+    assert bot.groups.get(GROUP).leaders == ["u-an"] and bot.groups.get(GROUP).leader_added_by == {"u-an": OWNER}
+    await send(bot, event("/vaitro", from_id="u-an"))
+    assert "leader" in zalo.texts(GROUP)[-1] and "basic" not in zalo.texts(GROUP)[-1]
+    await send(bot, event("/add leader Bình", from_id="u-an"))
+    assert bot.groups.get(GROUP).leaders == ["u-an", "u-binh"] and bot.groups.get(GROUP).leader_added_by["u-binh"] == "u-an"
+    await send(bot, event("/remove leader Bình", from_id="u-an"))
+    assert "cần quyền owner" in zalo.texts(GROUP)[-1] and "u-binh" in bot.groups.get(GROUP).leaders
+    await send(bot, event("/help", from_id="u-an"))
+    assert "/add leader" in zalo.texts(GROUP)[-1] and "/remove leader" not in zalo.texts(GROUP)[-1]
+    await send(bot, event("/remove leader Bình", from_id=OWNER))
+    assert bot.groups.get(GROUP).leaders == ["u-an"]
+    await send(bot, event("/add", from_id="u-an"))  # "/add" không kèm leader là lệnh của bot khác: im lặng
+    n = len(zalo.sent)
+    await send(bot, event("/add gì đó", from_id="u-an"))
+    assert len(zalo.sent) == n
+
+    # Đội: leader tạo, mọi người xem, basic không sửa được.
+    await send(bot, event("/team thietke @An @Chi", from_id="u-an"))
+    assert bot.groups.get(GROUP).teams["thietke"]["members"] == ["u-an", "u-chi"]
+    await send(bot, event("/team", from_id="u-binh"))
+    assert "thietke (2)" in zalo.texts(GROUP)[-1]
+    await send(bot, event("/team thietke", from_id="u-binh"))
+    assert "Nguyễn An, Lê Chi" in zalo.texts(GROUP)[-1]
+    await send(bot, event("/team thietke bo @Chi", from_id="u-binh"))
+    assert "cần quyền leader" in zalo.texts(GROUP)[-1]
+    await send(bot, event("/team thietke bo @Chi", from_id="u-an"))
+    assert bot.groups.get(GROUP).teams["thietke"]["members"] == ["u-an"]
+    await send(bot, event("/team xoa thietke", from_id="u-an"))
+    assert bot.groups.get(GROUP).teams == {}
+
+
+async def test_tool_context_carries_role_and_teams(make_bot, zalo, agent):
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    bot.groups.set_team(GROUP, "Thiết kế", add=["u-an"])
+    bot.groups.set_leaders(GROUP, add=["lead"])
+    for sender, role in (("user-1", "basic"), ("lead", "leader"), (OWNER, "owner")):
+        await send(bot, event("/bot giao lịch", from_id=sender))
+        ctx = agent.calls[-1][2]
+        assert (ctx.role, ctx.can_assign, ctx.teams) == (role, role != "basic", {"thiet ke": ["u-an"]}), sender

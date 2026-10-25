@@ -98,7 +98,7 @@ async def test_list_shows_who_has_it_in_their_app(tmp_path, calbot):
 async def test_only_allowed_people_can_assign(tmp_path, calbot):
     res = await assign_events._assign({"tieu_de": "Họp", "bat_dau": "2026-10-30T09:00:00+07:00", "nguoi_nhan": ["An"]},
                                       ctx(tmp_path, is_owner=False, can_assign=False))
-    assert "/leader" in res["error"] and calbot.bodies("POST", "/assign") == []
+    assert "chính mình" in res["error"] and calbot.bodies("POST", "/assign") == []
 
 
 def test_tools_need_web_key(monkeypatch, tmp_path):
@@ -107,5 +107,67 @@ def test_tools_need_web_key(monkeypatch, tmp_path):
     assert assign_events._tools() == []
     monkeypatch.setenv("SCHEDULE_API_KEY", "k")
     tools = {t.name: t for t in assign_events._tools()}
-    assert set(tools) == {"giao_lich", "sua_lich", "huy_lich", "lich_da_giao"}
+    assert set(tools) == {"giao_lich", "sua_lich", "huy_lich", "lich_da_giao", "lich_cua_toi"}
     assert not any(t.owner_only for t in tools.values())  # quyền kiểm tra theo ASSIGN_ALLOWED (đổi được trên web)
+
+
+# ---------- vai trò basic / leader, đội ----------
+
+def basic(tmp_path, **kw) -> ToolContext:
+    base = dict(user_id="u-an", user_name="Nguyễn Văn An", is_owner=False, can_assign=False, role="basic")
+    return ctx(tmp_path, **{**base, **kw})
+
+
+async def test_basic_can_only_assign_to_self(tmp_path, calbot):
+    ev = {"tieu_de": "Nộp báo cáo", "bat_dau": "2026-10-30T09:00:00+07:00"}
+    res = await assign_events._assign(ev, basic(tmp_path))
+    assert res["ok"] and calbot.bodies("POST", "/assign")[0]["assignees"] == [{"zaloUid": "u-an", "name": "Nguyễn Văn An"}]
+    # "tôi", "mình" hoặc chính tên mình vẫn là chính mình.
+    res = await assign_events._assign({**ev, "nguoi_nhan": ["tôi", "Nguyễn Văn An"]}, basic(tmp_path))
+    assert res["ok"] and len(calbot.bodies("POST", "/assign")) == 2
+    # @tag người khác, nêu tên người khác, đội, hoặc tên không có: đều bị từ chối và không gọi web.
+    for extra in ({"nguoi_nhan": ["Bình"]}, {"nhom": ["thietke"]}, {"nguoi_nhan": ["Châu"]}):
+        res = await assign_events._assign({**ev, **extra}, basic(tmp_path))
+        assert "chính mình" in res["error"], extra
+    res = await assign_events._assign(ev, basic(tmp_path, mentions=("u-binh",)))
+    assert "chính mình" in res["error"]
+    assert len(calbot.bodies("POST", "/assign")) == 2
+
+
+async def test_basic_edits_only_own_events(tmp_path, calbot):
+    boss = ctx(tmp_path)
+    await assign_events._assign({"tieu_de": "Họp", "bat_dau": "2026-10-30T09:00:00+07:00", "nguoi_nhan": ["An"]}, boss)  # e1: sếp giao An
+    me = basic(tmp_path)
+    assert "chính bạn" in (await assign_events._cancel({"ma_lich": "e1"}, me))["error"]  # lịch do sếp tạo
+    assert "Chưa có lịch" in (await assign_events._cancel({}, me))["error"]  # chưa có lịch nào của mình
+    await assign_events._assign({"tieu_de": "Việc riêng", "bat_dau": "2026-10-31T09:00:00+07:00"}, me)  # e2
+    assert "chính mình" in (await assign_events._update({"ma_lich": "e2", "them_nguoi": ["Bình"]}, me))["error"]
+    assert calbot.bodies("PATCH", "/assign/e1") == []
+
+
+async def test_leader_assigns_to_team(tmp_path, calbot):
+    teams = {"thiet ke": ["u-an", "u-anh"]}
+    c = ctx(tmp_path, teams=teams)
+    res = await assign_events._assign({"tieu_de": "Họp", "bat_dau": "2026-10-30T09:00:00+07:00", "nhom": ["Thiết kế"]}, c)
+    assert [a["zaloUid"] for a in calbot.bodies("POST", "/assign")[0]["assignees"]] == ["u-an", "u-anh"]
+    res = await assign_events._assign({"tieu_de": "Họp", "bat_dau": "2026-10-30T09:00:00+07:00", "nhom": ["Nhóm marketing"], "nguoi_nhan": ["An"]}, c)
+    assert res["khong_tim_thay"] == ["đội Nhóm marketing"] and len(calbot.bodies("POST", "/assign")) == 2
+
+
+async def test_my_upcoming_events(tmp_path):
+    boss = ctx(tmp_path)
+
+    def remember(eid, title, start, people, all_day=False):
+        assign_events._remember(boss, eid, {"title": title, "start": start, "allDay": all_day},
+                                [{"zaloUid": u, "name": u} for u in people])
+
+    remember("e1", "Quá khứ", "2020-01-01T09:00:00+07:00", ["u-an"])
+    remember("e2", "Sau", "2099-12-31T09:00:00+07:00", ["u-an"])
+    remember("e3", "Trước", "2099-01-01", ["u-an", "u-binh"], all_day=True)
+    remember("e4", "Của Bình", "2099-06-01T09:00:00+07:00", ["u-binh"])
+    remember("e5", "Đã huỷ", "2099-02-01T09:00:00+07:00", ["u-an"])
+    assign_events._forget(boss, "e5")
+    mine = await assign_events._mine({}, basic(tmp_path))
+    assert [i["tieu_de"] for i in mine["lich_cua_toi"]] == ["Trước", "Sau"]
+    assert (await assign_events._mine({"so_luong": 1}, basic(tmp_path)))["lich_cua_toi"][0]["tieu_de"] == "Trước"
+    assert (await assign_events._mine({}, basic(tmp_path, user_id="u-khac")))["lich_cua_toi"] == []

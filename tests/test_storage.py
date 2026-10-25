@@ -138,3 +138,23 @@ def test_group_leaders_persist_and_old_records_load(tmp_path):
     assert GroupStore(path).can_assign("g", "anyone")
     again.set_leaders("g", clear=True)
     assert GroupStore(path).get("g").leaders == [] and not GroupStore(path).can_assign("g", "a")
+
+
+def test_group_teams_and_leader_added_by(tmp_path):
+    from bot.storage import GroupStore
+    path = tmp_path / "groups.txt"
+    store = GroupStore(path)
+    store.set_leaders("g", add=["a", "b"], by="owner")
+    store.set_leaders("g", add=["c"], by="a")
+    store.set_leaders("g", remove=["b"])
+    assert GroupStore(path).get("g").leader_added_by == {"a": "owner", "c": "a"}
+    store.set_leaders("g", clear=True)
+    assert GroupStore(path).get("g").leader_added_by == {} and GroupStore(path).get("g").leaders == []
+
+    store.set_team("g", "Thiết Kế", add=["a", "b", "a"])
+    store.set_team("g", "thiet ke", add=["c"], remove=["a"])  # cùng đội: không phân biệt hoa thường và dấu
+    again = GroupStore(path)
+    assert again.team_members("g", "THIẾT KẾ") == ["b", "c"]
+    assert again.get("g").teams["thiet ke"]["name"] == "Thiết Kế" and again.team_members("g", "khac") is None
+    assert again.delete_team("g", "thiết kế") and not again.delete_team("g", "thiết kế")
+    assert GroupStore(path).get("g").teams == {}

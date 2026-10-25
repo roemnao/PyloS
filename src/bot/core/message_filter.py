@@ -19,11 +19,11 @@ from __future__ import annotations
 
 import logging
 import re
-import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable
 
 from bot.config import Settings
+from bot.core.text_fold import fold
 from bot.storage import MODE_ALL
 from bot.zalo import IncomingMessage
 
@@ -57,12 +57,6 @@ class Decision:
 
     def as_record(self) -> dict[str, Any]:
         return {"passed": self.passed, "stage": self.stage, "reason": self.reason}
-
-
-def fold(text: str) -> str:
-    """Chữ thường, bỏ dấu tiếng Việt: "Trợ Lý" -> "tro ly"."""
-    text = text.lower().replace("đ", "d")
-    return "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
 
 
 def is_chatter(text: str) -> bool:

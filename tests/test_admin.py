@@ -172,6 +172,9 @@ def test_groups_list_shows_leaders(client, tmp_path):
     GroupStore(tmp_path / "data" / "group_settings.txt").set_leaders("g1", add=["u-an"])
     rows = {r["chat_id"]: r for r in client.get("/api/groups", headers=AUTH).json()["groups"]}
     assert rows["g1"]["leaders"] == ["u-an"]
+    GroupStore(tmp_path / "data" / "group_settings.txt").set_team("g1", "Thiết kế", add=["u-an", "u-binh"])
+    rows = {r["chat_id"]: r for r in client.get("/api/groups", headers=AUTH).json()["groups"]}
+    assert rows["g1"]["teams"] == [{"name": "Thiết kế", "members": 2}]
 
 
 # ---------- hội thoại ----------

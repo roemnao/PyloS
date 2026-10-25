@@ -10,6 +10,7 @@ from typing import Any, Protocol
 
 from bot.agent import Agent, PromptBuilder, ToolContext, Turn
 from bot.core.owner_commands import CommandHandler, parse_command
+from bot.core.roles import LEADER, OWNER, role_of
 from bot.config import Settings
 from bot.core.message_filter import Decision, MessageFilter
 from bot.core.mention_tags import add_tags
@@ -188,12 +189,16 @@ class Bot:
 
         cmd = parse_command(msg.text)
         if cmd is not None:
-            # Chưa đặt chủ bot thì chỉ cho /id để lấy ID; người khác gõ lệnh thì bỏ qua.
-            if is_owner or (cmd.name == "id" and not self.settings.owner_zalo_id):
-                members = await self._members(msg.chat_id) if cmd.name == "leader" and msg.is_group else {}
-                await self._send(msg.chat_id, self.commands.handle(cmd, msg, members, self._self_identity()[0]))
+            # Chưa đặt chủ bot thì chỉ cho /id để lấy ID. Owner dùng được ở mọi chat; người khác chỉ ở chat đã được phép
+            # (ở chat chưa được phép bot im lặng như thường), và mỗi lệnh tự kiểm tra vai trò.
+            if is_owner or (cmd.name == "id" and not self.settings.owner_zalo_id) or self._chat_allowed(msg, False):
+                members = await self._members(msg.chat_id) if cmd.name in ("leader", "add", "remove", "team") and msg.is_group else {}
+                role = self._role(msg, is_owner)
+                reply = self.commands.handle(cmd, msg, role, members, self._self_identity()[0])
+                if reply:
+                    await self._send(msg.chat_id, reply)
             else:
-                log.info("Bỏ qua lệnh /%s từ người không phải chủ bot (%s)", cmd.name, msg.from_id)
+                log.info("Bỏ qua lệnh /%s ở chat chưa được phép (%s)", cmd.name, msg.from_id)
             return
 
         if not self._chat_allowed(msg, is_owner):
@@ -233,6 +238,12 @@ class Bot:
 
     def _is_owner(self, user_id: str) -> bool:
         return bool(self.settings.owner_zalo_id) and user_id == self.settings.owner_zalo_id
+
+    def _role(self, msg: IncomingMessage, is_owner: bool | None = None) -> str:
+        return role_of(
+            is_owner=self._is_owner(msg.from_id) if is_owner is None else is_owner, groups=self.groups,
+            chat_id=msg.chat_id, user_id=msg.from_id, is_group=msg.is_group, assign_allowed=self.settings.assign_allowed,
+        )
 
     def _chat_allowed(self, msg: IncomingMessage, is_owner: bool) -> bool:
         if not msg.is_group and is_owner:
@@ -352,15 +363,18 @@ class Bot:
         turns = [Turn(r.get("role", "user"), str(r.get("text", "")), str(r.get("name", ""))) for r in records]
         members = await self._members(msg.chat_id) if msg.is_group else {}
         is_owner = self._is_owner(msg.from_id)
+        role = self._role(msg, is_owner)
         self_id, _ = self._self_identity()
         ctx = ToolContext(
             msg.chat_id, msg.from_id, msg.from_name, is_owner, self.settings.data_dir,
             is_group=msg.is_group, chat_name=self._chat_name(msg), message_id=msg.message_id,
             mentions=tuple(m for m in msg.mentions if m != self_id), members=members, self_id=self_id,
-            can_assign=is_owner or self.settings.assign_allowed == "all"
-            or (msg.is_group and self.groups.can_assign(msg.chat_id, msg.from_id)),
+            can_assign=role in (LEADER, OWNER), role=role,
+            teams=({k: list(t["members"]) for k, t in self.groups.get(msg.chat_id).teams.items()} if msg.is_group else {}),
         )
-        system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names, members=list(members.values()))
+        team_names = [t["name"] for t in self.groups.get(msg.chat_id).teams.values()] if msg.is_group else []
+        system = self.prompts.build(is_group=msg.is_group, tool_names=self.tool_names, members=list(members.values()),
+                                    sender_role=role, team_names=team_names)
 
         was_over = self._over_budget()
         try:

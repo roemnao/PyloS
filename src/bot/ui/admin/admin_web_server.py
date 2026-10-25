@@ -209,6 +209,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 "mode": g.mode if g else "default",
                 "leaders": list(g.leaders) if g else [],
                 "leaders_all": bool(g and g.leaders_all),
+                "teams": [{"name": t["name"], "members": len(t["members"])} for t in g.teams.values()] if g else [],
                 "last_seen": seen.get("last_seen"),
                 "last_name": seen.get("last_name", ""),
                 "owner_private": chat_type == "PRIVATE" and chat_id == settings.owner_zalo_id,

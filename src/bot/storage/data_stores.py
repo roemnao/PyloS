@@ -16,6 +16,7 @@ from typing import Any
 
 from bot.userdata_paths import done_file
 from bot.storage.text_files import JsonLinesFile, JsonObjectFile
+from bot.core.text_fold import fold
 from bot.core.vietnam_time import now_ms, today_vn
 
 MODE_ALL = "all"
@@ -32,6 +33,21 @@ class GroupState:
     blocked: bool = False  # bị /deny rõ ràng: vẫn bị chặn cả khi ALLOW_ALL_CHATS=true
     leaders: list[str] = field(default_factory=list)  # Zalo ID được nhờ bot giao lịch trong nhóm (/leader)
     leaders_all: bool = False  # /leader all: ai trong nhóm cũng giao lịch được
+    leader_added_by: dict[str, str] = field(default_factory=dict)  # {leader: người đã thêm}
+    teams: dict[str, dict[str, Any]] = field(default_factory=dict)  # {tên đội đã fold: {"name": tên hiển thị, "members": [uid]}}
+
+
+def _clean_map(value: Any) -> dict[str, str]:
+    return {str(k): str(v) for k, v in value.items()} if isinstance(value, dict) else {}
+
+
+def _clean_teams(value: Any) -> dict[str, dict[str, Any]]:
+    teams: dict[str, dict[str, Any]] = {}
+    if isinstance(value, dict):
+        for key, team in value.items():
+            if isinstance(team, dict) and isinstance(team.get("members"), list):
+                teams[str(key)] = {"name": str(team.get("name") or key), "members": [str(m) for m in team["members"] if m]}
+    return teams
 
 
 def _mtime(path: Path) -> float | None:
@@ -71,6 +87,7 @@ class GroupStore:
             groups[chat_id] = GroupState(
                 chat_id, bool(record.get("allowed")), mode, str(record.get("label") or ""), bool(record.get("blocked")),
                 [str(x) for x in leaders if x] if isinstance(leaders, list) else [], bool(record.get("leaders_all")),
+                _clean_map(record.get("leader_added_by")), _clean_teams(record.get("teams")),
             )
         self._groups = groups
         self._loaded_mtime = _mtime(self._file.path)
@@ -94,7 +111,8 @@ class GroupStore:
         stamp = now_ms()
         self._file.rewrite([
             {"chat_id": g.chat_id, "allowed": g.allowed, "mode": g.mode, "label": g.label, "blocked": g.blocked,
-             "leaders": g.leaders, "leaders_all": g.leaders_all, "updated_at": stamp}
+             "leaders": g.leaders, "leaders_all": g.leaders_all,
+             "leader_added_by": g.leader_added_by, "teams": g.teams, "updated_at": stamp}
             for g in self._groups.values()
         ])
         self._loaded_mtime = _mtime(self._file.path)
@@ -124,19 +142,52 @@ class GroupStore:
 
     def set_leaders(self, chat_id: str, *, add: tuple[str, ...] | list[str] = (),
                     remove: tuple[str, ...] | list[str] = (), all_: bool | None = None,
-                    clear: bool = False) -> GroupState:
-        """Danh sách người được nhờ bot giao lịch trong nhóm (lệnh /leader)."""
+                    clear: bool = False, by: str = "") -> GroupState:
+        """Danh sách người được nhờ bot giao lịch trong nhóm (lệnh /add leader, /remove leader, /leader)."""
         def change(state: GroupState) -> None:
             if clear:
-                state.leaders, state.leaders_all = [], False
+                state.leaders, state.leaders_all, state.leader_added_by = [], False, {}
             if all_ is not None:
                 state.leaders_all = all_
             leaders = [uid for uid in state.leaders if uid not in remove]
-            leaders += [uid for uid in dict.fromkeys(add) if uid and uid not in leaders]
+            added = [uid for uid in dict.fromkeys(add) if uid and uid not in leaders]
+            leaders += added
             state.leaders = leaders
+            state.leader_added_by = {u: b for u, b in state.leader_added_by.items() if u in leaders}
+            for uid in added:
+                if by:
+                    state.leader_added_by[uid] = by
 
         self._update([chat_id], change)
         return self._groups[chat_id]
+
+    def set_team(self, chat_id: str, name: str, *, add: tuple[str, ...] | list[str] = (),
+                 remove: tuple[str, ...] | list[str] = ()) -> GroupState:
+        """Tạo đội hoặc thêm / bớt người (lệnh /team). Tên đội không phân biệt hoa thường và dấu."""
+        key = fold(name).strip()
+        if not key:
+            raise ValueError(name)
+
+        def change(state: GroupState) -> None:
+            team = state.teams.setdefault(key, {"name": name.strip()[:40], "members": []})
+            members = [uid for uid in team["members"] if uid not in remove]
+            members += [uid for uid in dict.fromkeys(add) if uid and uid not in members]
+            team["members"] = members
+
+        self._update([chat_id], change)
+        return self._groups[chat_id]
+
+    def delete_team(self, chat_id: str, name: str) -> bool:
+        key = fold(name).strip()
+        existed = key in self.get(chat_id).teams
+        if existed:
+            self._update([chat_id], lambda s: s.teams.pop(key, None))
+        return existed
+
+    def team_members(self, chat_id: str, name: str) -> list[str] | None:
+        """Thành viên đội, hoặc None nếu không có đội tên đó."""
+        team = self.get(chat_id).teams.get(fold(name).strip())
+        return list(team["members"]) if team else None
 
     def can_assign(self, chat_id: str, user_id: str) -> bool:
         state = self.get(chat_id)
