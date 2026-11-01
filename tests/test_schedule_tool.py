@@ -65,6 +65,7 @@ async def test_create_event_and_task_send_bearer_and_note(api):
     sent = json.loads(api[-1].content)
     assert str(api[-1].url) == "https://web.example/api/agent/events"
     assert sent["start"] == "2026-10-30T14:00:00+07:00" and "An" in sent["note"] and "end" not in sent
+    assert sent["zaloUid"] == CTX.user_id  # lịch riêng của chính người nhắn, không phải của chủ web
 
     res = await schedule_web._create_task({"title": "Nộp báo cáo", "deadline": "2026-10-31T17:00:00+07:00", "quadrant": 1}, CTX)
     assert res["ok"] and json.loads(api[-1].content)["quadrant"] == 1
@@ -81,3 +82,17 @@ async def test_errors_are_returned_to_model(api, monkeypatch):
     monkeypatch.setenv("SCHEDULE_API_KEY", "sai")
     res = await schedule_web._create_event({"title": "x", "start": "2026-10-30T14:00:00+07:00"}, CTX)
     assert "401" in res["error"]
+
+
+async def test_every_call_carries_the_senders_zalo_uid(api):
+    await schedule_web._agenda({"date": "tomorrow"}, CTX)
+    await schedule_web._list_tasks({}, CTX)
+    await schedule_web._complete_task({"id": "t1"}, CTX)
+    assert api[0].url.params["zaloUid"] == CTX.user_id and api[1].url.params["zaloUid"] == CTX.user_id
+    assert json.loads(api[2].content)["zaloUid"] == CTX.user_id
+
+
+async def test_unlinked_sender_gets_a_helpful_message(web):
+    web.on("POST", "/events", (404, {"error": "Người này chưa liên kết Zalo với tài khoản trên web", "unlinked": True}))
+    res = await schedule_web._create_event({"title": "x", "start": "2026-10-30T14:00:00+07:00"}, CTX)
+    assert "chưa liên kết" in res["error"] and "mã 6 số" in res["error"]
