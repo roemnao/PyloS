@@ -1,9 +1,9 @@
-// Sáng / tối cho mọi trang iforgotmywayhome. Mặc định tối, nhớ lựa chọn trong trình duyệt.
+// Sáng / tối cho mọi trang PyloS. Mặc định tối, nhớ lựa chọn trong trình duyệt.
 // Nạp trong <head> (không defer) để trang hiện đúng màu ngay từ đầu, không bị nháy.
 // Nút chuyển: bất kỳ phần tử nào có thuộc tính data-theme-toggle.
 (function () {
-  var KEY = 'ifmwh-theme';
-  var COLORS = { dark: '#1d1f24', light: '#f1eee8' };
+  var KEY = 'pylos-theme';
+  var COLORS = { dark: '#0a0a0a', light: '#ffd60a' };
   var root = document.documentElement;
 
   function saved() {

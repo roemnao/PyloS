@@ -12,7 +12,7 @@ Cửa sổ ZaloBot.exe ──► server giao diện ở máy này ──/api/rem
 
 - Trình duyệt chỉ nói chuyện với server ở máy này; mã truy cập VPS nằm trong `settings.env` của máy này, không xuống trang web.
 - Công tắc **Máy này | VPS** trên đầu trang: chọn VPS thì mọi trang (Nhóm, Hội thoại, Chỉ dẫn, Cài đặt, Log…) làm việc trên VPS.
-  Đặt khoá bí mật (`/api/secrets`) và đăng nhập Gmail bị chặn qua proxy; muốn đặt thì mở trang quản lý ngay trên VPS.
+  Đặt khoá bí mật (`/api/secrets`) và đăng nhập Google bị chặn qua proxy; muốn đặt thì mở trang quản lý ngay trên VPS.
 - Trang **Máy chủ**: hai thẻ cạnh nhau (máy này, VPS) gồm RAM, ổ đĩa, commit đang chạy, trạng thái service, nút Bật / Tắt / Khởi động
   lại / Cập nhật code; phía trên có nút **Chuyển bot sang VPS / về máy này**.
 - **Chế độ chờ:** file `userdata/system/standby.txt`. Bên có file này không chạy bot (`bot run` thoát mã 5, ứng dụng không tự bật),
@@ -24,9 +24,9 @@ Cửa sổ ZaloBot.exe ──► server giao diện ở máy này ──/api/rem
 - Chỉ chuyển được khi cả hai bên cùng `RECEIVE_MODE` là `polling` hoặc `personal` (webhook gắn với một địa chỉ cố định).
   Acc Zalo cá nhân đổi IP có thể bị Zalo đòi đăng nhập lại: quét QR ở trang Cài đặt của VPS (công tắc VPS).
 
-## Kết nối từ máy Windows: đăng nhập Gmail
+## Kết nối từ máy Windows: đăng nhập Google
 
-Trang **Máy chủ** → thẻ VPS → **Kết nối VPS bằng Gmail** → đăng nhập Gmail quản trị của web iforgotmywayhome, bấm Cho phép.
+Trang **Máy chủ** → thẻ VPS → **Kết nối VPS bằng Google** → đăng nhập Google (đúng `ADMIN_EMAIL` đặt trên VPS).
 Xong là máy này nhớ kết nối, không cần chép mã nào.
 
 - VPS cấp cho máy này một **khoá thiết bị** (`dev_…`), lưu vào `REMOTE_ADMIN_TOKEN` trong `settings.env` ở máy này. Khoá không bao giờ
@@ -34,11 +34,11 @@ Xong là máy này nhớ kết nối, không cần chép mã nào.
   hay tự cập nhật.
 - Khoá hết hạn sau 180 ngày không dùng. Cùng một máy đăng nhập lại thì khoá cũ bị thay. Xem và thu hồi các máy đã kết nối bằng
   `GET /api/devices` và `DELETE /api/devices/{id}`. Ở máy này có nút **Ngắt kết nối** trên thẻ VPS.
-- Chỉ Gmail có quyền quản trị trên web iforgotmywayhome mới được cấp khoá (web trả `isAdmin`).
+- Chỉ `ADMIN_EMAIL` của VPS mới được cấp khoá. Không liên quan tới web bot lịch.
 - `REMOTE_URL` để trống thì dùng `https://unousgrowth.com`. Đặt `off` để tắt hẳn phần VPS.
-- Vẫn dán `ADMIN_TOKEN` của VPS vào `REMOTE_ADMIN_TOKEN` được, nếu không muốn dùng Gmail.
+- Vẫn dán `ADMIN_TOKEN` của VPS vào `REMOTE_ADMIN_TOKEN` được, nếu không muốn dùng Google.
 
-**Điều kiện:** VPS phải đặt `SCHEDULE_API_KEY` (khoá agent của web iforgotmywayhome) thì mới đăng nhập Gmail được. Hiện VPS chưa có khoá này.
+**Điều kiện:** VPS phải đặt `ADMIN_GOOGLE_CLIENT_ID`, `ADMIN_GOOGLE_CLIENT_SECRET`, `ADMIN_EMAIL` và `ADMIN_PUBLIC_URL` (xem [dang-nhap-google.md](dang-nhap-google.md)).
 
 ## Việc chủ VPS làm một lần (user `em` và `pylos` không tự làm được)
 

@@ -75,7 +75,7 @@ def test_rejects_cross_origin_writes(client):
 
 def test_static_page_has_security_headers(client):
     page = client.get("/")
-    assert page.status_code == 200 and "iforgotmywayhome" in page.text
+    assert page.status_code == 200 and "PyloS" in page.text
     assert "script-src 'self'" in page.headers["content-security-policy"]
     assert page.headers["x-frame-options"] == "DENY"
     assert client.get("/static/admin_page.js").status_code == 200

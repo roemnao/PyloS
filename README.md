@@ -29,7 +29,6 @@ D:\pylosSever\
 │     ├─ logs\                      bot.log, admin.log, gui.log, supervisor.log
 │     ├─ bot_status.txt             lúc khởi động, lần nhận tin cuối
 │     ├─ processed_message_ids.txt  id tin đã xử lý (chống trả lời trùng)
-│     ├─ remote_config.json         thông số lấy từ web iforgotmywayhome (bản gần nhất, dùng khi mất mạng)
 │     └─ *.lock, *.pid, app_window_profile\, …
 ├─ src\bot\                         code
 │  ├─ command_line.py               lệnh `python -m bot …` (run, gui, admin, zalo-login, update…)
@@ -57,8 +56,7 @@ D:\pylosSever\
 │  │  └─ receive_webhook.py         nhận tin kiểu webhook
 │  ├─ storage\                      data_stores.py (các kho dữ liệu), text_files.py, process_lock.py
 │  ├─ system\                       bot_process.py (bật/tắt bot nền), auto_update.py, log_files.py, first_run_setup.py,
-│  │                                server_client.py (gọi web iforgotmywayhome), remote_config.py (thông số từ web, nhịp tim),
-│  │                                session_upload.py (gửi session lên web)
+│  │                                server_client.py (gọi web bot lịch), 
 │  ├─ ui\admin\                     admin_web_server.py, settings_file.py, static\ (trang web quản lý)
 │  ├─ ui\desktop\                   desktop_app.py (cửa sổ), tray_icon.py, icon_images.py, windows_autostart.py
 │  └─ templates\                    file mẫu tạo userdata lần đầu
@@ -172,7 +170,7 @@ Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gatewa
 
 Mở http://127.0.0.1:8081. Có hai cách vào:
 
-- **Đăng nhập bằng Gmail (khuyên dùng).** Bấm **Đăng nhập bằng Gmail**: trang mở web iforgotmywayhome ở tab mới, bạn đăng nhập Gmail và bấm **Cho phép**, trang quản lý tự vào (phiên 12 giờ). Chỉ Gmail đã liên kết vào **tài khoản quản trị của web** (trang quản trị → Cài đặt → Liên kết Google) được vào; Gmail khác bị từ chối. Cần `SCHEDULE_API_KEY` trong `settings.env` (không có thì nút này ẩn).
+- **Đăng nhập bằng Google (khuyên dùng).** Bấm **Đăng nhập bằng Google**: trang mở Google ở tab mới, bạn đăng nhập, trang quản lý tự vào (phiên 12 giờ). Chỉ **một Gmail** (`ADMIN_EMAIL`) được vào, PyloS không phân quyền. Dùng OAuth client riêng của PyloS (`ADMIN_GOOGLE_CLIENT_ID`, `ADMIN_GOOGLE_CLIENT_SECRET`), không liên quan tới web bot lịch. Cách tạo client ở [docs/dang-nhap-google.md](docs/dang-nhap-google.md).
 - **Mã truy cập (dự phòng).** `ADMIN_TOKEN` trong `userdata\config\settings.env`; nếu còn trống, lần chạy đầu sẽ tự tạo. Quên mã thì chạy `.venv\Scripts\python.exe -m bot admin --open` để mở và tự đăng nhập.
 
 | Trang | Làm được gì |
@@ -190,7 +188,7 @@ Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được 
 
 ## Điều khiển bot trên VPS từ ứng dụng ở máy này
 
-Trang **Máy chủ** → **Kết nối VPS bằng Gmail** (đăng nhập Gmail quản trị một lần, không cần chép mã) là có công tắc **Máy này | VPS** trên đầu trang,
+Trang **Máy chủ** → **Kết nối VPS bằng Google** (đăng nhập Google một lần, không cần chép mã) là có công tắc **Máy này | VPS** trên đầu trang,
 trang **Máy chủ** (so sánh hai bên, cập nhật code VPS) và nút **Chuyển bot sang VPS / về máy này** (kèm dữ liệu, tự hoàn tác
 nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc cần chủ VPS làm một lần và chi tiết: [docs/vps-dieu-khien.md](docs/vps-dieu-khien.md).
 
@@ -310,28 +308,26 @@ Cấu hình (trang Cài đặt → **Bộ lọc & memorydata**): `FILTER_AI`, `F
 
 Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Nhóm chưa được phép thì bot không lưu gì. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
 
-## Nối với web iforgotmywayhome (repo quanlythoigian)
+## Nối với web bot lịch iforgotmywayhome (repo quanlythoigian)
 
-Bot nói chuyện với web [iforgotmywayhome](https://quanlythoigian-azure.vercel.app) (repo `quanlythoigian`) qua API dành cho agent. Một khoá dùng cho tất cả:
+PyloS và web bot lịch là **hai hệ thống độc lập**. Giữa hai bên chỉ có **một kết nối**: API giao lịch, dùng một khoá. PyloS **không** nhận cấu hình từ web, **không** gửi nhịp tim hay session lên web, và đăng nhập trang quản lý **không** đi qua web.
 
-1. Trên web, đăng nhập trang quản trị, vào **Cài đặt → Kết nối AI agent → Tạo khoá cho agent** và chép khoá.
-2. Trong `userdata\config\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục **Web iforgotmywayhome** và **Khóa bí mật**):
+1. Trên web, đăng nhập bằng Gmail Owner hoặc Technician, vào **Quản lý bot lịch → Kết nối AI agent → Tạo khoá** và chép khoá.
+2. Trong `userdata\config\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục **Bot lịch** và **Khóa bí mật**):
 
    ```
-   SCHEDULE_API_URL=https://quanlythoigian-azure.vercel.app
+   SCHEDULE_API_URL=https://iforgotmywayhome.vercel.app
    SCHEDULE_API_KEY=<khoá vừa tạo>
    ```
+3. Khởi động lại bot. Log in `Đã nạp tool: …`.
 
-   `SCHEDULE_API_URL` là tên miền của trang quản trị (bot gọi được cả tên miền app, nhưng tên miền quản trị là chỗ bạn tạo khoá).
-3. Khởi động lại bot. Log in `Kết nối web …: nhận cấu hình, nhịp tim mỗi phút…` và `Đã nạp tool: …`.
-
-Khoá chỉ nằm trên máy chạy bot. Web không bao giờ gửi khoá bí mật (Gemini, Zalo, phiên đăng nhập) xuống bot.
+Khoá chỉ nằm trên máy chạy bot. Mọi thông số bot (model, bộ lọc, giới hạn, `ASSIGN_ALLOWED`, `SYSTEM.md`, `MEMORY.md`) đặt ở trang quản lý của PyloS.
 
 ### Giao lịch cho người trong nhóm (bot lịch)
 
-Mỗi thành viên mở **web app** (link ở trang quản trị của web → Hệ thống → Thành viên, vd `https://iforgotmywayhome.vercel.app/` khi web app có tên miền riêng) trên điện thoại hoặc máy tính, đăng nhập bằng Gmail (đồng ý điều khoản), rồi:
+Mỗi thành viên mở **web app** (`https://iforgotmywayhome.vercel.app/`) trên điện thoại hoặc máy tính, đăng nhập bằng Gmail (đồng ý điều khoản), rồi:
 - **Liên kết Zalo:** bấm *Lấy mã liên kết*, rồi **nhắn riêng mã 6 số cho acc bot** (hoặc `/lienket 123456`). Bot chuyển mã lên web, không tốn token Gemini. Mã dùng một lần, hết hạn sau 10 phút.
-- **Kết nối Google Lịch:** bấm nút trong app. Quyền ghi lịch chỉ nằm trong trình duyệt của họ.
+- **Google Lịch:** khi đăng nhập Google, web hỏi luôn quyền Google Lịch; cho phép là lịch được giao tự vào Google Lịch, không cần mở app.
 
 Sau đó, trong nhóm:
 
@@ -344,24 +340,17 @@ roemnao các lịch đã giao trong nhóm?
 
 Bot dùng các tool `giao_lich`, `sua_lich`, `huy_lich`, `lich_da_giao`:
 - Người nhận lấy từ **@tag thật** trong tin trước, rồi tới tên khớp (không phân biệt dấu) với danh sách thành viên nhóm. Tên trùng nhiều người thì bot nhờ @tag.
-- Web (bot lịch) ghi lệnh thêm / sửa / xoá vào hàng của từng người; app của họ tự ghi vào Google Lịch khi đang mở. Người bị bỏ khỏi lịch nhận lệnh xoá.
+- Web (bot lịch) ghi lệnh thêm / sửa / xoá vào hàng của từng người; web tự ghi vào Google Lịch của họ. Người bị bỏ khỏi lịch nhận lệnh xoá.
 - Bot trả lời ai đã nhận, ai **chưa liên kết** (kèm link app). Bot nhớ các lịch đã giao trong `userdata\data\assigned_events.txt` để sửa / huỷ "lịch lúc nãy".
 - Ai được nhờ giao lịch: `ASSIGN_ALLOWED=owner` (mặc định, chỉ chủ bot) hoặc `all`.
 
-### Thông số chỉnh trên web, nhịp tim, session
-
-- **Cấu hình từ xa:** chủ hệ thống chỉnh model của agent, **model của bộ lọc** và các thông số khác ở trang **Hệ thống → Cấu hình bot** trên web. Bot hỏi lại mỗi phút và áp ngay, không cần khởi động lại. Giá trị từ web đè lên `settings.env`; trang Cài đặt của giao diện quản lý gắn nhãn *Web đang đặt* cho những ô đó. Mất mạng thì bot dùng bản lấy được gần nhất (`userdata\system\remote_config.json`). SYSTEM.md / MEMORY.md cũng đặt được từ web (bản cũ được giữ trong `workspace\.backup`).
-- **Nhịp tim:** mỗi phút bot báo đang chạy, phiên bản, model, token hôm nay, lỗi gần nhất. Trang Hệ thống của web hiện trạng thái bot.
-- **Session:** mỗi bước tin → bộ lọc → agent → tool → bot lịch → câu trả lời được gửi lên web theo lô (không làm chậm việc trả lời), xem ở **Hệ thống → Session**. Việc này đưa nội dung chat lên web (giữ mặc định 14 ngày); tắt bằng `SESSION_UPLOAD=false` ở đây hoặc trên web.
-
 ### Lịch riêng của chủ web
 
-Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot thêm lịch hẹn hoặc việc cần làm vào **lịch riêng của chủ web** (tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec`). Lịch hiện trên trang quản trị của web, tự lên Google Lịch của chủ web (nếu đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
+Khi được nhờ "thêm lịch", "nhắc tôi lúc…", "mai có lịch gì?", bot thêm lịch hẹn hoặc việc cần làm vào **lịch riêng của người nhắn trên web** (tool `them_lich_hen`, `them_viec`, `xem_lich`, `danh_sach_viec`, `xong_viec`). Lịch hiện trên trang quản trị của web, tự lên Google Lịch của chủ web (nếu đã kết nối), và web nhắc qua Zalo trước giờ hẹn.
 
 Ví dụ: "bot ơi thêm lịch họp nhóm 3h chiều thứ 6", "nhắc tôi 8h sáng mai gọi cho mẹ", "mai tôi có lịch gì?".
 
 - Với `SCHEDULE_OWNER_ONLY=true` (mặc định), chỉ chủ bot (`OWNER_ZALO_ID`) dùng được các tool này. Đặt `false` nếu muốn ai cũng nhờ được.
-- Muốn web nhắc việc qua Zalo, cấu hình phía web như trong README của quanlythoigian (mục "Dùng chung bot Zalo với AI agent khác").
 
 ## Bảng lệnh
 
@@ -445,8 +434,8 @@ Giá trị: `owner` (mặc định, chỉ owner và leader từng nhóm giao l�
 
 | Cách | Thao tác | Hiệu lực |
 |---|---|---|
-| Trang quản trị web | Hệ thống → nhóm Quyền → *Ai được giao lịch cho người khác* → `owner` hoặc `all` → Lưu | Tự áp dụng sau tối đa 60 giây (nhịp tim), không cần khởi động lại. Cần `SCHEDULE_API_KEY` |
-| Cài đặt của app bot | Trang Cài đặt → nhóm *Web iforgotmywayhome* → *Ai được giao lịch cho người khác* | Khởi động lại bot |
+| Trang quản lý PyloS | Cài đặt → nhóm *Bot lịch* → *Ai được giao lịch cho người khác* | Khởi động lại bot (không cần khởi động lại. Cần `SCHEDULE_API_KEY` |
+| Cài đặt của app bot | Trang Cài đặt → nhóm *Bot lịch* → *Ai được giao lịch cho người khác* | Khởi động lại bot |
 | File cấu hình | Thêm dòng `ASSIGN_ALLOWED=all` vào `userdata\config\settings.env` | Khởi động lại bot (`PY -m bot gateway restart`) |
 
 Giá trị đặt trên web ghi đè giá trị trong `settings.env` khi bot đang nối với web. Đi cùng là `SCHEDULE_OWNER_ONLY=true|false` (lịch riêng của chủ web), đặt ở cùng các chỗ trên.
@@ -472,7 +461,6 @@ Mọi dữ liệu của bạn nằm trong `userdata\` (xem mục [Thư mục](#t
 | `userdata/data/daily_stats.txt`, `token_usage.txt` | Số liệu theo ngày, token đã dùng. |
 | `userdata/data/failed_replies.txt` | Câu trả lời gửi lỗi (trang Tin lỗi). |
 | `userdata/data/assigned_events.txt` | Lịch bot đã giao cho người khác qua web iforgotmywayhome (mã lịch, người nhận). |
-| `userdata/system/remote_config.json` | Thông số chủ hệ thống đặt trên web (bản gần nhất). |
 | `userdata/data/session_history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
 | `userdata/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
 | `userdata/data/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
