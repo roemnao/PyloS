@@ -121,11 +121,14 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.middleware("http")
     async def guard(request: Request, call_next):
-        if request.headers.get("host", "") not in allowed_hosts:
+        host = request.headers.get("host", "").lower()
+        public = _public_origin()
+        # Sau nginx (ADMIN_PUBLIC_URL, vd https://unousgrowth.com): nhận thêm đúng host đó; server vẫn chỉ nghe 127.0.0.1.
+        if host not in allowed_hosts and not (public and host == public.split("://", 1)[1]):
             return _error(400, "Host không hợp lệ. Hãy mở bằng http://127.0.0.1:%d" % port)
         if request.method not in ("GET", "HEAD", "OPTIONS"):
             origin = request.headers.get("origin")
-            if origin is not None and origin not in allowed_origins and origin != _public_origin():
+            if origin is not None and origin not in allowed_origins and origin != public:
                 return _error(403, "Origin không hợp lệ")
             if request.headers.get("sec-fetch-site") == "cross-site":
                 return _error(403, "Yêu cầu từ trang khác bị chặn")

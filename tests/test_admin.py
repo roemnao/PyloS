@@ -63,6 +63,23 @@ def test_rejects_foreign_host(env_path, tmp_path):
     assert TestClient(app, base_url="http://localhost:8081").get("/api/status", headers=AUTH).status_code == 200
 
 
+def test_public_url_host_allowed_behind_nginx(env_path, tmp_path):
+    # nginx chuyển tiếp với Host của tên miền: chỉ nhận đúng host trong ADMIN_PUBLIC_URL, không nhận host lạ.
+    app = create_app(AdminContext(env_path, tmp_path), 8081)
+    public = TestClient(app, base_url="https://unousgrowth.com")
+    assert public.get("/api/status", headers=AUTH).status_code == 400
+    env_path.write_text(env_path.read_text(encoding="utf-8") + "ADMIN_PUBLIC_URL=https://unousgrowth.com/\n", encoding="utf-8")
+    assert public.get("/api/status", headers=AUTH).status_code == 200
+    assert public.get("/api/status").status_code == 401  # vẫn phải đăng nhập
+    assert TestClient(app, base_url="https://UNOUSGROWTH.com").get("/api/status", headers=AUTH).status_code == 200
+    assert TestClient(app, base_url="https://evil.example").get("/api/status", headers=AUTH).status_code == 400
+    body = {"label": "Nhà"}
+    ok = public.patch("/api/groups/g1", json=body, headers={**AUTH, "Origin": "https://unousgrowth.com"})
+    assert ok.status_code == 200
+    bad = public.patch("/api/groups/g1", json=body, headers={**AUTH, "Origin": "https://evil.example"})
+    assert bad.status_code == 403
+
+
 def test_rejects_cross_origin_writes(client):
     body = {"allowed": True}
     bad = client.patch("/api/groups/g1", json=body, headers={**AUTH, "Origin": "http://evil.example"})
