@@ -307,7 +307,7 @@ ADMIN_EMAIL=chu.he.thong@gmail.com           # đúng một Gmail, không phải
 | Hiện tượng | Nguyên nhân | Xử lý |
 |---|---|---|
 | Google báo `redirect_uri_mismatch` | URI trong Google Cloud khác URI PyloS gửi (khác cổng, `localhost` vs `127.0.0.1`, thiếu `https`, dư dấu `/`) | Trang lỗi của Google có hiện URI đã gửi: chép đúng chuỗi đó vào *Authorized redirect URIs*. Chờ ~5 phút cho Google cập nhật |
-| Callback trên VPS trả "Host không hợp lệ" | nginx chuyển `Host: unousgrowth.com` nhưng `guard` chỉ nhận `127.0.0.1:8081`/`localhost:8081` | Kiểm tra cấu hình nginx hiện tại: phải có `proxy_set_header Host 127.0.0.1:8081;` (luồng cũ chạy được thì chắc đã có). Nếu không, thêm host của `ADMIN_PUBLIC_URL` vào `allowed_hosts` khi biến này được đặt |
+| Callback trên VPS trả "Host không hợp lệ" | nginx chuyển `Host: unousgrowth.com` nhưng `guard` chỉ nhận `127.0.0.1:8081`/`localhost:8081` | Đã sửa: khi `ADMIN_PUBLIC_URL` được đặt, `guard` nhận thêm đúng host đó (không phân biệt hoa thường); host khác vẫn bị từ chối. nginx không cần đổi `Host` nữa |
 | Bấm đăng nhập không có gì xảy ra | Trình duyệt chặn tab mới | Trang đã hiện link để bấm tay (giữ hành vi cũ) |
 | `invalid_client` | Dán nhầm secret / client của project web | Dùng đúng client của project `PyloS Admin` |
 | Đăng nhập xong nhưng poll mãi `pending` | Trang quản lý khởi động lại giữa chừng (mã chỉ nằm trong bộ nhớ) | Bấm đăng nhập lại. Ghi chú trong README |
