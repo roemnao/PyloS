@@ -49,7 +49,6 @@ CONSOLE_TEST_DIR = "console_test"             # dữ liệu riêng của chế �
 BOT_STATUS_FILE = "bot_status.txt"                 # lúc khởi động, lần nhận tin cuối (để biết bot còn sống)
 PROCESSED_IDS_FILE = "processed_message_ids.txt"   # id tin đã xử lý, chống trả lời trùng
 PENDING_UPDATES_FILE = "pending_updates.txt"       # số thay đổi mới trên GitHub chưa cập nhật
-REMOTE_CONFIG_FILE = "remote_config.json"         # thông số lấy từ web (bản gần nhất, dùng khi mất mạng)
 APP_WINDOW_PROFILE_DIR = "app_window_profile"      # hồ sơ của cửa sổ ứng dụng (giữ đăng nhập giao diện)
 ZALO_LOGIN_QR_FILE = "zalo_login_qr.png"           # ảnh mã QR tạm khi đăng nhập Zalo bằng dòng lệnh
 GUI_LOCK_FILE = "gui.lock"                         # chỉ một ứng dụng quản lý chạy cùng lúc

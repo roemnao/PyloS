@@ -1,9 +1,9 @@
 """Kết nối tới web iforgotmywayhome (repo quanlythoigian) qua API dành cho agent: /api/agent/*.
 
-Dùng cho tool lịch, bot lịch (giao lịch cho người khác), liên kết Zalo, cấu hình từ xa, nhịp tim và session.
+Chỉ dùng cho tool lịch, bot lịch (giao lịch cho người khác) và liên kết Zalo. Không có cấu hình từ xa, nhịp tim hay session.
 Cấu hình trong userdata/config/settings.env:
   SCHEDULE_API_URL  địa chỉ web (hoặc .../api/agent); để trống = web mặc định
-  SCHEDULE_API_KEY  khoá agent tạo ở web: Cài đặt → Kết nối AI agent
+  SCHEDULE_API_KEY  khoá agent tạo ở web: Quản lý bot lịch → Kết nối AI agent
 Khoá chỉ nằm trên máy này, web không bao giờ gửi khoá bí mật xuống bot.
 """
 
@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 from dotenv import dotenv_values
 
-DEFAULT_URL = "https://quanlythoigian-azure.vercel.app/api/agent"
+DEFAULT_URL = "https://iforgotmywayhome.vercel.app/api/agent"
 TIMEOUT = 30.0
 
 

@@ -1,4 +1,4 @@
-"""Phiên đăng nhập của trang quản lý bot khi vào bằng Gmail (xem /api/auth/gmail/* ở admin_web_server.py).
+"""Phiên đăng nhập của trang quản lý bot khi vào bằng Google (xem /api/auth/google/* ở admin_web_server.py).
 
 Chỉ nằm trong bộ nhớ của tiến trình quản lý: tắt hoặc khởi động lại là hết phiên, và ADMIN_TOKEN vẫn dùng được
 như đường dự phòng. Token phiên ngẫu nhiên 256 bit, không đoán được, hết hạn sau 12 giờ.

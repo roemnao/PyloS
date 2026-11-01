@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -105,8 +107,6 @@ class Settings:
     schedule_api_key: str = ""
     # Ai được giao lịch cho người khác qua bot lịch: "owner" (owner và leader từng nhóm) hoặc "all"
     assign_allowed: str = "owner"
-    # Gửi session bộ lọc ↔ agent lên web để chủ hệ thống xem lại (trang Hệ thống → Session)
-    session_upload: bool = True
     zalo_session_file: Path = Path(SESSION_REL)
     # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
@@ -118,6 +118,10 @@ class Settings:
     # Trình duyệt mở qua địa chỉ đó gửi Origin này; không đặt thì chỉ nhận Origin http://127.0.0.1:<cổng>.
     admin_public_url: str = ""
     remote_admin_token: str = ""
+    # Đăng nhập trang quản lý bằng Google (OAuth client riêng của PyloS). Chỉ MỘT Gmail của chủ hệ thống, không phân quyền.
+    admin_google_client_id: str = ""
+    admin_google_client_secret: str = ""
+    admin_email: str = ""
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -151,6 +155,13 @@ class Settings:
         bot_supervisor = env.get("BOT_SUPERVISOR", "").strip().lower() or "process"
         if bot_supervisor not in ("process", "systemd"):
             raise ConfigError(f"BOT_SUPERVISOR phải là 'process' hoặc 'systemd', đang là {bot_supervisor!r}")
+
+        admin_email = env.get("ADMIN_EMAIL", "").strip().lower()
+        if admin_email and (not re.fullmatch(r"[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+", admin_email)):
+            raise ConfigError("ADMIN_EMAIL chỉ được đúng một Gmail (PyloS không phân quyền, không có danh sách)")
+        client_id = env.get("ADMIN_GOOGLE_CLIENT_ID", "").strip()
+        if client_id and not re.fullmatch(r"[\w-]+\.apps\.googleusercontent\.com", client_id):
+            raise ConfigError("ADMIN_GOOGLE_CLIENT_ID phải có dạng 1234-abc.apps.googleusercontent.com")
 
         return cls(
             zalo_bot_token=env.get("ZALO_BOT_TOKEN", "").strip(),
@@ -187,12 +198,14 @@ class Settings:
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
             assign_allowed=assign_allowed,
-            session_upload=_bool(env, "SESSION_UPLOAD", True),
             zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
             bot_supervisor=bot_supervisor,
             remote_url=(env.get("REMOTE_URL", "").strip() or DEFAULT_REMOTE_URL).rstrip("/"),
             remote_admin_token=env.get("REMOTE_ADMIN_TOKEN", "").strip(),
             admin_public_url=env.get("ADMIN_PUBLIC_URL", "").strip().rstrip("/"),
+            admin_google_client_id=env.get("ADMIN_GOOGLE_CLIENT_ID", "").strip(),
+            admin_google_client_secret=env.get("ADMIN_GOOGLE_CLIENT_SECRET", "").strip(),
+            admin_email=admin_email,
         )
 
     @property
@@ -222,6 +235,6 @@ class Settings:
     def secrets(self) -> list[str]:
         return [
             s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei,
-                        self.schedule_api_key, self.remote_admin_token)
+                        self.schedule_api_key, self.remote_admin_token, self.admin_google_client_secret)
             if s
         ]

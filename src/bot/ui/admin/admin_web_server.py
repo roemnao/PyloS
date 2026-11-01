@@ -2,7 +2,7 @@
 
 Bảo mật (PLAN.md mục 11.5):
 - Mọi /api/* (trừ /api/auth/*) cần header `Authorization: Bearer <ADMIN_TOKEN>` hoặc token phiên của đăng nhập Gmail
-  (web iforgotmywayhome làm chứng, chỉ Gmail của chủ web được nhận; xem /api/auth/gmail/*).
+  (OAuth riêng của PyloS, chỉ ADMIN_EMAIL được nhận; xem /api/auth/google/*).
 - Header Host phải là 127.0.0.1/localhost đúng cổng (chặn DNS rebinding).
 - Yêu cầu ghi có Origin thì Origin phải là chính trang này; không bật CORS.
 - API không bao giờ trả về token/khóa; chỉ trả "đã đặt / chưa đặt".
@@ -26,9 +26,12 @@ from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from bot.system import bot_process, handover, handover_job, remote_server, server_client
+import httpx
+
+from bot.system import bot_process, handover, handover_job, remote_server
+from bot.ui.admin import google_login
+from bot.ui.admin.google_login import TTL_SECONDS, PendingLogins
 from bot.ui.admin.admin_sessions import AdminDevices, AdminSessions
-from bot.system.remote_config import REMOTE_KEYS, read_cached
 from bot.ui.admin import settings_file
 from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from bot.config import ConfigError, Settings
@@ -66,12 +69,6 @@ WORKSPACE_FILES = {"SYSTEM": "SYSTEM.md", "MEMORY": "MEMORY.md"}
 MAX_WORKSPACE_CHARS = 200_000
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
 _LOG_LINE = re.compile(r"^\d{4}-\d{2}-\d{2} [\d:,]+ (DEBUG|INFO|WARNING|ERROR|CRITICAL) ")
-
-def _remote_text(value: Any) -> str:
-    if isinstance(value, bool):
-        return "Bật" if value else "Tắt"
-    return str(value)
-
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": (
@@ -152,44 +149,97 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     async def config_error(request: Request, exc: ConfigError) -> JSONResponse:
         return _error(400, str(exc))
 
-    # ---------- đăng nhập bằng Gmail (không cần mã truy cập) ----------
+    # ---------- đăng nhập bằng Google (không cần mã truy cập; không qua web bot lịch) ----------
+
+    pending = PendingLogins()
+
+    def _base_url() -> str:
+        try:
+            public = ctx.settings().admin_public_url
+        except ConfigError:
+            public = ""
+        return public or f"http://127.0.0.1:{port}"
+
+    def _google_ready() -> bool:
+        try:
+            s = ctx.settings()
+        except ConfigError:
+            return False
+        return bool(s.admin_google_client_id and s.admin_google_client_secret and s.admin_email)
+
+    def _page(title: str, text: str, status: int = 200) -> Response:
+        html = ("<!doctype html><meta charset=utf-8><title>PyloS</title>"
+                "<body style='font-family:sans-serif;background:#0A0A0A;color:#FFD60A;padding:2rem'>"
+                f"<h1>{title}</h1><p style='color:#F5F5F0'>{text}</p>")
+        return Response(html, status_code=status, media_type="text/html", headers=SECURITY_HEADERS)
 
     @app.get("/api/auth/options")
     async def auth_options() -> dict[str, Any]:
-        return {"gmail": server_client.configured()}
+        return {"google": _google_ready()}
 
-    @app.post("/api/auth/gmail/start")
-    async def gmail_start() -> JSONResponse:
-        data = await server_client.request("POST", "/device-login", timeout=15)
-        if not isinstance(data, dict) or "error" in data or not data.get("code") or not data.get("url"):
-            message = (data or {}).get("message") or (data or {}).get("error") or "Không gọi được web iforgotmywayhome"
-            return _error(502, str(message))
-        return JSONResponse({"code": data["code"], "url": data["url"], "expiresIn": data.get("expiresIn", 600)},
+    @app.post("/api/auth/google/start")
+    async def google_start() -> JSONResponse:
+        if not _google_ready():
+            return _error(400, "Chưa cấu hình ADMIN_GOOGLE_CLIENT_ID, ADMIN_GOOGLE_CLIENT_SECRET và ADMIN_EMAIL")
+        code = pending.start()
+        return JSONResponse({"code": code, "url": f"{_base_url()}/api/auth/google/begin?code={code}", "expiresIn": TTL_SECONDS},
                             headers=SECURITY_HEADERS)
 
-    @app.post("/api/auth/gmail/poll")
-    async def gmail_poll(body: dict[str, Any] = Body(...)) -> JSONResponse:
+    @app.get("/api/auth/google/begin")
+    async def google_begin(code: str = "") -> Response:
+        item = pending.get(code) if re.fullmatch(r"[0-9a-f]{32}", code) else None
+        if item is None or item["status"] != "pending" or not _google_ready():
+            return _page("Mã không hợp lệ", "Quay lại trang quản lý và bấm đăng nhập lại.", 400)
+        settings = ctx.settings()
+        url = google_login.auth_url(settings.admin_google_client_id, f"{_base_url()}/api/auth/google/callback",
+                                    f"{code}.{item['nonce']}", item["verifier"], settings.admin_email)
+        return Response(status_code=302, headers={**SECURITY_HEADERS, "Location": url})
+
+    @app.get("/api/auth/google/callback")
+    async def google_callback(code: str = "", state: str = "", error: str = "") -> Response:
+        login, _, nonce = state.partition(".")
+        item = pending.get(login) if re.fullmatch(r"[0-9a-f]{32}", login) else None
+        if item is None or item["status"] != "pending" or not hmac.compare_digest(item["nonce"], nonce):
+            return _page("Phiên không hợp lệ", "Mã đăng nhập sai hoặc đã hết hạn. Quay lại trang quản lý và thử lại.", 400)
+        if error or not code:
+            pending.finish(login, "denied")
+            return _page("Đã huỷ", "Bạn đã huỷ đăng nhập Google.")
+        settings = ctx.settings()
+        try:
+            claims = await google_login.exchange(code, item["verifier"], f"{_base_url()}/api/auth/google/callback",
+                                                 settings.admin_google_client_id, settings.admin_google_client_secret)
+        except (ValueError, httpx.HTTPError) as exc:
+            log.warning("Đăng nhập Google lỗi: %s", exc)
+            pending.finish(login, "denied")
+            return _page("Đăng nhập lỗi", "Không xác minh được với Google. Xem log của trang quản lý.", 502)
+        email = str(claims.get("email") or "")
+        if not google_login.email_allowed(email, settings.admin_email):
+            pending.finish(login, "denied", email)
+            return _page("Không có quyền", f"{email} không phải Gmail của chủ hệ thống.", 403)
+        pending.finish(login, "approved", email)
+        return _page("Đã đăng nhập", "Quay lại trang quản lý, nó sẽ tự vào trong vài giây.")
+
+    @app.post("/api/auth/google/poll")
+    async def google_poll(body: dict[str, Any] = Body(...)) -> JSONResponse:
         code = str(body.get("code") or "")
         if not re.fullmatch(r"[0-9a-f]{32}", code):
             return _error(400, "Mã không hợp lệ")
-        data = await server_client.request("GET", f"/device-login/{code}", timeout=15)
-        if not isinstance(data, dict) or "error" in data:
-            return _error(502, str((data or {}).get("message") or "Không gọi được web iforgotmywayhome"))
-        status = data.get("status")
-        if status == "approved":
-            email = str(data.get("email") or "")
-            if not data.get("isAdmin"):
-                return JSONResponse({"status": "denied", "message": f"Gmail {email} không phải tài khoản quản trị của web. "
-                                     "Đăng nhập bằng đúng Gmail đã liên kết vào tài khoản quản trị."}, headers=SECURITY_HEADERS)
-            device = str(body.get("device") or "").strip()
-            if device:
-                # Ứng dụng ở máy khác (ZaloBot.exe) xin khoá dài hạn để điều khiển trang này.
-                log.info("Cấp khoá thiết bị cho %s (Gmail %s)", device[:80], email)
-                return JSONResponse({"status": "ok", "token": devices().issue(email, device), "email": email},
-                                    headers=SECURITY_HEADERS)
-            log.info("Đăng nhập trang quản lý bằng Gmail %s", email)
-            return JSONResponse({"status": "ok", "token": sessions.issue(email), "email": email}, headers=SECURITY_HEADERS)
-        return JSONResponse({"status": "expired" if status == "expired" else "pending"}, headers=SECURITY_HEADERS)
+        item = pending.take(code)
+        if item is None:
+            return JSONResponse({"status": "expired"}, headers=SECURITY_HEADERS)
+        if item["status"] == "denied":
+            who = f"Gmail {item['email']} không phải" if item["email"] else "Đăng nhập không thành công, hoặc không phải"
+            return JSONResponse({"status": "denied", "message": f"{who} tài khoản của chủ hệ thống."}, headers=SECURITY_HEADERS)
+        if item["status"] != "approved":
+            return JSONResponse({"status": "pending"}, headers=SECURITY_HEADERS)
+        email = item["email"]
+        device = str(body.get("device") or "").strip()
+        if device:
+            # Ứng dụng ở máy khác (ZaloBot.exe) xin khoá dài hạn để điều khiển trang này.
+            log.info("Cấp khoá thiết bị cho %s (Google %s)", device[:80], email)
+            return JSONResponse({"status": "ok", "token": devices().issue(email, device), "email": email}, headers=SECURITY_HEADERS)
+        log.info("Đăng nhập trang quản lý bằng Google %s", email)
+        return JSONResponse({"status": "ok", "token": sessions.issue(email), "email": email}, headers=SECURITY_HEADERS)
 
     # ---------- trang tĩnh ----------
 
@@ -269,11 +319,11 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.post("/api/remote-login/start")
     async def remote_login_start() -> JSONResponse:
-        """Kết nối VPS bằng Gmail, bước 1: nhờ VPS xin mã đăng nhập từ web iforgotmywayhome."""
+        """Kết nối VPS bằng Gmail, bước 1: nhờ VPS xin mã đăng nhập Google."""
         try:
-            data = await remote_server.json_request(ctx.settings(), "POST", "auth/gmail/start", auth=False, timeout=20)
+            data = await remote_server.json_request(ctx.settings(), "POST", "auth/google/start", auth=False, timeout=20)
         except remote_server.RemoteError as exc:
-            return _error(502, f"{exc} (VPS cần đặt SCHEDULE_API_KEY để đăng nhập bằng Gmail.)"
+            return _error(502, f"{exc} (VPS cần đặt ADMIN_GOOGLE_CLIENT_ID, ADMIN_GOOGLE_CLIENT_SECRET và ADMIN_EMAIL.)"
                           if "502" in str(exc) else str(exc))
         return JSONResponse({"code": data.get("code"), "url": data.get("url"), "expiresIn": data.get("expiresIn", 600)},
                             headers=SECURITY_HEADERS)
@@ -288,7 +338,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             return _error(400, "Mã không hợp lệ")
         settings = ctx.settings()
         try:
-            data = await remote_server.json_request(settings, "POST", "auth/gmail/poll", auth=False, timeout=20,
+            data = await remote_server.json_request(settings, "POST", "auth/google/poll", auth=False, timeout=20,
                                                     json={"code": code, "device": f"ZaloBot trên {socket.gethostname()}"})
         except remote_server.RemoteError as exc:
             return _error(502, str(exc))
@@ -502,12 +552,10 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     def read_workspace(name: str) -> dict[str, Any]:
         settings = ctx.settings()
         path = _workspace_path(settings, name)
-        managed = WORKSPACE_FILES[name] in (read_cached(settings).get("files") or {})
         try:
-            return {"name": name, "content": path.read_text(encoding="utf-8"), "updated_at": int(path.stat().st_mtime * 1000),
-                    "managed_by_web": managed}
+            return {"name": name, "content": path.read_text(encoding="utf-8"), "updated_at": int(path.stat().st_mtime * 1000)}
         except FileNotFoundError:
-            return {"name": name, "content": "", "updated_at": None, "managed_by_web": managed}
+            return {"name": name, "content": "", "updated_at": None}
 
     @app.put("/api/workspace/{name}")
     def write_workspace(name: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
@@ -541,21 +589,14 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "FILTER_CONTEXT_LINES": str(settings.filter_context_lines),
             "MEMORYDATA_KEEP": str(settings.memorydata_keep),
             "ASSIGN_ALLOWED": settings.assign_allowed,
-            "SESSION_UPLOAD": "true" if settings.session_upload else "false",
         }
-        # Thông số chủ hệ thống đặt trên web (bot lưu bản gần nhất): đè lên giá trị ở đây khi bot chạy.
-        remote = read_cached(settings)
-        remote_values = {k: v for k, v in (remote.get("values") or {}).items() if k in REMOTE_KEYS}
         return {
             "fields": [
                 {"key": f.key, "label": f.label, "help": f.help, "kind": f.kind, "choices": list(f.choices),
-                 "group": f.group, "value": values.get(f.key) or defaults.get(f.key, ""),
-                 "remote": _remote_text(remote_values[f.key]) if f.key in remote_values else None}
+                 "group": f.group, "value": values.get(f.key) or defaults.get(f.key, "")}
                 for f in settings_file.FIELDS
             ],
             "secrets": [{"key": k, "label": label, "set": bool(values.get(k))} for k, label in settings_file.SECRETS.items()],
-            "remote": {"version": remote.get("version"), "fetched_at": remote.get("fetched_at"),
-                       "count": len(remote_values), "files": sorted(remote.get("files") or {})} if remote else None,
         }
 
     @app.put("/api/settings")

@@ -59,7 +59,6 @@ BUDGET_NOTICE = (
 LINK_CODE = re.compile(r"^\s*(?:/?li[eê]n\s*k[eế]t\s*:?\s*)?(\d{6})\s*$", re.IGNORECASE)
 LINK_OFFLINE = "Chưa liên kết được vì không kết nối được máy chủ. Bạn thử gửi lại mã sau ít phút nhé."
 # Tool gửi lệnh cho bot lịch trên web: ghi thêm bước "bot lịch" vào session.
-CALBOT_TOOLS = {"giao_lich": "create", "sua_lich": "update", "huy_lich": "delete"}
 
 
 class ZaloSender(Protocol):
@@ -112,14 +111,13 @@ class Bot:
 
         self.started_at_ms = now_ms()
         self.state.update(started_at=self.started_at_ms)
-        self.sessions = None  # SessionUploader khi có kết nối web (bot/system/session_upload.py)
         self._queues: dict[str, asyncio.Queue[Job]] = {}
         self._workers: dict[str, asyncio.Task[None]] = {}
         self._warned_no_owner: set[str] = set()
         self._hinted: set[str] = set()
 
     def apply_settings(self, settings: Settings) -> None:
-        """Áp cấu hình mới khi đang chạy (thông số chủ hệ thống đổi trên web), không cần khởi động lại."""
+        """Áp cấu hình mới khi đang chạy (đổi trong trang quản lý), không cần khởi động lại."""
         self.settings = settings
         self.filter.settings = settings
         self.memory.keep = settings.memorydata_keep
@@ -135,11 +133,6 @@ class Bot:
         if configure is not None:
             configure(model=settings.gemini_model, max_tool_rounds=settings.max_tool_rounds,
                       max_output_tokens=settings.max_output_tokens, timeout_seconds=settings.llm_timeout_seconds)
-
-    def _trace(self, chat_id: str, kind: str, **fields: Any) -> None:
-        """Ghi một bước vào session gửi lên web (nếu bật). Không bao giờ làm hỏng việc trả lời."""
-        if self.sessions is not None and self.settings.session_upload:
-            self.sessions.record(chat_id, kind, **fields)
 
     def _chat_name(self, msg: IncomingMessage) -> str:
         label = self.groups.get(msg.chat_id).label
@@ -230,9 +223,8 @@ class Bot:
             member = result.get("member") or {}
             who = " ".join(x for x in (member.get("name"), f"({member['email']})" if member.get("email") else "") if x)
             text = (f"✅ Đã liên kết Zalo này với tài khoản {who or 'của bạn'}. Từ giờ lịch được giao cho bạn trong nhóm "
-                    "sẽ tự vào Google Lịch qua app iforgotmywayhome (nhớ mở app để lịch được cập nhật).")
+                    "sẽ tự vào Google Lịch của bạn.")
             log.info("Đã liên kết Zalo %s với tài khoản trên web", msg.from_id)
-        self._trace(msg.chat_id, "calbot", op="link", title="Liên kết Zalo", summary=text[:200], chatName=msg.from_name)
         await self._send(msg.chat_id, text)
         return True
 
@@ -300,11 +292,6 @@ class Bot:
         if msg.is_group:
             self.stats.incr("filter_pass" if decision.passed else "filter_block")
         log.debug("Lọc tin chat=%s: %s (%s) %s", msg.chat_id, decision.passed, decision.stage, decision.reason)
-        self._trace(msg.chat_id, "message", chatName=self._chat_name(msg), isGroup=msg.is_group, senderId=msg.from_id,
-                    senderName=msg.from_name, text=msg.text if msg.is_text else "(không phải tin chữ)", messageId=msg.message_id)
-        self._trace(msg.chat_id, "filter", decision="reply" if decision.passed else "skip", tier=decision.stage,
-                    reason=decision.reason, tokens=decision.tokens or None,
-                    model=(self.settings.filter_model or self.settings.gemini_model) if decision.stage == "ai" else None)
 
         if not decision.passed:
             if not msg.is_text and not msg.is_group:
@@ -382,7 +369,6 @@ class Bot:
         except Exception as exc:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
             self.stats.incr("errors")
-            self._trace(msg.chat_id, "error", message=f"Agent lỗi: {type(exc).__name__}: {exc}"[:300])
             await self._say(msg.chat_id, ERROR_REPLY)
             return
         self.usage.add(reply.tokens)
@@ -392,7 +378,6 @@ class Bot:
         text = strip_name_prefix(to_plain_text(reply.text), names)
         if members:
             text = add_tags(text, prompt, members)  # model hay quên "@" trước tên người cần tag
-        self._trace_reply(msg, system, turns, reply, text)
         self.history.append(msg.chat_id, "model", text)
         await self._say(msg.chat_id, text)
 
@@ -400,23 +385,6 @@ class Bot:
             log.warning("Đã vượt hạn mức token ngày: %d", self.usage.used_today())
             if self.groups.get(msg.chat_id).mode == MODE_ALL and self.usage.mark_notified(msg.chat_id):
                 await self._say(msg.chat_id, BUDGET_NOTICE)
-
-    def _trace_reply(self, msg: IncomingMessage, system: str, turns: list[Turn], reply: Any, text: str) -> None:
-        if self.sessions is None or not self.settings.session_upload:
-            return
-        last = "\n".join(f"{t.name or t.role}: {t.text}" for t in turns[-3:])
-        self._trace(msg.chat_id, "agent", model=getattr(reply, "model", "") or self.settings.gemini_model,
-                    tokens=reply.tokens, ms=getattr(reply, "ms", None), reply=text,
-                    prompt=f"{system[:1500]}\n\n--- 3 lượt cuối ---\n{last[:1500]}")
-        for step in getattr(reply, "steps", ()):
-            self._trace(msg.chat_id, "tool", name=step.name, args=step.args, result=step.result, ms=step.ms)
-            op = CALBOT_TOOLS.get(step.name)
-            if op and isinstance(step.result, dict) and "error" not in step.result:
-                assigned = [a.get("name") or a.get("zaloUid") for a in step.result.get("assigned", [])]
-                unlinked = [a.get("name") or a.get("zaloUid") for a in step.result.get("unlinked", [])]
-                summary = f"{len(assigned)} người nhận" + (f", {len(unlinked)} chưa liên kết" if unlinked else "")
-                self._trace(msg.chat_id, "calbot", op=op, title=(step.result.get("event") or {}).get("title"), summary=summary)
-        self._trace(msg.chat_id, "reply", text=text)
 
     # ---------- gửi tin ----------
 

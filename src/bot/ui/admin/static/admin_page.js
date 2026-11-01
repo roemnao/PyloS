@@ -128,9 +128,9 @@ function showLogin(message) {
   error.hidden = !message;
   error.textContent = message || "";
   document.getElementById("login-token").focus();
-  clearInterval(gmailTimer);
-  document.getElementById("gmail-btn").disabled = false;
-  gmailMessage("");
+  clearInterval(googleTimer);
+  document.getElementById("google-btn").disabled = false;
+  googleMessage("");
 }
 
 async function tryLogin(token) {
@@ -176,13 +176,13 @@ function render() {
   const main = document.getElementById("main");
   fill(main, );
   const label = PAGES.find(([p]) => p === state.page)[1];
-  document.title = `${label} · iforgotmywayhome · Bot Zalo`;
+  document.title = `${label} · PyloS`;
   Promise.resolve(RENDERERS[state.page](main)).catch(reportError);
 }
 
 // ---------- bên được điều khiển: máy này hay VPS ----------
 
-// Đã kết nối VPS và khoá còn hiệu lực (khoá hết hạn/bị thu hồi thì quay về máy này, chờ đăng nhập Gmail lại).
+// Đã kết nối VPS và khoá còn hiệu lực (khoá hết hạn/bị thu hồi thì quay về máy này, chờ đăng nhập Google lại).
 function vpsUsable() {
   return Boolean(state.remote && state.remote.configured && !state.remote.auth_failed);
 }
@@ -365,7 +365,7 @@ async function serverAction(side, action, label, button) {
   await loadServers();
 }
 
-// ---- kết nối VPS bằng Gmail: đăng nhập một lần, máy này giữ khoá thiết bị của VPS ----
+// ---- kết nối VPS bằng Google: đăng nhập một lần, máy này giữ khoá thiết bị của VPS ----
 
 let vpsLoginTimer = null;
 let vpsLoginCard = null;  // thẻ đang đăng nhập: giữ nguyên khi trang Máy chủ tự vẽ lại mỗi 10 giây
@@ -374,11 +374,11 @@ function vpsConnectCard() {
   if (vpsLoginTimer && vpsLoginCard) return vpsLoginCard;
   const r = state.remote || {};
   const msg = h("p", { class: "muted small", id: "vps-login-msg" });
-  const button = h("button", { class: "btn primary", type: "button", text: "Kết nối VPS bằng Gmail", onclick: () => connectVps(button, msg) });
+  const button = h("button", { class: "btn primary", type: "button", text: "Kết nối VPS bằng Google", onclick: () => connectVps(button, msg) });
   return vpsLoginCard = h("div", { class: "card server vps" }, h("h2", { text: "VPS" }),
     h("p", { class: "muted", text: r.auth_failed
-      ? "Khoá kết nối VPS đã hết hạn hoặc bị thu hồi. Đăng nhập Gmail lại để kết nối."
-      : "Chưa kết nối VPS. Đăng nhập bằng Gmail quản trị của web iforgotmywayhome một lần, máy này sẽ nhớ." }),
+      ? "Khoá kết nối VPS đã hết hạn hoặc bị thu hồi. Đăng nhập Google lại để kết nối."
+      : "Chưa kết nối VPS. Đăng nhập bằng Google (đúng Gmail chủ hệ thống) một lần, máy này sẽ nhớ." }),
     h("p", { class: "muted small", text: `Địa chỉ: ${r.url || "chưa đặt (REMOTE_URL)"}` }),
     h("div", { class: "row" }, button), msg);
 }
@@ -398,8 +398,8 @@ async function connectVps(button, msg) {
     return;
   }
   const tab = window.open(started.url, "_blank", "noopener");
-  msg.textContent = tab ? "Đã mở web iforgotmywayhome ở tab mới. Đăng nhập Gmail và bấm Cho phép, trang này tự kết nối."
-    : `Mở link này, đăng nhập Gmail và bấm Cho phép: ${started.url}`;
+  msg.textContent = tab ? "Đã mở trang Google ở tab mới. Đăng nhập, trang này tự kết nối."
+    : `Mở link này, đăng nhập Google và bấm Cho phép: ${started.url}`;
   const deadline = Date.now() + (started.expiresIn || 600) * 1000;
   const finish = (text, isError) => {
     clearInterval(vpsLoginTimer);
@@ -425,7 +425,7 @@ async function connectVps(button, msg) {
 }
 
 async function disconnectVps() {
-  if (!confirm("Ngắt kết nối VPS ở máy này? Muốn kết nối lại thì đăng nhập Gmail lại.")) return;
+  if (!confirm("Ngắt kết nối VPS ở máy này? Muốn kết nối lại thì đăng nhập Google lại.")) return;
   try {
     await api("/api/remote-login", { method: "DELETE", side: "local" });
     if (state.target === "vps") setTarget("local");
@@ -731,10 +731,6 @@ async function renderWorkspace(main, which = "SYSTEM") {
     h("p", { class: "muted", text: which === "SYSTEM"
       ? "Vai trò, giọng điệu và quy tắc trả lời. Bản cũ được tự sao lưu vào workspace/.backup mỗi lần lưu."
       : "Điều trợ lý cần nhớ lâu dài. Được đưa vào prompt như dữ liệu tham khảo, không phải mệnh lệnh." }),
-    data.managed_by_web
-      ? h("div", { class: "banner", text: `${which}.md đang do chủ hệ thống đặt trên web (Hệ thống → Cấu hình bot). `
-        + "Sửa ở đây sẽ bị ghi đè khi cấu hình trên web thay đổi." })
-      : null,
     h("div", { class: "card stack" }, area,
       h("div", { class: "row between" }, info, h("button", { class: "btn primary", type: "button", text: "Lưu (Ctrl+S)", onclick: save }))));
 }
@@ -979,12 +975,7 @@ async function renderSettings(main) {
     input.dataset.initial = input.value;
     inputs.set(f.key, input);
     if (!groups.has(f.group)) groups.set(f.group, []);
-    // Thông số chủ hệ thống đặt trên web đè lên giá trị ở đây khi bot chạy.
-    const fromWeb = f.remote !== null && f.remote !== undefined
-      ? h("span", { class: "pill web", title: "Đặt ở trang Hệ thống của web iforgotmywayhome; sửa ở đây không có tác dụng cho tới khi bỏ trên web",
-        text: `Web đang đặt: ${f.remote}` })
-      : null;
-    groups.get(f.group).push(h("label", { class: "field" }, h("span", {}, f.label, fromWeb), input,
+    groups.get(f.group).push(h("label", { class: "field" }, h("span", {}, f.label), input,
       h("small", {}, h("code", { text: f.key }), f.help ? ` · ${f.help}` : "")));
   }
 
@@ -1027,17 +1018,9 @@ async function renderSettings(main) {
       h("div", { class: "row" }, h("div", { style: "flex:1;min-width:200px" }, input), setBtn));
   });
 
-  const remote = data.remote;
-  const remoteNote = remote && remote.count
-    ? h("div", { class: "banner" }, `Bot đang dùng ${remote.count} thông số do chủ hệ thống đặt trên web (bản ${remote.version}`,
-      remote.fetched_at ? `, lấy lúc ${new Date(remote.fetched_at).toLocaleString("vi-VN")}` : "",
-      "). Các ô có nhãn \"Web đang đặt\" lấy giá trị từ web; sửa trên trang Hệ thống của web.")
-    : null;
-
   fill(main, 
     h("h1", { text: "Cài đặt" }),
     banner,
-    remoteNote,
     zaloLoginCard(),
     ...[...groups].map(([name, fields]) => h("div", { class: "card stack" }, h("h2", { text: name }), ...fields)),
     h("div", { class: "row", style: "margin-bottom:1rem" }, h("button", { class: "btn primary", type: "button", text: "Lưu cài đặt", onclick: save })),
@@ -1070,44 +1053,44 @@ const RENDERERS = {
   tools: renderTools,
 };
 
-// ---------- đăng nhập bằng Gmail ----------
-// Web iforgotmywayhome làm chứng: mở link ở tab mới, đăng nhập Gmail và bấm Cho phép; trang này hỏi lại mỗi 2 giây.
+// ---------- đăng nhập bằng Google ----------
+// Mở trang Google ở tab mới, đăng nhập đúng Gmail của chủ hệ thống; trang này hỏi lại mỗi 2 giây.
 
-let gmailTimer = null;
+let googleTimer = null;
 
-function gmailMessage(text, isError) {
-  const el = document.getElementById("gmail-msg");
+function googleMessage(text, isError) {
+  const el = document.getElementById("google-msg");
   el.hidden = !text;
   el.textContent = text || "";
   el.classList.toggle("error", Boolean(isError));
 }
 
-async function gmailLogin() {
-  const button = document.getElementById("gmail-btn");
-  clearInterval(gmailTimer);
+async function googleLogin() {
+  const button = document.getElementById("google-btn");
+  clearInterval(googleTimer);
   button.disabled = true;
-  gmailMessage("Đang xin mã đăng nhập…");
+  googleMessage("Đang xin mã đăng nhập…");
   let started;
   try {
-    started = await rawApi("/api/auth/gmail/start", { method: "POST" });
+    started = await rawApi("/api/auth/google/start", { method: "POST" });
   } catch (err) {
     button.disabled = false;
-    gmailMessage(err.message, true);
+    googleMessage(err.message, true);
     return;
   }
   const tab = window.open(started.url, "_blank", "noopener");
-  gmailMessage(tab ? "Đã mở web iforgotmywayhome ở tab mới. Đăng nhập Gmail và bấm Cho phép, trang này tự vào."
-    : `Trình duyệt chặn tab mới. Mở link này, đăng nhập Gmail và bấm Cho phép: ${started.url}`);
+  googleMessage(tab ? "Đã mở trang Google ở tab mới. Đăng nhập, trang này tự vào."
+    : `Trình duyệt chặn tab mới. Mở link này và đăng nhập Google: ${started.url}`);
   const deadline = Date.now() + (started.expiresIn || 600) * 1000;
-  const finish = (message, isError) => { clearInterval(gmailTimer); button.disabled = false; gmailMessage(message, isError); };
-  gmailTimer = setInterval(async () => {
+  const finish = (message, isError) => { clearInterval(googleTimer); button.disabled = false; googleMessage(message, isError); };
+  googleTimer = setInterval(async () => {
     if (Date.now() > deadline) { finish("Hết thời gian chờ, bấm lại để thử lần nữa.", true); return; }
     let result;
-    try { result = await rawApi("/api/auth/gmail/poll", { method: "POST", body: { code: started.code } }); } catch { return; }
+    try { result = await rawApi("/api/auth/google/poll", { method: "POST", body: { code: started.code } }); } catch { return; }
     if (result.status === "ok") {
-      clearInterval(gmailTimer);
+      clearInterval(googleTimer);
       button.disabled = false;
-      gmailMessage("");
+      googleMessage("");
       if (await tryLogin(result.token)) start();
     } else if (result.status === "denied") finish(result.message, true);
     else if (result.status === "expired") finish("Mã đã hết hạn, bấm lại để thử lần nữa.", true);
@@ -1123,18 +1106,18 @@ async function rawApi(path, { method = "GET", body } = {}) {
   return data;
 }
 
-async function setupGmailLogin() {
-  document.getElementById("gmail-btn").addEventListener("click", gmailLogin);
+async function setupGoogleLogin() {
+  document.getElementById("google-btn").addEventListener("click", googleLogin);
   try {
     const options = await rawApi("/api/auth/options");
-    document.getElementById("gmail-login").hidden = !options.gmail;
+    document.getElementById("google-login").hidden = !options.google;
   } catch { /* không có thì chỉ dùng mã truy cập */ }
 }
 
 // ---------- khởi động ----------
 
 async function boot() {
-  setupGmailLogin();
+  setupGoogleLogin();
   buildNav();
   document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
