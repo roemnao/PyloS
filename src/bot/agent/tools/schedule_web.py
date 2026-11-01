@@ -1,15 +1,16 @@
-"""Tool nối với web Quản lý thời gian (quanlythoigian) qua API cho AI agent của web.
+"""Tool nối với web bot lịch iforgotmywayhome (repo quanlythoigian): lịch / việc RIÊNG của từng người.
 
-Bật khi có SCHEDULE_API_KEY (tạo ở web: Cài đặt → Kết nối AI agent → Tạo khoá cho agent).
-Lịch/việc tạo ở đây hiện trên web, tự lên Google Lịch (nếu web đã kết nối) và được bot Zalo
-của web nhắc trước giờ hẹn.
+Bật khi có SCHEDULE_API_KEY (tạo ở web: Quản lý bot lịch → Kết nối AI agent → Tạo khoá).
+Mỗi người có dữ liệu riêng trên web, nên mọi lời gọi kèm `zaloUid` = ID Zalo của người đang nhắn bot. Người đó phải đã liên kết Zalo
+với tài khoản trên web (nhắn mã 6 số cho bot); chưa liên kết thì web trả 404 kèm link để bot gửi cho họ.
+Lịch tạo ở đây hiện trên web và tự lên Google Lịch của người đó (nếu họ đã cho phép Google Lịch).
 
-API (src/app.js của quanlythoigian), xác thực bằng "Authorization: Bearer <khoá>":
-  POST  /events        {title, start, end?, allDay?, note?}
-  POST  /tasks         {title, deadline?, quadrant?, note?}
-  GET   /tasks
-  PATCH /tasks/{id}    {done?, ...}
-  GET   /agenda?date=today|tomorrow|YYYY-MM-DD
+API, xác thực bằng "Authorization: Bearer <khoá>":
+  POST  /events        {zaloUid, title, start, end?, allDay?, note?}
+  POST  /tasks         {zaloUid, title, deadline?, quadrant?, note?}
+  GET   /tasks?zaloUid=
+  PATCH /tasks/{id}    {zaloUid, done?, ...}
+  GET   /agenda?zaloUid=&date=today|tomorrow|YYYY-MM-DD
 """
 
 from __future__ import annotations
@@ -31,6 +32,9 @@ def _config() -> tuple[str, str]:
 async def _request(method: str, path: str, *, json: Any = None, params: dict[str, str] | None = None) -> Any:
     result = await request(method, path, json=json, params=params)
     if isinstance(result, dict) and "error" in result:
+        if result.get("status") == 404 and "chưa liên kết" in str(result.get("message", "")):
+            return {"error": "Người này chưa liên kết Zalo với tài khoản trên web nên chưa có lịch riêng. "
+                             "Nhờ họ mở web, lấy mã liên kết và nhắn mã 6 số cho bot."}
         return {"error": result["error"]}
     return result
 
@@ -42,7 +46,7 @@ def _note(args: dict[str, Any], ctx: ToolContext) -> str:
 
 
 async def _create_event(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
-    body = {"title": args.get("title"), "start": args.get("start"), "note": _note(args, ctx)}
+    body = {"zaloUid": ctx.user_id, "title": args.get("title"), "start": args.get("start"), "note": _note(args, ctx)}
     for key in ("end", "allDay"):
         if args.get(key) not in (None, ""):
             body[key] = args[key]
@@ -51,7 +55,7 @@ async def _create_event(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any
 
 
 async def _create_task(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
-    body = {"title": args.get("title"), "note": _note(args, ctx)}
+    body = {"zaloUid": ctx.user_id, "title": args.get("title"), "note": _note(args, ctx)}
     for key in ("deadline", "quadrant"):
         if args.get(key) not in (None, ""):
             body[key] = args[key]
@@ -60,11 +64,11 @@ async def _create_task(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]
 
 
 async def _agenda(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
-    return await _request("GET", "/agenda", params={"date": str(args.get("date") or "today")})
+    return await _request("GET", "/agenda", params={"zaloUid": ctx.user_id, "date": str(args.get("date") or "today")})
 
 
 async def _list_tasks(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
-    result = await _request("GET", "/tasks")
+    result = await _request("GET", "/tasks", params={"zaloUid": ctx.user_id})
     return {"tasks": result} if isinstance(result, list) else result
 
 
@@ -72,7 +76,7 @@ async def _complete_task(args: dict[str, Any], ctx: ToolContext) -> dict[str, An
     task_id = str(args.get("id") or "").strip()
     if not task_id:
         return {"error": "Thiếu id việc (lấy bằng danh_sach_viec)."}
-    result = await _request("PATCH", f"/tasks/{quote(task_id, safe='')}", json={"done": True})
+    result = await _request("PATCH", f"/tasks/{quote(task_id, safe='')}", json={"zaloUid": ctx.user_id, "done": True})
     return result if "error" in result else {"ok": True, "task": result}
 
 
@@ -91,8 +95,8 @@ def _tools() -> list[Tool]:
         Tool(
             name="them_lich_hen",
             description=(
-                "Thêm lịch hẹn / sự kiện / lời nhắc có giờ cụ thể vào web quản lý thời gian của chủ bot. "
-                "Web sẽ nhắc qua Zalo trước giờ hẹn. Dùng khi được bảo thêm lịch, đặt lịch, nhắc lúc mấy giờ."
+                "Thêm lịch hẹn / sự kiện / lời nhắc có giờ cụ thể vào web bot lịch, vào lịch riêng của chính người đang nhắn. "
+                "Tự lên Google Lịch của họ nếu đã cho phép. Dùng khi được bảo thêm lịch, đặt lịch, nhắc lúc mấy giờ."
             ),
             handler=_create_event,
             parameters={
