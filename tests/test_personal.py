@@ -6,11 +6,11 @@ import json
 
 import pytest
 
-from bot.config import ConfigError
-from bot.storage import ActivityStore
-from bot.zalo import ZaloError
-from bot.core.mention_tags import add_tags, build_mentions
-from bot.zalo.personal_account import PersonalZalo, _is_network_error, load_session, mention_names, to_incoming
+from pylos.lobby.dispatch.shared.config import ConfigError
+from pylos.lobby.dispatch.shared.storage import ActivityStore
+from pylos.gate.main_gate.zalo import ZaloError
+from pylos.gate.main_gate.zalo.mention_tags import add_tags, build_mentions
+from pylos.gate.main_gate.zalo.personal_account import PersonalZalo, _is_network_error, load_session, mention_names, to_incoming
 
 from conftest import make_settings
 
@@ -190,8 +190,8 @@ async def test_send_in_group_attaches_mentions_but_not_in_private(tmp_path):
 
 
 async def test_bot_tells_model_member_names(tmp_path):
-    from bot.agent import PromptBuilder
-    from bot.core.message_handler import Bot
+    from pylos.residential.residents.pylos import PromptBuilder
+    from pylos.residential.residents.pylos.message_handler import Bot
 
     from conftest import GROUP, FakeAgent, FakeZalo, event
 
@@ -228,8 +228,8 @@ def test_add_tags_only_for_names_requested_with_tag_intent():
 
 
 async def test_bot_adds_missing_at_sign_end_to_end(tmp_path):
-    from bot.agent import PromptBuilder
-    from bot.core.message_handler import Bot
+    from pylos.residential.residents.pylos import PromptBuilder
+    from pylos.residential.residents.pylos.message_handler import Bot
 
     from conftest import GROUP, FakeAgent, FakeZalo, event
 

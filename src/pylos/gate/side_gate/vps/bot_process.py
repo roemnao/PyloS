@@ -16,19 +16,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from bot.config import LOADED_FROM_DOTENV, PROJECT_ROOT, Settings, is_frozen
-from bot.storage import FailedStore, GroupStore, StateStore, StatsStore, UsageStore
-from bot.storage.process_lock import AlreadyRunning, InstanceLock
-from bot.core.vietnam_time import now_ms
-from bot.userdata_paths import (
-    BOT_STATUS_FILE,
-    DAILY_STATS_FILE,
-    FAILED_REPLIES_FILE,
-    GROUP_SETTINGS_FILE,
-    GUI_LOCK_FILE,
-    STANDBY_FILE,
-    TOKEN_USAGE_FILE,
-)
+from pylos.lobby.dispatch.shared.config import LOADED_FROM_DOTENV, PROJECT_ROOT, Settings, is_frozen
+from pylos.lobby.dispatch.shared.storage import FailedStore, GroupStore, StateStore, StatsStore, UsageStore
+from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, GUI_LOCK_FILE, STANDBY_FILE, TOKEN_USAGE_FILE
 
 # Mã thoát của `bot run` khi máy đang ở chế độ chờ (bot đã chuyển sang máy khác). systemd không bật lại
 # với mã này (RestartPreventExitStatus=5), scripts/run-forever.ps1 cũng không.
@@ -372,7 +364,7 @@ def restart(settings: Settings, service: Service = BOT) -> Result:
 def _registry_autostart() -> bool:
     """Mục "Khởi động cùng Windows" của ứng dụng quản lý (khay hệ thống)."""
     try:
-        from bot.ui.desktop import windows_autostart
+        from pylos.gate.side_gate.desktop import windows_autostart
 
         return windows_autostart.is_enabled()
     except Exception:  # noqa: BLE001 - không phải Windows hoặc thiếu quyền đọc registry

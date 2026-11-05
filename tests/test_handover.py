@@ -8,9 +8,10 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.config import Settings
-from bot.system import bot_process, handover, handover_job, remote_server
-from bot.ui.admin.admin_web_server import AdminContext, create_app
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.gate.side_gate.vps import bot_process, remote_server
+from pylos.lobby.dispatch.handover import handover, handover_job
+from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
 
 LOCAL_TOKEN = "local-token-123456"
 VPS_TOKEN = "vps-token-abcdef12"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from bot.agent import ToolContext
+from pylos.residential.residents.pylos import ToolContext
 from pylos.lobby.office.agent_tools import assign_events
 
 MEMBERS = {"u-an": "Nguyễn Văn An", "u-binh": "Trần Thị Bình", "u-anh": "Hoàng Anh", "u-binh2": "Bình Lê", "bot": "roemnao"}
@@ -102,7 +102,7 @@ async def test_only_allowed_people_can_assign(tmp_path, calbot):
 
 
 def test_tools_need_web_key(monkeypatch, tmp_path):
-    monkeypatch.setattr("bot.config.APP_HOME", tmp_path)
+    monkeypatch.setattr("pylos.lobby.dispatch.shared.config.APP_HOME", tmp_path)
     monkeypatch.delenv("SCHEDULE_API_KEY", raising=False)
     assert assign_events._tools() == []
     monkeypatch.setenv("SCHEDULE_API_KEY", "k")

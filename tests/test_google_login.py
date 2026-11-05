@@ -11,10 +11,10 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.system import remote_server
-from bot.ui.admin import google_login, settings_file
-from bot.ui.admin.admin_sessions import AdminDevices
-from bot.ui.admin.admin_web_server import AdminContext, create_app
+from pylos.gate.side_gate.vps import remote_server
+from pylos.management.owner.admin_web import google_login, settings_file
+from pylos.management.owner.admin_web.admin_sessions import AdminDevices
+from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
 
 BASE = "http://127.0.0.1:8081"
 CLIENT_ID = "123-abc.apps.googleusercontent.com"
@@ -44,7 +44,7 @@ def no_web(monkeypatch):
     async def boom(*a, **k):
         raise AssertionError("Đăng nhập không được gọi web bot lịch")
 
-    monkeypatch.setattr("bot.system.server_client.request", boom)
+    monkeypatch.setattr("pylos.gate.main_gate.external_apps.server_client.request", boom)
 
 
 def make_client(tmp_path, token=VPS_ADMIN, extra="", name="vps"):
@@ -148,7 +148,7 @@ def test_exchange_uses_pkce_and_checks_audience():
 
 
 def test_config_rejects_several_emails_and_bad_client_id(tmp_path):
-    from bot.config import ConfigError, Settings
+    from pylos.lobby.dispatch.shared.config import ConfigError, Settings
 
     with pytest.raises(ConfigError):
         Settings.from_env({"ADMIN_EMAIL": "a@x.com, b@x.com"}, base_dir=tmp_path)
@@ -256,7 +256,7 @@ def test_revoked_key_is_reported_as_auth_failed(local):
 
 
 def test_default_remote_url_and_off(tmp_path):
-    from bot.config import DEFAULT_REMOTE_URL, Settings
+    from pylos.lobby.dispatch.shared.config import DEFAULT_REMOTE_URL, Settings
 
     assert Settings.from_env({}, base_dir=tmp_path).remote_url == DEFAULT_REMOTE_URL
     off = Settings.from_env({"REMOTE_URL": "off", "REMOTE_ADMIN_TOKEN": "x"}, base_dir=tmp_path)

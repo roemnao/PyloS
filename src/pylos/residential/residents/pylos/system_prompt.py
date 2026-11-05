@@ -6,7 +6,7 @@ import logging
 import re
 from pathlib import Path
 
-from bot.core.vietnam_time import now_vn
+from pylos.lobby.dispatch.clock.vietnam_time import now_vn
 
 log = logging.getLogger(__name__)
 

@@ -8,15 +8,15 @@ import secrets
 import shutil
 from pathlib import Path
 
-from bot.config import APP_HOME, ENV_FILE, Settings
-from bot.userdata_paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
+from pylos.lobby.dispatch.shared.config import APP_HOME, ENV_FILE, Settings
+from pylos.lobby.dispatch.shared.userdata_paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
 
 log = logging.getLogger(__name__)
 
-TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
+TEMPLATES = Path(__file__).resolve().parent / "templates"
 
 _DIRS = (CONFIG_REL, DATA_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL, LOGS_REL)
-# (file mẫu trong src/bot/templates, đích so với APP_HOME)
+# (file mẫu trong templates/ cạnh file này, đích so với APP_HOME)
 _FILES = (
     ("env.example", ENV_REL),
     ("SYSTEM.md", WORKSPACE_REL + "/SYSTEM.md"),
@@ -47,7 +47,7 @@ def ensure_admin_token(settings: Settings, env_path: Path | None = None) -> tupl
     """
     if settings.admin_token:
         return settings, False
-    from bot.ui.admin import settings_file
+    from pylos.management.owner.admin_web import settings_file
 
     token = secrets.token_urlsafe(32)
     settings_file.update(env_path or ENV_FILE, {"ADMIN_TOKEN": token})

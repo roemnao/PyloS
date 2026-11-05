@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from bot.core.message_filter import MessageFilter, is_chatter
-from bot.zalo.personal_account import to_incoming
-from bot.core.vietnam_time import now_ms
+from pylos.gate.fence.speech_limit.message_filter import MessageFilter, is_chatter
+from pylos.gate.main_gate.zalo.personal_account import to_incoming
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 
 from conftest import FakeAgent, make_settings
 
@@ -106,7 +106,7 @@ async def test_ai_error_budget_and_disabled_in_mode_all(make_filter, agent):
 async def test_gemini_classify_requests_json_and_counts_tokens():
     from google.genai import types
 
-    from bot.agent import GeminiAgent, ToolRegistry
+    from pylos.residential.residents.pylos import GeminiAgent, ToolRegistry
 
     seen = {}
 
@@ -132,7 +132,7 @@ async def test_gemini_classify_requests_json_and_counts_tokens():
 
 
 def _gemini(models):
-    from bot.agent import GeminiAgent, ToolRegistry
+    from pylos.residential.residents.pylos import GeminiAgent, ToolRegistry
 
     client = type("Client", (), {"aio": type("Aio", (), {"models": models})()})()
     agent = GeminiAgent("k", "gemini-main", ToolRegistry(), client=client)

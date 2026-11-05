@@ -10,19 +10,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from bot.userdata_paths import (  # noqa: F401 - các tên này được import từ bot.config ở nhiều nơi
-    APP_HOME,
-    APP_NAME,
-    DATA_REL,
-    ENV_FILE,
-    ENV_REL,
-    LOGS_REL,
-    SESSION_REL,
-    SYSTEM_REL,
-    WORKSPACE_REL,
-    app_home,
-    is_frozen,
-)
+from pylos.lobby.dispatch.shared.userdata_paths import APP_HOME, APP_NAME, DATA_REL, ENV_FILE, ENV_REL, LOGS_REL, SESSION_REL, SYSTEM_REL, WORKSPACE_REL, app_home, is_frozen
 
 # Giữ tên PROJECT_ROOT cho code cũ; khi chạy từ exe nó là thư mục chứa exe.
 PROJECT_ROOT = APP_HOME
@@ -216,7 +204,7 @@ class Settings:
         """Dừng với thông báo rõ ràng nếu thiếu bí mật cần cho lệnh đang chạy."""
         missing = []
         if zalo and self.personal:
-            from bot.zalo.personal_account import load_session
+            from pylos.gate.main_gate.zalo.personal_account import load_session
 
             load_session(self.zalo_session_file, self.zalo_imei)  # ném ConfigError nếu chưa đăng nhập bằng QR
         elif zalo and not self.zalo_bot_token:

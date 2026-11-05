@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from bot.core.owner_commands import parse_command
-from bot.core.reply_formatting import split_message, to_plain_text, utf16_len
-from bot.zalo import parse_updates
+from pylos.gate.side_gate.owner_commands.owner_commands import parse_command
+from pylos.gate.main_gate.zalo.reply_formatting import split_message, to_plain_text, utf16_len
+from pylos.gate.main_gate.zalo import parse_updates
 
 
 def test_split_short_message_unchanged():

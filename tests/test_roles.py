@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from bot.core.roles import BASIC, LEADER, OWNER, allows, required_role, role_of
-from bot.storage import GroupStore
+from pylos.lobby.dispatch.permissions.roles import BASIC, LEADER, OWNER, allows, required_role, role_of
+from pylos.lobby.dispatch.shared.storage import GroupStore
 
 
 @pytest.fixture

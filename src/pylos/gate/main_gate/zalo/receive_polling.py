@@ -10,9 +10,9 @@ import asyncio
 import logging
 from typing import Any, Awaitable, Callable
 
-from bot.storage import StateStore
-from bot.core.vietnam_time import now_ms
-from bot.zalo import ZaloClient, ZaloError
+from pylos.lobby.dispatch.shared.storage import StateStore
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
 
 log = logging.getLogger(__name__)
 

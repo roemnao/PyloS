@@ -9,10 +9,11 @@ from pathlib import Path
 import pytest
 from conftest import make_settings
 
-from bot.system import first_run_setup, bot_process
+from pylos.lobby.dispatch.shared import first_run_setup
+from pylos.gate.side_gate.vps import bot_process
 
-from bot import config, userdata_paths
-from bot.agent.tools import discover
+from pylos.lobby.dispatch.shared import config, userdata_paths
+from pylos.lobby.office.agent_tools import discover
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -129,7 +130,7 @@ def test_env_template_keeps_data_inside_userdata(tmp_path):
     """Mẫu .env (app chép vào userdata/config/.env) không được trỏ dữ liệu về chỗ cũ data/, logs/..."""
     from dotenv import dotenv_values
 
-    template = ROOT / "src" / "bot" / "templates" / "env.example"
+    template = ROOT / "src" / "pylos" / "lobby" / "dispatch" / "shared" / "templates" / "env.example"
     env = {k: v or "" for k, v in dotenv_values(template).items()}
     s = config.Settings.from_env(env, base_dir=tmp_path)
     for path in (s.data_dir, s.workspace_dir, s.log_dir, s.system_dir, s.zalo_session_file):
@@ -167,7 +168,7 @@ def test_external_tools_are_loaded_and_broken_ones_skipped(tmp_path, caplog):
 HELPER = """
 import sys, time
 from pathlib import Path
-from bot.storage.process_lock import InstanceLock
+from pylos.lobby.dispatch.lifecycle.process_lock import InstanceLock
 data = Path(sys.argv[1])
 with InstanceLock(data / "bot.lock"):
     (data / "bot.pid").write_text("999999", encoding="utf-8")  # pid giả: nếu bị ép tắt thì test sẽ lộ
@@ -197,7 +198,7 @@ def test_gateway_stops_bot_gracefully_with_flag(tmp_path):
 # ---------- linh tinh ----------
 
 def test_logging_without_console(monkeypatch, tmp_path):
-    from bot.system.log_files import setup_logging
+    from pylos.gate.main_gate.logs.log_files import setup_logging
 
     monkeypatch.setattr(sys, "stderr", None)
     setup_logging("INFO", tmp_path, ["secret-value"], filename="gui.log")
@@ -210,7 +211,7 @@ def test_logging_without_console(monkeypatch, tmp_path):
 
 
 def test_free_port_skips_busy_port():
-    from bot.ui.desktop.desktop_app import _free_port
+    from pylos.gate.side_gate.desktop.desktop_app import _free_port
 
     with socket.socket() as busy:
         busy.bind(("127.0.0.1", 0))
@@ -219,7 +220,7 @@ def test_free_port_skips_busy_port():
 
 
 def test_autostart_command(monkeypatch):
-    from bot.ui.desktop import windows_autostart
+    from pylos.gate.side_gate.desktop import windows_autostart
 
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", r"D:\app\ZaloBot.exe")
@@ -230,7 +231,7 @@ def test_autostart_command(monkeypatch):
 
 @pytest.mark.skipif(sys.platform != "win32", reason="registry chỉ có trên Windows")
 def test_autostart_registry_roundtrip(monkeypatch):
-    from bot.ui.desktop import windows_autostart
+    from pylos.gate.side_gate.desktop import windows_autostart
 
     monkeypatch.setattr(windows_autostart, "VALUE_NAME", "ZaloAssistantBot-pytest")  # không đụng mục thật
     try:
@@ -243,7 +244,7 @@ def test_autostart_registry_roundtrip(monkeypatch):
 
 
 def test_desktop_bot_actions_report_to_tray(monkeypatch, tmp_path):
-    from bot.ui.desktop.desktop_app import Desktop
+    from pylos.gate.side_gate.desktop.desktop_app import Desktop
 
     settings = make_settings(tmp_path)
     desktop = Desktop(settings, tray_only=True, start_bot=False)
@@ -265,7 +266,7 @@ def test_desktop_bot_actions_report_to_tray(monkeypatch, tmp_path):
 
 
 def test_icons(tmp_path):
-    from bot.ui.desktop.icon_images import make_icon, write_ico
+    from pylos.gate.side_gate.desktop.icon_images import make_icon, write_ico
 
     assert make_icon("running").size == (64, 64)
     assert make_icon().getpixel((32, 4))[3] == 255

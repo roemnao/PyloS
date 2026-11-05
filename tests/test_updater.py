@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from bot.system import auto_update
+from pylos.lobby.dispatch.updater import auto_update
 
 
 def git(cwd, *args):

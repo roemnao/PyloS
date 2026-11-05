@@ -15,10 +15,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from bot.config import ConfigError, Settings
-from bot.system import bot_process, handover, remote_server
-from bot.system.handover import HandoverError
-from bot.system.remote_server import RemoteError
+from pylos.lobby.dispatch.shared.config import ConfigError, Settings
+from pylos.gate.side_gate.vps import bot_process, remote_server
+from pylos.lobby.dispatch.handover import handover
+from pylos.lobby.dispatch.handover.handover import HandoverError
+from pylos.gate.side_gate.vps.remote_server import RemoteError
 
 log = logging.getLogger(__name__)
 

@@ -120,8 +120,8 @@ def discover(external_dir: Path | None = None) -> ToolRegistry:
         for tool in getattr(module, "TOOLS", []):
             registry.register(tool)
     if external_dir is None:
-        from bot.config import APP_HOME
-        from bot.userdata_paths import TOOLS_REL
+        from pylos.lobby.dispatch.shared.config import APP_HOME
+        from pylos.lobby.dispatch.shared.userdata_paths import TOOLS_REL
 
         external_dir = APP_HOME / TOOLS_REL
     if external_dir.is_dir():

@@ -6,10 +6,10 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.config import ConfigError, Settings
-from bot.system.log_files import RedactFilter
-from bot.zalo.receive_webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
-from bot.zalo import ZaloClient, ZaloError
+from pylos.lobby.dispatch.shared.config import ConfigError, Settings
+from pylos.gate.main_gate.logs.log_files import RedactFilter
+from pylos.gate.main_gate.zalo.receive_webhook import SECRET_HEADER, WEBHOOK_PATH, create_app
+from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
 
 TOKEN = "123456:SECRET-TOKEN"
 

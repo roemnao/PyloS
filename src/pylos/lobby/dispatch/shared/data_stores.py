@@ -14,10 +14,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from bot.userdata_paths import done_file
-from bot.storage.text_files import JsonLinesFile, JsonObjectFile
-from bot.core.text_fold import fold
-from bot.core.vietnam_time import now_ms, today_vn
+from pylos.lobby.dispatch.shared.userdata_paths import done_file
+from pylos.lobby.dispatch.shared.text_files import JsonLinesFile, JsonObjectFile
+from pylos.gate.fence.speech_limit.text_fold import fold
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms, today_vn
 
 MODE_ALL = "all"
 MODE_DEFAULT = "default"

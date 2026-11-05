@@ -80,7 +80,7 @@ def app_home() -> Path:
 
     - Biến môi trường ZALOBOT_HOME nếu có.
     - Chạy từ exe: thư mục chứa exe; nếu không ghi được (ví dụ C:\\Program Files) thì %LOCALAPPDATA%\\ZaloAssistantBot.
-    - Chạy từ mã nguồn: thư mục dự án (src/bot/userdata_paths.py -> lên 2 cấp).
+    - Chạy từ mã nguồn: thư mục dự án (đi ngược từ file này tới thư mục có pyproject.toml).
     """
     override = os.environ.get("ZALOBOT_HOME", "").strip()
     if override:
@@ -90,7 +90,8 @@ def app_home() -> Path:
         if _writable(beside_exe):
             return beside_exe
         return Path(os.environ.get("LOCALAPPDATA") or Path.home()) / APP_NAME
-    return Path(__file__).resolve().parents[2]
+    here = Path(__file__).resolve()
+    return next((p for p in here.parents if (p / "pyproject.toml").is_file()), here.parents[5])
 
 
 APP_HOME = app_home()
@@ -144,7 +145,7 @@ def needs_migration(home: Path = APP_HOME) -> bool:
 
 
 def _old_version_running(home: Path) -> bool:
-    from bot.storage.process_lock import AlreadyRunning, InstanceLock
+    from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
 
     for rel in _LEGACY_LOCKS:
         if not (home / rel).exists():
@@ -187,7 +188,7 @@ def _restore_git_defaults(home: Path) -> None:
     "Cập nhật" sau gỡ được workspace/, tools/ mà git không từ chối vì có thay đổi ở máy."""
     if not (home / ".git").exists():
         return
-    from bot.system.bot_process import run_hidden
+    from pylos.gate.side_gate.vps.bot_process import run_hidden
 
     tracked = [rel for rel in _GIT_TRACKED_DEFAULTS if (home / rel).exists()]
     if not tracked:
@@ -211,7 +212,7 @@ def migrate_legacy(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
     """
     if not needs_migration(home):
         return []
-    from bot.storage.process_lock import AlreadyRunning, InstanceLock
+    from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
 
     guard = InstanceLock(home / ".migrate.lock")
     try:

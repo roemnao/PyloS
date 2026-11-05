@@ -14,7 +14,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from bot.config import PROJECT_ROOT, is_frozen
+from pylos.lobby.dispatch.shared.config import PROJECT_ROOT, is_frozen
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ def unavailable_reason() -> str | None:
 
 
 def _run(*args: str, timeout: float = 120) -> str:
-    from bot.system.bot_process import run_hidden  # ẩn cửa sổ cmd khi chạy từ pythonw / exe
+    from pylos.gate.side_gate.vps.bot_process import run_hidden
 
     try:
         done = run_hidden(list(args), timeout=timeout, cwd=PROJECT_ROOT)

@@ -7,8 +7,8 @@ import json
 import pytest
 import requests
 
-from bot.zalo import qr_login
-from bot.zalo.qr_login import QrLogin, QrLoginError, ZaloSession, apply_session, cookies_for
+from pylos.gate.main_gate.zalo import qr_login
+from pylos.gate.main_gate.zalo.qr_login import QrLogin, QrLoginError, ZaloSession, apply_session, cookies_for
 
 PNG = base64.b64encode(b"\x89PNG fake").decode()
 

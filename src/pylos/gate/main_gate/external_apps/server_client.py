@@ -21,8 +21,8 @@ TIMEOUT = 30.0
 
 def env_values() -> dict[str, str]:
     """settings.env + biến môi trường (giao diện quản lý không nạp settings.env vào os.environ như bot)."""
-    from bot.config import APP_HOME
-    from bot.userdata_paths import ENV_REL
+    from pylos.lobby.dispatch.shared.config import APP_HOME
+    from pylos.lobby.dispatch.shared.userdata_paths import ENV_REL
 
     values = {k: v for k, v in dotenv_values(APP_HOME / ENV_REL).items() if v is not None}
     return {**values, **os.environ}

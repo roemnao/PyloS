@@ -9,7 +9,7 @@ import os
 import sys
 from pathlib import Path
 
-from bot.config import APP_NAME, is_frozen
+from pylos.lobby.dispatch.shared.config import APP_NAME, is_frozen
 
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 VALUE_NAME = APP_NAME

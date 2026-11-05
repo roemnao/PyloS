@@ -13,8 +13,8 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from bot.config import ConfigError, Settings
-from bot.storage import atomic_write_text
+from pylos.lobby.dispatch.shared.config import ConfigError, Settings
+from pylos.lobby.dispatch.shared.storage import atomic_write_text
 
 
 @dataclass(frozen=True)

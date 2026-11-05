@@ -4,9 +4,9 @@ import json
 
 from conftest import GROUP, event
 
-from bot.agent import ToolContext
+from pylos.residential.residents.pylos import ToolContext
 from pylos.lobby.office.agent_tools.read_chat_memory import _read
-from bot.storage import MemoryDataStore
+from pylos.lobby.dispatch.shared.storage import MemoryDataStore
 
 
 async def send(bot, payload) -> None:

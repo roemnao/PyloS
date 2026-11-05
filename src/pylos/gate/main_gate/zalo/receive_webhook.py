@@ -13,7 +13,7 @@ from typing import Any, Awaitable, Callable
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from bot.storage import StateStore
+from pylos.lobby.dispatch.shared.storage import StateStore
 
 log = logging.getLogger(__name__)
 

@@ -22,10 +22,10 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from bot.config import Settings
-from bot.core.vietnam_time import now_ms, now_vn
-from bot.system import bot_process
-from bot.userdata_paths import CONSOLE_TEST_DIR, HANDOVER_BACKUP_DIR, PROCESSED_IDS_FILE
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms, now_vn
+from pylos.gate.side_gate.vps import bot_process
+from pylos.lobby.dispatch.shared.userdata_paths import CONSOLE_TEST_DIR, HANDOVER_BACKUP_DIR, PROCESSED_IDS_FILE
 
 MAX_FILES = 100_000
 MAX_FILE_BYTES = 200 * 1024 * 1024

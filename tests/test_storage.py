@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from bot.storage import GroupStore, HistoryStore, JsonLinesFile, JsonObjectFile, SeenStore, UsageStore
-from bot.storage.process_lock import AlreadyRunning, InstanceLock
+from pylos.lobby.dispatch.shared.storage import GroupStore, HistoryStore, JsonLinesFile, JsonObjectFile, SeenStore, UsageStore
+from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
 
 import pytest
 
@@ -89,7 +89,7 @@ def test_usage_store_shared_between_processes(tmp_path):
 
 
 def test_stats_activity_and_failed_stores(tmp_path):
-    from bot.storage import ActivityStore, FailedStore, StatsStore
+    from pylos.lobby.dispatch.shared.storage import ActivityStore, FailedStore, StatsStore
 
     stats = StatsStore(tmp_path / "daily_stats.txt")
     stats.incr("received")
@@ -124,7 +124,7 @@ def test_instance_lock_blocks_second_instance(tmp_path):
 
 
 def test_group_leaders_persist_and_old_records_load(tmp_path):
-    from bot.storage import GroupStore
+    from pylos.lobby.dispatch.shared.storage import GroupStore
     path = tmp_path / "groups.txt"
     path.write_text('{"chat_id": "g", "allowed": true, "mode": "all"}\n', encoding="utf-8")
     store = GroupStore(path)
@@ -141,7 +141,7 @@ def test_group_leaders_persist_and_old_records_load(tmp_path):
 
 
 def test_group_teams_and_leader_added_by(tmp_path):
-    from bot.storage import GroupStore
+    from pylos.lobby.dispatch.shared.storage import GroupStore
     path = tmp_path / "groups.txt"
     store = GroupStore(path)
     store.set_leaders("g", add=["a", "b"], by="owner")

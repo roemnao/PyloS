@@ -26,19 +26,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, discover
-from bot.core.message_handler import Bot
-from bot.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
-from bot.system.log_files import setup_logging
-from bot.storage import StateStore
-from bot.storage.process_lock import AlreadyRunning, InstanceLock
-from bot.core.vietnam_time import now_ms
-from bot.zalo import ZaloClient, ZaloError
-from bot.userdata_paths import (
-    BOT_STATUS_FILE,
-    CONSOLE_TEST_DIR,
-    ZALO_LOGIN_QR_FILE,
-)
+from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, discover
+from pylos.residential.residents.pylos.message_handler import Bot
+from pylos.lobby.dispatch.shared.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
+from pylos.gate.main_gate.logs.log_files import setup_logging
+from pylos.lobby.dispatch.shared.storage import StateStore
+from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
+from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CONSOLE_TEST_DIR, ZALO_LOGIN_QR_FILE
 
 log = logging.getLogger("bot")
 
@@ -64,7 +60,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
 
 async def _run(settings: Settings) -> int:
     if settings.personal:
-        from bot.zalo.personal_account import PersonalZalo
+        from pylos.gate.main_gate.zalo.personal_account import PersonalZalo
 
         zalo = PersonalZalo(settings)
     else:
@@ -113,7 +109,7 @@ async def _run(settings: Settings) -> int:
         stale.unlink(missing_ok=True)
         log.info("Đã xoá %s (thông số không còn lấy từ web, hãy đặt ở trang Cài đặt)", stale.name)
 
-    from bot.system import bot_process
+    from pylos.gate.side_gate.vps import bot_process
 
     flag = bot_process.stop_flag(settings)
     flag.unlink(missing_ok=True)  # cờ cũ còn sót lại không được làm bot tắt ngay khi vừa bật
@@ -123,7 +119,7 @@ async def _run(settings: Settings) -> int:
         if settings.receive_mode == "webhook":
             import uvicorn
 
-            from bot.zalo.receive_webhook import WEBHOOK_PATH, create_app
+            from pylos.gate.main_gate.zalo.receive_webhook import WEBHOOK_PATH, create_app
 
             app = create_app(settings.webhook_secret, bot.handle_payload, bot.state)
             log.info("Webhook lắng nghe tại http://%s:%d%s", settings.webhook_host, settings.webhook_port, WEBHOOK_PATH)
@@ -138,7 +134,7 @@ async def _run(settings: Settings) -> int:
             def request_stop() -> None:
                 stop.set()
         else:
-            from bot.zalo.receive_polling import run_polling
+            from pylos.gate.main_gate.zalo.receive_polling import run_polling
 
             main_task = asyncio.create_task(run_polling(zalo, bot.handle_payload, bot.state, stop))
 
@@ -247,8 +243,8 @@ def _health(settings: Settings, max_age_seconds: int) -> int:
 def _zalo_login(settings: Settings, open_image: bool) -> int:
     import webbrowser
 
-    from bot.system import bot_process
-    from bot.zalo.qr_login import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
+    from pylos.gate.side_gate.vps import bot_process
+    from pylos.gate.main_gate.zalo.qr_login import EXPIRED, WAITING_SCAN, QrLogin, QrLoginError, apply_session, save_qr_png
 
     qr_path = settings.system_dir / ZALO_LOGIN_QR_FILE
 
@@ -286,7 +282,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     if session.user_id:
         print(f"ID của acc phụ: {session.user_id}")
     if bot_process.is_running(settings):
-        from bot.ui.admin import settings_file
+        from pylos.management.owner.admin_web import settings_file
 
         # Đọc lại .env: RECEIVE_MODE vừa đổi, còn os.environ vẫn giữ giá trị cũ.
         fresh = Settings.from_env({**os.environ, **settings_file.read_values(ENV_FILE)})
@@ -299,7 +295,8 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
 
 
 def _update(settings: Settings) -> int:
-    from bot.system import bot_process, auto_update
+    from pylos.gate.side_gate.vps import bot_process
+    from pylos.lobby.dispatch.updater import auto_update
 
     try:
         result = auto_update.update()
@@ -320,7 +317,7 @@ GOOD_AFTER_SECONDS = 90
 
 
 def _mark_good(system_dir) -> None:
-    from bot.system import auto_update
+    from pylos.lobby.dispatch.updater import auto_update
 
     try:
         auto_update.mark_good(system_dir)
@@ -329,7 +326,8 @@ def _mark_good(system_dir) -> None:
 
 
 def _rollback(settings: Settings, resume: bool, status: bool) -> int:
-    from bot.system import bot_process, auto_update
+    from pylos.gate.side_gate.vps import bot_process
+    from pylos.lobby.dispatch.updater import auto_update
 
     system_dir = settings.system_dir
     if status:
@@ -353,8 +351,8 @@ def _rollback(settings: Settings, resume: bool, status: bool) -> int:
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     import webbrowser
 
-    from bot.system import bot_process
-    from bot.system.first_run_setup import ensure_admin_token
+    from pylos.gate.side_gate.vps import bot_process
+    from pylos.lobby.dispatch.shared.first_run_setup import ensure_admin_token
 
     env_path = ENV_FILE
     if action in ("run", "start", "restart"):
@@ -392,7 +390,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
 
         import uvicorn
 
-        from bot.ui.admin.admin_web_server import AdminContext, create_app
+        from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
 
         app = create_app(AdminContext(env_path, PROJECT_ROOT), settings.admin_port)
         print(f"Giao diện quản lý: {url}\nMã truy cập: ADMIN_TOKEN trong {env_path}\nCtrl+C để dừng.", flush=True)
@@ -414,8 +412,8 @@ def _prepare_home(command: str) -> str | None:
     Trả về thông báo lỗi nếu chưa chuyển được vì bản cũ còn chạy (không được tạo userdata/ mới lúc đó,
     kẻo dữ liệu cũ bị bỏ lại).
     """
-    from bot import userdata_paths
-    from bot.system.first_run_setup import ensure_home
+    from pylos.lobby.dispatch.shared import userdata_paths
+    from pylos.lobby.dispatch.shared.first_run_setup import ensure_home
 
     # Sau khi bấm Cập nhật, bản cũ của ứng dụng cần vài giây để thoát: ứng dụng mới chờ lâu hơn bot.
     userdata_paths.migrate_legacy(wait_old=30.0 if command == "gui" else 5.0)
@@ -497,14 +495,14 @@ def main(argv: list[str] | None = None) -> int:
     blocked = _prepare_home(command)
     if blocked:
         if command == "gui":
-            from bot.ui.desktop.desktop_app import _message_box
+            from pylos.gate.side_gate.desktop.desktop_app import _message_box
 
             _message_box(blocked)
         else:
             print(blocked, file=sys.stderr)
         return EXIT_CONFIG
     if command == "gui":
-        from bot.ui.desktop.desktop_app import run_gui
+        from pylos.gate.side_gate.desktop.desktop_app import run_gui
 
         return run_gui(tray_only=getattr(args, "tray", False), start_bot=getattr(args, "start_bot", False),
                        after_update=getattr(args, "after_update", False))
@@ -539,7 +537,7 @@ def main(argv: list[str] | None = None) -> int:
         return _rollback(settings, args.resume, args.status)
 
     if command == "gateway":
-        from bot.system import bot_process
+        from pylos.gate.side_gate.vps import bot_process
 
         try:
             if args.action == "status":
@@ -577,7 +575,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if command == "run":
-        from bot.system import bot_process
+        from pylos.gate.side_gate.vps import bot_process
 
         standby = bot_process.standby_info(settings)
         if standby:
@@ -594,7 +592,7 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_ALREADY_RUNNING
     exit_code = 0
     if command == "run":
-        from bot.system import bot_process
+        from pylos.gate.side_gate.vps import bot_process
 
         bot_process.write_pid(settings)
     try:
@@ -615,7 +613,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("Đã dừng bot")
     finally:
         if command == "run":
-            from bot.system import bot_process
+            from pylos.gate.side_gate.vps import bot_process
 
             bot_process.clear_pid(settings)
         lock.release()

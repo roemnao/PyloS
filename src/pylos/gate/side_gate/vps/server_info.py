@@ -13,8 +13,9 @@ import subprocess
 import time
 from typing import Any
 
-from bot.config import PROJECT_ROOT, Settings
-from bot.system import auto_update, bot_process
+from pylos.lobby.dispatch.shared.config import PROJECT_ROOT, Settings
+from pylos.lobby.dispatch.updater import auto_update
+from pylos.gate.side_gate.vps import bot_process
 
 UNITS = ("pylos-bot", "pylos-admin", "pylos-update.timer")
 

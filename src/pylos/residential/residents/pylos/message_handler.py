@@ -8,39 +8,18 @@ import re
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from bot.agent import Agent, PromptBuilder, ToolContext, Turn
-from bot.core.owner_commands import CommandHandler, parse_command
-from bot.core.roles import LEADER, OWNER, role_of
-from bot.config import Settings
-from bot.core.message_filter import Decision, MessageFilter
-from bot.core.mention_tags import add_tags
-from bot.core.rate_limiter import RateLimiter
-from bot.storage import (
-    MODE_ALL,
-    ActivityStore,
-    FailedStore,
-    GroupStore,
-    HistoryStore,
-    MemoryDataStore,
-    SeenStore,
-    StateStore,
-    StatsStore,
-    UsageStore,
-)
-from bot.core.reply_formatting import split_message, to_plain_text
-from bot.core.vietnam_time import now_ms
-from bot.zalo import IncomingMessage, ZaloError, parse_updates
-from bot.userdata_paths import (
-    BOT_STATUS_FILE,
-    CHAT_ACTIVITY_FILE,
-    DAILY_STATS_FILE,
-    FAILED_REPLIES_FILE,
-    GROUP_SETTINGS_FILE,
-    MEMORYDATA_DIR,
-    PROCESSED_IDS_FILE,
-    SESSION_HISTORY_DIR,
-    TOKEN_USAGE_FILE,
-)
+from pylos.residential.residents.pylos import Agent, PromptBuilder, ToolContext, Turn
+from pylos.gate.side_gate.owner_commands.owner_commands import CommandHandler, parse_command
+from pylos.lobby.dispatch.permissions.roles import LEADER, OWNER, role_of
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.gate.fence.speech_limit.message_filter import Decision, MessageFilter
+from pylos.gate.main_gate.zalo.mention_tags import add_tags
+from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
+from pylos.lobby.dispatch.shared.storage import MODE_ALL, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
+from pylos.gate.main_gate.zalo.reply_formatting import split_message, to_plain_text
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, parse_updates
+from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, MEMORYDATA_DIR, PROCESSED_IDS_FILE, SESSION_HISTORY_DIR, TOKEN_USAGE_FILE
 
 log = logging.getLogger(__name__)
 
@@ -207,7 +186,7 @@ class Bot:
 
     async def _maybe_link(self, msg: IncomingMessage) -> bool:
         """Người dùng nhắn mã lấy trong web app: báo web liên kết Zalo này với Gmail của họ. Không tốn token."""
-        from bot.system import server_client
+        from pylos.gate.main_gate.external_apps import server_client
 
         match = LINK_CODE.match(msg.text or "")
         if not match or not server_client.configured():

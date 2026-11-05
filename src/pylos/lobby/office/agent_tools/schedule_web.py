@@ -20,7 +20,7 @@ from typing import Any
 from urllib.parse import quote
 
 from pylos.lobby.office.agent_tools import Tool, ToolContext
-from bot.system.server_client import DEFAULT_URL, base_url, env_values, request, server_config  # noqa: F401
+from pylos.gate.main_gate.external_apps.server_client import DEFAULT_URL, base_url, env_values, request, server_config
 
 log = logging.getLogger(__name__)
 

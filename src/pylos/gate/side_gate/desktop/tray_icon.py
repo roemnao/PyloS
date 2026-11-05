@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 
 import pystray
 
-from bot.config import APP_NAME
-from bot.ui.desktop import windows_autostart
-from bot.ui.desktop.icon_images import make_icon
+from pylos.lobby.dispatch.shared.config import APP_NAME
+from pylos.gate.side_gate.desktop import windows_autostart
+from pylos.gate.side_gate.desktop.icon_images import make_icon
 
 if TYPE_CHECKING:
-    from bot.ui.desktop.desktop_app import Desktop
+    from pylos.gate.side_gate.desktop.desktop_app import Desktop
 
 log = logging.getLogger(__name__)
 

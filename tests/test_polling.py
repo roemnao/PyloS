@@ -4,9 +4,9 @@ import asyncio
 
 import httpx
 
-from bot.zalo import receive_polling
-from bot.storage import StateStore
-from bot.zalo import ZaloClient
+from pylos.gate.main_gate.zalo import receive_polling
+from pylos.lobby.dispatch.shared.storage import StateStore
+from pylos.gate.main_gate.zalo import ZaloClient
 
 
 async def test_polling_delivers_updates_and_survives_errors(tmp_path, monkeypatch):

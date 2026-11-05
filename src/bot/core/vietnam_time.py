@@ -1,4 +1,6 @@
-"""Biển chỉ đường: mã thật đã dời sang pylos.lobby.dispatch.clock (giữ để import cũ còn chạy)."""
+"""Compat: tool tự viết trong userdata/data/custom_tools vẫn `from bot.core.vietnam_time import now_vn`. Mã thật ở pylos.lobby.dispatch.clock.vietnam_time."""
 
-from pylos.lobby.dispatch.clock.vietnam_time import *  # noqa: F401,F403
-from pylos.lobby.dispatch.clock.vietnam_time import VN_TZ, now_ms, now_vn, today_vn  # noqa: F401
+import importlib
+import sys
+
+sys.modules[__name__] = importlib.import_module("pylos.lobby.dispatch.clock.vietnam_time")

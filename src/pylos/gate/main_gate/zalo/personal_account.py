@@ -20,13 +20,13 @@ import time
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
-from bot.config import ConfigError, Settings
-from bot.core.mention_tags import build_mentions
-from bot.storage import ActivityStore, MemoryDataStore, StateStore
-from bot.core.vietnam_time import now_ms
-from bot.zalo.bot_platform_api import ZaloError
-from bot.zalo.incoming_message import TEXT_EVENT, IncomingMessage
-from bot.userdata_paths import CHAT_ACTIVITY_FILE, MEMORYDATA_DIR
+from pylos.lobby.dispatch.shared.config import ConfigError, Settings
+from pylos.gate.main_gate.zalo.mention_tags import build_mentions
+from pylos.lobby.dispatch.shared.storage import ActivityStore, MemoryDataStore, StateStore
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.gate.main_gate.zalo.bot_platform_api import ZaloError
+from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, IncomingMessage
+from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE, MEMORYDATA_DIR
 
 log = logging.getLogger(__name__)
 

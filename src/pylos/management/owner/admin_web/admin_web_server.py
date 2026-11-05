@@ -28,39 +28,19 @@ from fastapi.staticfiles import StaticFiles
 
 import httpx
 
-from bot.system import bot_process, handover, handover_job, remote_server
-from bot.ui.admin import google_login
-from bot.ui.admin.google_login import TTL_SECONDS, PendingLogins
-from bot.ui.admin.admin_sessions import AdminDevices, AdminSessions
-from bot.ui.admin import settings_file
-from bot.agent import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
-from bot.config import ConfigError, Settings
-from bot.storage import (
-    MODES,
-    ActivityStore,
-    FailedStore,
-    GroupStore,
-    HistoryStore,
-    MemoryDataStore,
-    StatsStore,
-    UsageStore,
-    atomic_write_text,
-)
-from bot.core.reply_formatting import split_message
-from bot.core.vietnam_time import now_ms, now_vn
-from bot.zalo import ZaloClient, ZaloError
-from bot.userdata_paths import (
-    ADMIN_DEVICES_FILE,
-    CHAT_ACTIVITY_FILE,
-    DAILY_STATS_FILE,
-    FAILED_REPLIES_FILE,
-    GROUP_SETTINGS_FILE,
-    MEMORYDATA_DIR,
-    PENDING_UPDATES_FILE,
-    SESSION_HISTORY_DIR,
-    TOKEN_USAGE_FILE,
-    UPDATE_REQUEST,
-)
+from pylos.gate.side_gate.vps import bot_process, remote_server
+from pylos.lobby.dispatch.handover import handover, handover_job
+from pylos.management.owner.admin_web import google_login
+from pylos.management.owner.admin_web.google_login import TTL_SECONDS, PendingLogins
+from pylos.management.owner.admin_web.admin_sessions import AdminDevices, AdminSessions
+from pylos.management.owner.admin_web import settings_file
+from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
+from pylos.lobby.dispatch.shared.config import ConfigError, Settings
+from pylos.lobby.dispatch.shared.storage import MODES, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, StatsStore, UsageStore, atomic_write_text
+from pylos.gate.main_gate.zalo.reply_formatting import split_message
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms, now_vn
+from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
+from pylos.lobby.dispatch.shared.userdata_paths import ADMIN_DEVICES_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, MEMORYDATA_DIR, PENDING_UPDATES_FILE, SESSION_HISTORY_DIR, TOKEN_USAGE_FILE, UPDATE_REQUEST
 
 log = logging.getLogger(__name__)
 
@@ -302,7 +282,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.get("/api/server")
     def server() -> dict[str, Any]:
-        from bot.system import server_info
+        from pylos.gate.side_gate.vps import server_info
 
         settings = ctx.settings()
         return {**server_info.collect(settings), "bot": bot_process.status_info(settings)}
@@ -629,7 +609,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.post("/api/update")
     def update_app() -> dict[str, Any]:
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         reason = auto_update.unavailable_reason()
         if reason:
@@ -658,7 +638,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.get("/api/rollback")
     def rollback_status() -> dict[str, Any]:
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         system_dir = ctx.settings().system_dir
         return {"last_good": auto_update.last_good(system_dir), "held": auto_update.hold_state(system_dir)}
@@ -666,7 +646,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.post("/api/rollback")
     def rollback_app(body: dict[str, Any] = Body(default={})) -> dict[str, Any]:
         """Quay về bản tốt (hoặc `{"resume": true}` để nhận code mới). Dùng khi một bản cập nhật làm bot không lên."""
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         settings = ctx.settings()
         try:
@@ -709,7 +689,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     @app.post("/api/zalo-login/start")
     def zalo_login_start() -> dict[str, Any]:
         try:
-            from bot.zalo import qr_login
+            from pylos.gate.main_gate.zalo import qr_login
         except ImportError:
             raise HTTPException(400, "Thiếu thư viện. Cài bằng: pip install -e \".[personal]\"") from None
         current = qr["login"]

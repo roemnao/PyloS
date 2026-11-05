@@ -5,11 +5,11 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.system import bot_process
-from bot.ui.admin import settings_file
-from bot.ui.admin.admin_web_server import AdminContext, create_app
-from bot.storage import FailedStore, GroupStore, HistoryStore, JsonObjectFile
-from bot.core.vietnam_time import today_vn
+from pylos.gate.side_gate.vps import bot_process
+from pylos.management.owner.admin_web import settings_file
+from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
+from pylos.lobby.dispatch.shared.storage import FailedStore, GroupStore, HistoryStore, JsonObjectFile
+from pylos.lobby.dispatch.clock.vietnam_time import today_vn
 
 ADMIN_TOKEN = "admin-token-123456"
 ZALO_TOKEN = "999:zalo-secret-token"
@@ -232,7 +232,7 @@ def test_logs_group_tracebacks_and_filter(client, tmp_path):
     (tmp_path / "logs").mkdir()
     (tmp_path / "logs" / "bot.log").write_text(
         "2026-10-22 07:00:00,001 INFO bot: khởi động\n"
-        "2026-10-22 07:00:01,001 ERROR bot.core.message_handler: hỏng\nTraceback (most recent call last):\n  File x\n"
+        "2026-10-22 07:00:01,001 ERROR pylos.residential.residents.pylos.message_handler: hỏng\nTraceback (most recent call last):\n  File x\n"
         "2026-10-22 07:00:02,001 WARNING bot: cảnh báo\n",
         encoding="utf-8",
     )
@@ -263,7 +263,7 @@ def test_playground_uses_echo_without_key_and_keeps_group_history_clean(client, 
 
 
 def test_tools_list_has_only_builtin_tools_by_default(client):
-    from bot.agent import discover
+    from pylos.residential.residents.pylos import discover
 
     names = [t["name"] for t in client.get("/api/tools", headers=AUTH).json()["tools"]]
     assert names == discover().names() and "doc_memorydata" in names
@@ -297,7 +297,7 @@ def test_status_reports_alerts_and_stats(client, tmp_path):
 def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_path, monkeypatch):
     import time
 
-    from bot.zalo import qr_login
+    from pylos.gate.main_gate.zalo import qr_login
 
     class FakeLogin:
         def __init__(self, *args, **kwargs):
@@ -328,7 +328,7 @@ def test_zalo_qr_login_saves_session_and_enables_personal(client, env_path, tmp_
 
 
 def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, monkeypatch):
-    from bot.system import auto_update
+    from pylos.lobby.dispatch.updater import auto_update
 
     (tmp_path / "userdata" / "system").mkdir(parents=True, exist_ok=True)
     (tmp_path / "userdata" / "system" / "pending_updates.txt").write_text("3", encoding="utf-8")
@@ -344,7 +344,7 @@ def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, mo
 
 
 def test_memorydata_api_shows_filter_result_and_respects_history_switch(client, env_path, tmp_path):
-    from bot.storage import MemoryDataStore
+    from pylos.lobby.dispatch.shared.storage import MemoryDataStore
 
     store = MemoryDataStore(tmp_path / "data" / "memorydata")
     store.add_user("g1", msg_id="1", uid="u", name="An", text="tán gẫu", is_text=True,
@@ -368,7 +368,7 @@ def test_auth_endpoints_open_but_everything_else_needs_a_token(client):
 
 
 def test_session_tokens_expire_and_are_capped():
-    from bot.ui.admin.admin_sessions import MAX_SESSIONS, AdminSessions
+    from pylos.management.owner.admin_web.admin_sessions import MAX_SESSIONS, AdminSessions
 
     now = [0.0]
     sessions = AdminSessions(ttl=100, clock=lambda: now[0])

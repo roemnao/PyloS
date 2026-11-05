@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from bot.storage import GroupStore
+from pylos.lobby.dispatch.shared.storage import GroupStore
 
 BASIC = "basic"
 LEADER = "leader"

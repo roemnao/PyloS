@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from bot.agent import GeminiAgent, PromptBuilder, Tool, ToolContext, ToolRegistry, Turn, discover
-from bot.agent.gemini_agent import EMPTY_REPLY, TOO_MANY_STEPS
+from pylos.residential.residents.pylos import GeminiAgent, PromptBuilder, Tool, ToolContext, ToolRegistry, Turn, discover
+from pylos.residential.residents.pylos.gemini_agent import EMPTY_REPLY, TOO_MANY_STEPS
 
 CTX = ToolContext("g", "u", "An", is_owner=False)
 

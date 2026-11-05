@@ -9,7 +9,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from bot.agent.tools import ToolContext, ToolRegistry
+from pylos.lobby.office.agent_tools import ToolContext, ToolRegistry
 
 log = logging.getLogger(__name__)
 

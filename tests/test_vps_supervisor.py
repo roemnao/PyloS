@@ -5,9 +5,9 @@ import subprocess
 import pytest
 from fastapi.testclient import TestClient
 
-from bot.config import Settings
-from bot.system import bot_process, server_info
-from bot.ui.admin.admin_web_server import AdminContext, create_app
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.gate.side_gate.vps import bot_process, server_info
+from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
 
 TOKEN = "admin-token-123456"
 BASE = "http://127.0.0.1:8081"

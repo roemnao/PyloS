@@ -19,18 +19,12 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
-from bot.system import bot_process, remote_server
-from bot.system.first_run_setup import ensure_admin_token, ensure_home
-from bot.config import APP_HOME, ENV_FILE, ConfigError, Settings
-from bot.system.log_files import setup_logging
-from bot.storage.process_lock import AlreadyRunning, InstanceLock
-from bot.userdata_paths import (
-    APP_WINDOW_PROFILE_DIR,
-    GUI_LOCK_FILE,
-    PENDING_UPDATES_FILE,
-    SHOW_WINDOW_REQUEST,
-    UPDATE_REQUEST,
-)
+from pylos.gate.side_gate.vps import bot_process, remote_server
+from pylos.lobby.dispatch.shared.first_run_setup import ensure_admin_token, ensure_home
+from pylos.lobby.dispatch.shared.config import APP_HOME, ENV_FILE, ConfigError, Settings
+from pylos.gate.main_gate.logs.log_files import setup_logging
+from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+from pylos.lobby.dispatch.shared.userdata_paths import APP_WINDOW_PROFILE_DIR, GUI_LOCK_FILE, PENDING_UPDATES_FILE, SHOW_WINDOW_REQUEST, UPDATE_REQUEST
 
 log = logging.getLogger("bot.ui.desktop")
 
@@ -93,7 +87,7 @@ class Desktop:
 
         import uvicorn
 
-        from bot.ui.admin.admin_web_server import AdminContext, create_app
+        from pylos.management.owner.admin_web.admin_web_server import AdminContext, create_app
 
         self.port = _free_port(self.settings.admin_port)
         app = create_app(AdminContext(ENV_FILE, APP_HOME), self.port)
@@ -162,7 +156,7 @@ class Desktop:
 
     def settings_now(self) -> Settings:
         """Đọc lại .env (có thể vừa sửa ở trang Cài đặt)."""
-        from bot.ui.admin.admin_web_server import AdminContext
+        from pylos.management.owner.admin_web.admin_web_server import AdminContext
 
         return AdminContext(ENV_FILE, APP_HOME).settings()
 
@@ -189,7 +183,7 @@ class Desktop:
     # ---------- cập nhật (chạy từ mã nguồn) ----------
 
     def check_updates(self) -> None:
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         try:
             self.updates_pending = auto_update.pending_commits()
@@ -206,7 +200,7 @@ class Desktop:
         threading.Thread(target=self._update_app, name="update", daemon=True).start()
 
     def _update_app(self) -> None:
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         if self.busy:
             return
@@ -265,7 +259,7 @@ class Desktop:
 
     def move_bot(self, *_: Any) -> None:
         """Chuyển bot sang VPS (nếu đang ở máy này) hoặc về máy này, như nút ở trang Máy chủ."""
-        from bot.system import handover_job
+        from pylos.lobby.dispatch.handover import handover_job
 
         to = handover_job.LOCAL if self.vps.get("running") else handover_job.VPS
         try:
@@ -328,7 +322,7 @@ class Desktop:
 
     @property
     def can_update(self) -> bool:
-        from bot.system import auto_update
+        from pylos.lobby.dispatch.updater import auto_update
 
         return auto_update.unavailable_reason() is None
 
@@ -381,10 +375,10 @@ class Desktop:
 
     def run(self) -> int:
         self.start_admin_server()
-        from bot.ui.desktop import windows_autostart
+        from pylos.gate.side_gate.desktop import windows_autostart
 
         windows_autostart.migrate()
-        from bot.ui.desktop.tray_icon import Tray
+        from pylos.gate.side_gate.desktop.tray_icon import Tray
 
         self.tray = Tray(self)
         threading.Thread(target=self.tray.run, name="tray", daemon=True).start()
@@ -438,7 +432,7 @@ def update_flag_file(settings: Settings) -> Path:
 
 
 def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool = False) -> int:
-    from bot import userdata_paths
+    from pylos.lobby.dispatch.shared import userdata_paths
 
     # Vừa cập nhật và chuyển dữ liệu sang userdata/: bot cũ đã tắt trong lúc chuyển, bật lại luôn.
     start_bot = start_bot or (after_update and bool(userdata_paths.LAST_MIGRATED))

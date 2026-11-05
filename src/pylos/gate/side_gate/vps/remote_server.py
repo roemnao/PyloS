@@ -11,7 +11,7 @@ from typing import Any, AsyncIterator
 
 import httpx
 
-from bot.config import Settings
+from pylos.lobby.dispatch.shared.config import Settings
 
 TIMEOUT = 30.0
 # Phần đầu đường dẫn không được chuyển tiếp: chính proxy này, đăng nhập, và việc đặt khoá bí mật (khoá của VPS

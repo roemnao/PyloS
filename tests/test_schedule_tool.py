@@ -5,9 +5,9 @@ import json
 import httpx
 import pytest
 
-from bot.agent import ToolContext
+from pylos.residential.residents.pylos import ToolContext
 from pylos.lobby.office.agent_tools import schedule_web
-from bot.system import server_client
+from pylos.gate.main_gate.external_apps import server_client
 
 CTX = ToolContext("g1", "u1", "An", True)
 
@@ -48,7 +48,7 @@ def test_base_url_accepts_site_or_api_address():
 
 
 def test_tools_only_registered_with_key(monkeypatch, tmp_path):
-    monkeypatch.setattr("bot.config.APP_HOME", tmp_path)
+    monkeypatch.setattr("pylos.lobby.dispatch.shared.config.APP_HOME", tmp_path)
     monkeypatch.delenv("SCHEDULE_API_KEY", raising=False)
     assert schedule_web._tools() == []
     monkeypatch.setenv("SCHEDULE_API_KEY", "k")

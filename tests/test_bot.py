@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from conftest import GROUP, OWNER, event
 
-from bot.core.message_handler import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
-from bot.core.vietnam_time import now_ms
+from pylos.residential.residents.pylos.message_handler import BUDGET_NOTICE, ERROR_REPLY, NON_TEXT_REPLY
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 
 
 async def send(bot, payload) -> None:
@@ -303,7 +303,7 @@ async def test_messages_in_same_chat_are_processed_in_order(make_bot, agent):
         text = turns[-1].text
         await asyncio.sleep(0.02 if text == "1" else 0)
         order.append(text)
-        from bot.agent import AgentReply
+        from pylos.residential.residents.pylos import AgentReply
 
         return AgentReply("ok", 1)
 
@@ -352,9 +352,9 @@ async def test_empty_bot_names_disables_name_calls(make_bot, agent):
 
 
 async def test_tagging_personal_account_answers_and_strips_tag(tmp_path, agent):
-    from bot.agent import PromptBuilder
-    from bot.core.message_handler import Bot
-    from bot.zalo.personal_account import to_incoming
+    from pylos.residential.residents.pylos import PromptBuilder
+    from pylos.residential.residents.pylos.message_handler import Bot
+    from pylos.gate.main_gate.zalo.personal_account import to_incoming
 
     from conftest import FakeZalo, make_settings
 
@@ -423,7 +423,7 @@ async def test_assign_allowed_all_still_opens_everyone(make_bot, agent):
 
 
 def test_pick_people_prefers_real_tags_and_skips_bot():
-    from bot.core.owner_commands import _pick_people
+    from pylos.gate.side_gate.owner_commands.owner_commands import _pick_people
     assert _pick_people("@an @bot", ("u-an", "bot-id"), {}, "bot-id") == (["u-an"], [])
     assert _pick_people("an, chi", (), {"u-an": "An", "u-an2": "An Nhiên", "u-chi": "Chi"}, "") == (["u-an", "u-chi"], [])
 

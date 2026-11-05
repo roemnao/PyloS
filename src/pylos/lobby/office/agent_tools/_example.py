@@ -5,7 +5,7 @@ khởi động lại bot, tool sẽ tự được đăng ký.
 """
 
 from pylos.lobby.office.agent_tools import Tool, ToolContext
-from bot.core.vietnam_time import now_vn
+from pylos.lobby.dispatch.clock.vietnam_time import now_vn
 
 
 def _current_time(args: dict, ctx: ToolContext) -> dict:

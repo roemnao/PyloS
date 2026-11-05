@@ -81,7 +81,7 @@ class AdminDevices:
     def _save(self, devices: dict[str, dict]) -> None:
         import json
 
-        from bot.storage import atomic_write_text
+        from pylos.lobby.dispatch.shared.storage import atomic_write_text
 
         atomic_write_text(self._path, json.dumps(devices, ensure_ascii=False, indent=2))
 

@@ -180,222 +180,37 @@ target = "open"
 status = "open"
 note = "CLI (run, gui, admin...). Candidates: stay in the `bot` entry package, or side_gate/owner_commands."
 
-[[file]]
-pattern = "src/bot/config.py"
-target = "lobby/dispatch/shared"
-status = "proposed"
-note = "Settings read by every zone. Holds secrets in memory, but the file only reads them (round 3 A7)."
-
-[[file]]
-pattern = "src/bot/userdata_paths.py"
-target = "lobby/dispatch/shared"
-status = "proposed"
-note = "The path layer that will map userdata/ into huts and apartments (round 3 C3)."
-
-[[file]]
-pattern = "src/bot/system/first_run_setup.py"
-target = "lobby/dispatch/shared"
-status = "proposed"
-
-[[file]]
-pattern = "src/bot/system/__init__.py"
-target = "lobby/dispatch"
-status = "proposed"
-note = "Package marker; dissolves when system/ is split."
-
 # main_gate
-[[file]]
-pattern = "src/bot/zalo/*"
-target = "gate/main_gate/zalo"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/core/mention_tags.py"
-target = "gate/main_gate/zalo"
-status = "proposed"
-note = "@mention tags in Zalo groups."
-
-[[file]]
-pattern = "src/bot/core/reply_formatting.py"
-target = "gate/main_gate/zalo"
-status = "proposed"
-note = "Formats text for Zalo before sending."
-
-[[file]]
-pattern = "src/bot/system/server_client.py"
-target = "gate/main_gate/external_apps"
-status = "correction"
-note = "Round 2 put it in side_gate, but it talks to the calendar web app (iforgotmywayhome /api/agent/*), not the VPS."
-
-[[file]]
-pattern = "src/bot/system/log_files.py"
-target = "gate/main_gate/logs"
-status = "proposed"
-note = "Log setup (console + rotating file, secrets masked). Log data stays in userdata/system/logs."
 
 # fence
-[[file]]
-pattern = "src/bot/core/rate_limiter.py"
-target = "gate/fence/token_limit"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/core/message_filter.py"
-target = "gate/fence/speech_limit"
-status = "agreed"
-note = "Decides whether a message is asking the bot to reply."
-
-[[file]]
-pattern = "src/bot/core/text_fold.py"
-target = "gate/fence/speech_limit"
-status = "agreed"
-note = "Name matching without case/diacritics; used by the filter. Could be lobby/dispatch/shared if others need it."
 
 # side_gate
-[[file]]
-pattern = "src/bot/core/owner_commands.py"
-target = "gate/side_gate/owner_commands"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/system/remote_server.py"
-target = "gate/side_gate/vps"
-status = "agreed"
-note = "This machine's app -> admin page on the VPS."
-
-[[file]]
-pattern = "src/bot/system/server_info.py"
-target = "gate/side_gate/vps"
-status = "proposed"
-note = "Machine info (RAM, disk, commit, services) for the Server page."
-
-[[file]]
-pattern = "src/bot/system/bot_process.py"
-target = "gate/side_gate/vps"
-status = "agreed"
-note = "Start/stop processes, systemctl, standby. Round 3 A1 may split the decisions out to lobby/dispatch/lifecycle."
-
-[[file]]
-pattern = "src/bot/ui/desktop/*"
-target = "gate/side_gate/desktop"
-status = "agreed"
 
 # guest_house
-[[file]]
-pattern = "src/bot/storage/data_stores.py"
-target = "open"
-status = "open"
-note = "All data stores in one file. Per-person stores -> gate/guest_house/<hut_id>; bot stores -> residential; system stores -> lobby/dispatch. Split in phase 6."
-
-[[file]]
-pattern = "src/bot/storage/__init__.py"
-target = "open"
-status = "open"
-note = "Re-exports data_stores; follows it."
-
-[[file]]
-pattern = "src/bot/storage/text_files.py"
-target = "lobby/dispatch/shared"
-status = "proposed"
-note = "JSON Lines file format used by every store."
 
 # lobby
+
 [[file]]
 pattern = "src/bot/core/vietnam_time.py"
 target = "lobby/dispatch/clock"
 status = "agreed"
-note = "Signpost: the code moved to src/pylos/lobby/dispatch/clock/vietnam_time.py (step 4.1). Remove in the last phase."
-
-[[file]]
-pattern = "src/bot/storage/process_lock.py"
-target = "lobby/dispatch/lifecycle"
-status = "agreed"
-note = "Signpost: the code moved to src/pylos/lobby/dispatch/lifecycle/process_lock.py (step 4.1). Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update."
-
-[[file]]
-pattern = "src/bot/core/roles.py"
-target = "lobby/dispatch/permissions"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/system/handover*.py"
-target = "lobby/dispatch/handover"
-status = "agreed"
-note = "Move last in phase 4 (high risk: machine <-> VPS transfer)."
-
-[[file]]
-pattern = "src/bot/system/auto_update.py"
-target = "lobby/dispatch/updater"
-status = "agreed"
-note = "Move last in phase 4 (high risk: self-update)."
-
-[[file]]
-pattern = "src/bot/core/message_handler.py"
-target = "open"
-status = "open"
-note = "Core reply pipeline: decide, queue per chat, send. Candidates: queue -> lobby/dispatch/queue, decision/reply -> residential/residents/<bot_name>."
+note = "Compat only: user-written tools still `from bot.core.vietnam_time import now_vn`. Real code: lobby/dispatch/clock."
 
 [[file]]
 pattern = "src/bot/core/__init__.py"
-target = "open"
-status = "open"
-note = "Package marker; dissolves when core/ is split."
-
-[[file]]
-pattern = "src/bot/agent/tools/*"
-target = "lobby/office/agent_tools"
+target = "lobby/dispatch/clock"
 status = "agreed"
-
-[[file]]
-pattern = "src/bot/templates/tool_example.py.tmpl"
-target = "lobby/office/agent_tools"
-status = "proposed"
+note = "Compat package marker (see src/bot/core/vietnam_time.py)."
 
 # residential
+
 [[file]]
 pattern = "src/bot/agent/__init__.py"
-target = "residential/residents/<bot_name>"
+target = "lobby/office/agent_tools"
 status = "agreed"
-
-[[file]]
-pattern = "src/bot/agent/gemini_agent.py"
-target = "residential/residents/<bot_name>"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/agent/system_prompt.py"
-target = "residential/residents/<bot_name>"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/templates/MEMORY.md"
-target = "residential/residents/<bot_name>"
-status = "agreed"
-
-[[file]]
-pattern = "src/bot/templates/SYSTEM.md"
-target = "residential/residents/<bot_name>"
-status = "agreed"
-note = "Persona. Rules part moves outside the apartment if round 3 E3 is accepted."
+note = "Compat package marker (see src/bot/agent/tools.py)."
 
 # management
-[[file]]
-pattern = "src/bot/ui/admin/*"
-target = "management/owner/admin_web"
-status = "agreed"
-note = "static/ is package-data in pyproject.toml: update it when moving."
-
-[[file]]
-pattern = "src/bot/ui/__init__.py"
-target = "management/owner/admin_web"
-status = "proposed"
-note = "Package marker; dissolves when ui/ is split."
-
-[[file]]
-pattern = "src/bot/templates/env.example"
-target = "management/owner/secrets"
-status = "proposed"
-note = "Template for settings.env (round 3 A7)."
 
 [[file]]
 pattern = "PyloS-*.md"
@@ -750,3 +565,9 @@ pattern = "src/pylos/management/owner/history/*"
 target = "management/owner/history"
 status = "proposed"
 note = "Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache)."
+
+[[file]]
+pattern = "src/bot/agent/*"
+target = "lobby/office/agent_tools"
+status = "agreed"
+note = "Compat: user-written tools still `from bot.agent.tools import Tool, ToolContext`. Real code: lobby/office/agent_tools."

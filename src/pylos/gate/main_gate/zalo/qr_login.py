@@ -28,8 +28,8 @@ from typing import Any, Callable
 
 import requests
 
-from bot.storage import atomic_write_text
-from bot.core.vietnam_time import now_ms
+from pylos.lobby.dispatch.shared.storage import atomic_write_text
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 
 log = logging.getLogger(__name__)
 
@@ -264,7 +264,7 @@ def save_qr_png(image_b64: str, path: Path) -> None:
 
 def apply_session(session: ZaloSession, session_path: Path, env_path: Path) -> None:
     """Lưu phiên vừa đăng nhập và bật RECEIVE_MODE=personal trong .env."""
-    from bot.ui.admin import settings_file
+    from pylos.management.owner.admin_web import settings_file
 
     session.save(session_path)
     if settings_file.read_values(env_path).get("RECEIVE_MODE") != "personal":

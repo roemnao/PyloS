@@ -6,12 +6,10 @@ import re
 from dataclasses import dataclass
 
 from pylos.lobby.office.agent_tools.assign_events import match_member
-from bot.core.roles import (
-    BASIC, LABEL, LEADER, LEADER_OFF, LEADER_REMOVE, OWNER, allows, required_role,
-)
-from bot.core.text_fold import fold
-from bot.storage import MODE_ALL, MODE_DEFAULT, GroupStore, HistoryStore, UsageStore
-from bot.zalo import IncomingMessage
+from pylos.lobby.dispatch.permissions.roles import BASIC, LABEL, LEADER, LEADER_OFF, LEADER_REMOVE, OWNER, allows, required_role
+from pylos.gate.fence.speech_limit.text_fold import fold
+from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODE_DEFAULT, GroupStore, HistoryStore, UsageStore
+from pylos.gate.main_gate.zalo import IncomingMessage
 
 COMMANDS = ("help", "mode", "allow", "deny", "status", "reset", "id", "leader", "add", "remove", "team", "vaitro", "role")
 

@@ -22,10 +22,10 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from bot.config import Settings
-from bot.core.text_fold import fold
-from bot.storage import MODE_ALL
-from bot.zalo import IncomingMessage
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.gate.fence.speech_limit.text_fold import fold
+from pylos.lobby.dispatch.shared.storage import MODE_ALL
+from pylos.gate.main_gate.zalo import IncomingMessage
 
 log = logging.getLogger(__name__)
 

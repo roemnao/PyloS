@@ -23,11 +23,11 @@ from typing import Any
 from urllib.parse import quote
 
 from pylos.lobby.office.agent_tools import Tool, ToolContext
-from bot.core.text_fold import fold
-from bot.core.vietnam_time import VN_TZ, now_ms
-from bot.storage.text_files import JsonLinesFile
-from bot.system import server_client
-from bot.userdata_paths import ASSIGNED_EVENTS_FILE
+from pylos.gate.fence.speech_limit.text_fold import fold
+from pylos.lobby.dispatch.clock.vietnam_time import VN_TZ, now_ms
+from pylos.lobby.dispatch.shared.text_files import JsonLinesFile
+from pylos.gate.main_gate.external_apps import server_client
+from pylos.lobby.dispatch.shared.userdata_paths import ASSIGNED_EVENTS_FILE
 
 KEEP = 500
 ONLY_SELF = ("Bạn là basic-user: chỉ thêm được lịch cho chính mình (không @tag hay giao cho người khác, không giao cho đội). "

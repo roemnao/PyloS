@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import subprocess
 
-from bot import userdata_paths
-from bot.storage.process_lock import InstanceLock
+from pylos.lobby.dispatch.shared import userdata_paths
+from pylos.lobby.dispatch.lifecycle.process_lock import InstanceLock
 
 
 def legacy_home(tmp_path):
@@ -62,7 +62,7 @@ def test_migrates_everything_to_userdata(tmp_path):
 
 
 def test_settings_read_migrated_env(tmp_path, monkeypatch):
-    from bot.config import Settings
+    from pylos.lobby.dispatch.shared.config import Settings
 
     home = legacy_home(tmp_path)
     userdata_paths.migrate_legacy(home)
