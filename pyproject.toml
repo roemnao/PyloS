@@ -31,7 +31,7 @@ desktop = [
     "pystray>=0.19",
     "pillow>=10.1",
 ]
-# Đóng gói ZaloBot.exe: scripts/build-exe.ps1
+# Đóng gói ZaloBot.exe: src/pylos/gate/side_gate/desktop/packaging/build-exe.ps1
 build = [
     "pyinstaller>=6",
 ]

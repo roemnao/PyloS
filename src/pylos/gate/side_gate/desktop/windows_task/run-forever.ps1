@@ -1,7 +1,7 @@
 # Run the bot (or the admin UI) and restart it whenever the process exits.
 # Used by install-task.ps1. Manual run:
-#   powershell -ExecutionPolicy Bypass -File scripts\run-forever.ps1            (bot)
-#   powershell -ExecutionPolicy Bypass -File scripts\run-forever.ps1 -Command admin
+#   powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\run-forever.ps1            (bot)
+#   powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\run-forever.ps1 -Command admin
 # (ASCII only on purpose: Windows PowerShell 5.1 reads BOM-less files as ANSI.)
 param(
     [ValidateSet("run", "admin")]
@@ -9,7 +9,9 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$root = Split-Path -Parent $PSScriptRoot
+$root = $PSScriptRoot
+while ($root -and -not (Test-Path (Join-Path $root "pyproject.toml"))) { $root = Split-Path -Parent $root }
+if (-not $root) { throw "pyproject.toml not found above $PSScriptRoot" }
 $python = Join-Path $root ".venv\Scripts\python.exe"
 $logDir = Join-Path $root "userdata\system\logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null

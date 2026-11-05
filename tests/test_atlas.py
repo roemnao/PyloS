@@ -1,16 +1,8 @@
-"""Bản đồ Thành chính (docs/architecture/atlas.md) phải khớp repo: mọi file đã track đều có chỗ."""
+"""Bản đồ Thành chính (src/pylos/lobby/atlas/maps/atlas.md) phải khớp repo: mọi file đã track đều có chỗ."""
 
 from __future__ import annotations
 
-import importlib.util
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-_spec = importlib.util.spec_from_file_location("pylos_atlas", ROOT / "scripts" / "atlas.py")
-atlas = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = atlas  # dataclass cần module có trong sys.modules
-_spec.loader.exec_module(atlas)
+from pylos.lobby.atlas.generator import atlas
 
 
 def test_every_tracked_file_has_a_place_and_atlas_is_fresh():

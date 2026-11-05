@@ -17,5 +17,5 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e ".[dev,personal,build]"
-      - run: python scripts/atlas.py --check
+      - run: python -m pylos.lobby.atlas.generator.atlas --check
       - run: pytest -q

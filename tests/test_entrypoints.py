@@ -29,8 +29,8 @@ def all_modules() -> list[str]:
     mods = []
     for path in SRC.rglob("*.py"):
         parts = path.relative_to(SRC).with_suffix("").parts
-        if "__pycache__" in parts:
-            continue
+        if "__pycache__" in parts or "packaging" in parts or "windows_task" in parts:
+            continue  # script build/Windows nằm trong căn hộ nhưng không phải module của bot
         mods.append(".".join(parts[:-1] if parts[-1] == "__init__" else parts))
     return sorted(mods)
 
@@ -70,7 +70,7 @@ def test_package_data_patterns_match_files():
 
 
 def test_every_top_level_package_is_bundled_into_the_exe():
-    spec = (ROOT / "scripts" / "packaging" / "ZaloBot.spec").read_text(encoding="utf-8")
+    spec = (ROOT / "src" / "pylos" / "gate" / "side_gate" / "desktop" / "packaging" / "ZaloBot.spec").read_text(encoding="utf-8")
     for package in top_packages():
         assert re.search(rf'collect_submodules\("{package}"\)', spec), f"ZaloBot.spec thiếu collect_submodules({package!r})"
-        assert re.search(rf'collect_data_files\("{package}"\)', spec), f"ZaloBot.spec thiếu collect_data_files({package!r})"
+        assert re.search(rf'collect_data_files\(\s*"{package}"', spec), f"ZaloBot.spec thiếu collect_data_files({package!r})"

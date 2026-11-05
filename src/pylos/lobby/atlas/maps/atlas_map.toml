@@ -1,5 +1,5 @@
-# Source of truth for docs/architecture/atlas.md.
-# Edit this file, then run: python scripts/atlas.py   (check only: python scripts/atlas.py --check)
+# Source of truth for atlas.md (same folder).
+# Edit this file, then run: python -m pylos.lobby.atlas.generator.atlas   (check only: add --check)
 #
 # status:
 #   agreed      owner agreed (Q&A rounds 1-2)
@@ -351,28 +351,6 @@ pattern = "src/bot/templates/tool_example.py.tmpl"
 target = "lobby/office/agent_tools"
 status = "proposed"
 
-[[file]]
-pattern = "tools/_example.py"
-target = "lobby/office/agent_tools"
-status = "proposed"
-note = "Example for user-written tools (real ones live in userdata/data/custom_tools)."
-
-[[file]]
-pattern = "docs/architecture/*"
-target = "lobby/atlas/maps"
-status = "proposed"
-
-[[file]]
-pattern = "scripts/atlas.py"
-target = "lobby/atlas/generator"
-status = "proposed"
-
-[[file]]
-pattern = "docs/*"
-target = "management/managers/plans"
-status = "agreed"
-note = "Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead."
-
 # residential
 [[file]]
 pattern = "src/bot/agent/__init__.py"
@@ -399,11 +377,6 @@ pattern = "src/bot/templates/SYSTEM.md"
 target = "residential/residents/<bot_name>"
 status = "agreed"
 note = "Persona. Rules part moves outside the apartment if round 3 E3 is accepted."
-
-[[file]]
-pattern = "workspace/SYSTEM.md"
-target = "residential/residents/<bot_name>"
-status = "agreed"
 
 # management
 [[file]]
@@ -437,12 +410,6 @@ pattern = "tests/*"
 target = "outside/tests"
 status = "agreed"
 note = "Mirror the city later (round 3 F1)."
-
-[[file]]
-pattern = "scripts/*"
-target = "outside/tooling"
-status = "agreed"
-note = "Build, packaging, Windows task scripts."
 
 [[file]]
 pattern = "CLAUDE.md"

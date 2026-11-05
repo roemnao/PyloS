@@ -1,7 +1,7 @@
 # PyloS — rules for Claude Code
 
-PyloS is organised as a city: `<zone>/<building>/<apartment>/`. Read [docs/architecture/city.md](docs/architecture/city.md)
-before adding, moving or naming anything. Where each existing file goes: [docs/architecture/atlas.md](docs/architecture/atlas.md).
+PyloS is organised as a city: `<zone>/<building>/<apartment>/`. Read [city.md](src/pylos/lobby/atlas/maps/city.md)
+before adding, moving or naming anything. Where each existing file goes: [atlas.md](src/pylos/lobby/atlas/maps/atlas.md).
 
 ## Hard rules
 
@@ -11,7 +11,7 @@ before adding, moving or naming anything. Where each existing file goes: [docs/a
 3. **Never add a zone** (`management`, `gate`, `lobby`, `residential`) without asking the owner. A new building is
    allowed: add it to the atlas and tell the owner.
 4. **Every tracked file has a place in the atlas.** After adding or moving a file: update
-   `docs/architecture/atlas_map.toml`, `git add` the new files, run `python scripts/atlas.py` (`--check` runs in the tests).
+   `src/pylos/lobby/atlas/maps/atlas_map.toml`, `git add` the new files, run `python -m pylos.lobby.atlas.generator.atlas` (`--check` runs in the tests).
 5. **Do not change where data lives in `userdata/`** (settings, Zalo session, lock file, standby file, handover bundle)
    unless that is the task. Data moves need a backup and must be safe to run twice.
 
@@ -29,8 +29,8 @@ before adding, moving or naming anything. Where each existing file goes: [docs/a
   commit by the graphify git hook; by hand: `graphify update .`. Do not draw small maps of your own.
 - **Zoning = the atlas** (`atlas_map.toml`: which file belongs to which building). Owner and manager bot keep it right.
 - Look at one region instead of the whole city:
-  - `python scripts/atlas.py region gate/fence` — files of the region and every graph link crossing its border.
-  - `python scripts/atlas.py where RateLimiter` — which building a file or symbol belongs to.
+  - `python -m pylos.lobby.atlas.generator.atlas region gate/fence` — files of the region and every graph link crossing its border.
+  - `python -m pylos.lobby.atlas.generator.atlas where RateLimiter` — which building a file or symbol belongs to.
 - Before moving or adding code, run `region` on the target building: links to other zones that do not go through the
   `lobby` are what the migration has to remove.
 

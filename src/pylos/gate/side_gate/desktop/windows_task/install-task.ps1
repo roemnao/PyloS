@@ -1,13 +1,15 @@
 # Register Task Scheduler tasks so the bot and the admin UI start when you log on
 # to Windows and keep running in the background.
-#   Install:   powershell -ExecutionPolicy Bypass -File scripts\install-task.ps1
-#   Bot only:  powershell -ExecutionPolicy Bypass -File scripts\install-task.ps1 -NoAdmin
-#   Uninstall: powershell -ExecutionPolicy Bypass -File scripts\uninstall-task.ps1
+#   Install:   powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\install-task.ps1
+#   Bot only:  powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\install-task.ps1 -NoAdmin
+#   Uninstall: powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\uninstall-task.ps1
 # (ASCII only on purpose: Windows PowerShell 5.1 reads BOM-less files as ANSI.)
 param([switch]$NoAdmin)
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$root = $PSScriptRoot
+while ($root -and -not (Test-Path (Join-Path $root "pyproject.toml"))) { $root = Split-Path -Parent $root }
+if (-not $root) { throw "pyproject.toml not found above $PSScriptRoot" }
 $script = Join-Path $PSScriptRoot "run-forever.ps1"
 
 if (-not (Test-Path (Join-Path $root ".venv\Scripts\python.exe"))) {

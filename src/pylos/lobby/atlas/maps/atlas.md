@@ -1,7 +1,7 @@
 # PyloS Atlas
 
-> **Generated** by `scripts/atlas.py` from [`atlas_map.toml`](atlas_map.toml). Do not edit by hand:
-> edit the TOML, then run `python scripts/atlas.py`. What the city is and why: [city.md](city.md).
+> **Generated** by `pylos.lobby.atlas.generator.atlas` from [`atlas_map.toml`](atlas_map.toml). Do not edit by hand:
+> edit the TOML, then run `python -m pylos.lobby.atlas.generator.atlas`. What the city is and why: [city.md](city.md).
 >
 > Phase 1: the code has **not** moved yet. "Current path" is where a file is today, "Goes to" is its place in the city.
 
@@ -158,11 +158,8 @@ What manager bots read to manage other bots.
 | `src/pylos/management/managers/bot_list/__init__.py` | `management/managers/bot_list` | 🟡 proposed |  |
 | `src/pylos/management/managers/evaluations/__init__.py` | `management/managers/evaluations` | 🟡 proposed |  |
 | `src/pylos/management/managers/guidelines/__init__.py` | `management/managers/guidelines` | 🟡 proposed |  |
-| `docs/KE-HOACH-CAP-NHAT-2026-11-01.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
-| `docs/PLAN.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
-| `docs/dang-nhap-google.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
-| `docs/lenh-zalo.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
-| `docs/vps-dieu-khien.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+| `src/pylos/management/managers/plans/KE-HOACH-CAP-NHAT-2026-11-01.md` | `management/managers/plans` | 🟡 proposed |  |
+| `src/pylos/management/managers/plans/PLAN.md` | `management/managers/plans` | 🟡 proposed |  |
 | `src/pylos/management/managers/plans/__init__.py` | `management/managers/plans` | 🟡 proposed |  |
 | `src/pylos/management/managers/reports/__init__.py` | `management/managers/reports` | 🟡 proposed |  |
 
@@ -263,8 +260,16 @@ Technical entry: receives commands from the owner, the VPS and MCP.
 | `src/pylos/gate/side_gate/desktop/__init__.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/desktop_app.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/icon_images.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/ZaloBot.spec` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/build-exe.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/check_secrets.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/version_info.txt` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/zalobot_entry.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/tray_icon.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/windows_autostart.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/install-task.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/run-forever.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/uninstall-task.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/emergency/__init__.py` | `gate/side_gate/emergency` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/mcp/__init__.py` | `gate/side_gate/mcp` | 🟡 proposed |  |
 | `src/bot/core/owner_commands.py` | `gate/side_gate/owner_commands` | agreed |  |
@@ -310,6 +315,9 @@ Knowledge and skills written or vetted by the owner. All bots read.
 | `src/pylos/lobby/library/README.md` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/__init__.py` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/knowledge/__init__.py` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/dang-nhap-google.md` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/lenh-zalo.md` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/vps-dieu-khien.md` | `lobby/library/knowledge` | 🟡 proposed |  |
 | `src/pylos/lobby/library/skills/__init__.py` | `lobby/library/skills` | 🟡 proposed |  |
 
 #### `lobby/atlas` — Toà bản đồ
@@ -325,13 +333,13 @@ Map of the whole inner city: detailed map (graphify graph) + zoning (this file).
 |---|---|---|---|
 | `src/pylos/lobby/atlas/README.md` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
-| `scripts/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
-| `docs/architecture/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
-| `docs/architecture/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
-| `docs/architecture/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 
 #### `lobby/dispatch` — Toà điều phối
 
@@ -411,7 +419,6 @@ Plugins and agent tools, plus the warehouse for generated files. Only the owner 
 | `src/pylos/lobby/office/agent_tools/assign_events.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
 | `src/pylos/lobby/office/agent_tools/read_chat_memory.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
 | `src/pylos/lobby/office/agent_tools/schedule_web.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
-| `tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed | Example for user-written tools (real ones live in userdata/data/custom_tools). |
 | `src/pylos/lobby/office/code/__init__.py` | `lobby/office/code` | 🟡 proposed |  |
 | `src/pylos/lobby/office/documents/__init__.py` | `lobby/office/documents` | 🟡 proposed |  |
 | `src/pylos/lobby/office/drawing/__init__.py` | `lobby/office/drawing` | 🟡 proposed |  |
@@ -438,7 +445,6 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `src/bot/agent/system_prompt.py` | `residential/residents/<bot_name>` | agreed |  |
 | `src/bot/templates/MEMORY.md` | `residential/residents/<bot_name>` | agreed |  |
 | `src/bot/templates/SYSTEM.md` | `residential/residents/<bot_name>` | agreed | Persona. Rules part moves outside the apartment if round 3 E3 is accepted. |
-| `workspace/SYSTEM.md` | `residential/residents/<bot_name>` | agreed |  |
 
 ## Outside the citadel
 
@@ -478,14 +484,6 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `tests/test_text_and_models.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_updater.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_vps_supervisor.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `scripts/build-exe.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/install-task.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/packaging/ZaloBot.spec` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/packaging/check_secrets.py` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/packaging/version_info.txt` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/packaging/zalobot_entry.py` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/run-forever.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
-| `scripts/uninstall-task.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
 
 ## Undecided (`open`)
 
@@ -503,15 +501,11 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-151 file(s) placed as `proposed` or `correction`.
+163 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
 | `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
-| `docs/architecture/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
-| `docs/architecture/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
-| `docs/architecture/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
-| `scripts/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/bot/config.py` | `lobby/dispatch/shared` | 🟡 proposed | Settings read by every zone. Holds secrets in memory, but the file only reads them (round 3 A7). |
 | `src/bot/core/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed | @mention tags in Zalo groups. |
 | `src/bot/core/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed | Formats text for Zalo before sending. |
@@ -559,8 +553,16 @@ These files have no place yet; the owner decides.
 | `src/pylos/gate/side_gate/desktop/__init__.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/desktop_app.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/icon_images.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/ZaloBot.spec` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/build-exe.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/check_secrets.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/version_info.txt` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/packaging/zalobot_entry.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/tray_icon.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/windows_autostart.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/install-task.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/run-forever.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_task/uninstall-task.ps1` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/emergency/__init__.py` | `gate/side_gate/emergency` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/mcp/__init__.py` | `gate/side_gate/mcp` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/owner_commands/__init__.py` | `gate/side_gate/owner_commands` | 🟡 proposed |  |
@@ -574,7 +576,11 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/atlas/README.md` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/README.md` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/__init__.py` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/bus/__init__.py` | `lobby/dispatch/bus` | 🟡 proposed |  |
@@ -600,6 +606,9 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/library/README.md` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/__init__.py` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/knowledge/__init__.py` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/dang-nhap-google.md` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/lenh-zalo.md` | `lobby/library/knowledge` | 🟡 proposed |  |
+| `src/pylos/lobby/library/knowledge/vps-dieu-khien.md` | `lobby/library/knowledge` | 🟡 proposed |  |
 | `src/pylos/lobby/library/skills/__init__.py` | `lobby/library/skills` | 🟡 proposed |  |
 | `src/pylos/lobby/office/README.md` | `lobby/office` | 🟡 proposed |  |
 | `src/pylos/lobby/office/__init__.py` | `lobby/office` | 🟡 proposed |  |
@@ -619,6 +628,8 @@ These files have no place yet; the owner decides.
 | `src/pylos/management/managers/bot_list/__init__.py` | `management/managers/bot_list` | 🟡 proposed |  |
 | `src/pylos/management/managers/evaluations/__init__.py` | `management/managers/evaluations` | 🟡 proposed |  |
 | `src/pylos/management/managers/guidelines/__init__.py` | `management/managers/guidelines` | 🟡 proposed |  |
+| `src/pylos/management/managers/plans/KE-HOACH-CAP-NHAT-2026-11-01.md` | `management/managers/plans` | 🟡 proposed |  |
+| `src/pylos/management/managers/plans/PLAN.md` | `management/managers/plans` | 🟡 proposed |  |
 | `src/pylos/management/managers/plans/__init__.py` | `management/managers/plans` | 🟡 proposed |  |
 | `src/pylos/management/managers/reports/__init__.py` | `management/managers/reports` | 🟡 proposed |  |
 | `src/pylos/management/owner/README.md` | `management/owner` | 🟡 proposed |  |
@@ -657,4 +668,3 @@ These files have no place yet; the owner decides.
 | `src/pylos/residential/__init__.py` | `residential` | 🟡 proposed |  |
 | `src/pylos/residential/residents/README.md` | `residential/residents` | 🟡 proposed |  |
 | `src/pylos/residential/residents/__init__.py` | `residential/residents` | 🟡 proposed |  |
-| `tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed | Example for user-written tools (real ones live in userdata/data/custom_tools). |

@@ -2,7 +2,7 @@
 
 Bot chạy trên **Zalo Bot Platform**, trả lời trong nhóm bằng **Gemini**. Bot nhận tin bằng `getUpdates` (polling), nên chạy được trên máy cá nhân, không cần domain. Bot cũng chạy được trên **một acc Zalo cá nhân** (xem [Chạy trên acc Zalo cá nhân](#chạy-trên-acc-zalo-cá-nhân-acc-phụ)).
 
-Kế hoạch và các quyết định thiết kế nằm trong [docs/PLAN.md](docs/PLAN.md). Cách dùng lệnh trong Zalo nằm trong [docs/lenh-zalo.md](docs/lenh-zalo.md). Xem mục [Thư mục](#thư-mục) để biết file nào nằm ở đâu.
+Kế hoạch và các quyết định thiết kế nằm trong [PLAN.md](src/pylos/management/managers/plans/PLAN.md). Cách dùng lệnh trong Zalo nằm trong [lenh-zalo.md](src/pylos/lobby/library/knowledge/lenh-zalo.md). Xem mục [Thư mục](#thư-mục) để biết file nào nằm ở đâu.
 
 ## Thư mục
 
@@ -30,39 +30,24 @@ D:\pylosSever\
 │     ├─ bot_status.txt             lúc khởi động, lần nhận tin cuối
 │     ├─ processed_message_ids.txt  id tin đã xử lý (chống trả lời trùng)
 │     └─ *.lock, *.pid, app_window_profile\, …
-├─ src\bot\                         code
-│  ├─ command_line.py               lệnh `python -m bot …` (run, gui, admin, zalo-login, update…)
-│  ├─ config.py                     đọc settings.env thành cấu hình
-│  ├─ userdata_paths.py             tên/đường dẫn mọi file trong userdata + tự chuyển dữ liệu bản cũ
-│  ├─ core\                         xử lý tin
-│  │  ├─ message_handler.py         nhận tin → lọc → gọi AI → gửi trả lời
-│  │  ├─ message_filter.py          bộ lọc "tin này có nhờ bot không"
-│  │  ├─ mention_tags.py            tag @người trong nhóm
-│  │  ├─ owner_commands.py          lệnh của chủ bot: /allow, /mode, /status…
-│  │  ├─ rate_limiter.py            giới hạn số tin mỗi phút
-│  │  ├─ reply_formatting.py        cắt tin dài, bỏ markdown
-│  │  └─ vietnam_time.py            giờ Việt Nam
-│  ├─ agent\                        AI
-│  │  ├─ gemini_agent.py            gọi Gemini, chạy tool
-│  │  ├─ system_prompt.py           ghép SYSTEM.md, MEMORY.md, bối cảnh thành prompt
-│  │  └─ tools\                     tool có sẵn: read_chat_memory.py, schedule_web.py (lịch riêng của chủ web),
-│  │                                assign_events.py (giao / sửa / huỷ lịch cho người được tag)
-│  ├─ zalo\                         kết nối Zalo
-│  │  ├─ bot_platform_api.py        gọi Zalo Bot API (bot có token)
-│  │  ├─ personal_account.py        chạy trên acc Zalo cá nhân
-│  │  ├─ qr_login.py                đăng nhập acc cá nhân bằng mã QR
-│  │  ├─ incoming_message.py        đọc tin nhắn đến
-│  │  ├─ receive_polling.py         nhận tin kiểu polling
-│  │  └─ receive_webhook.py         nhận tin kiểu webhook
-│  ├─ storage\                      data_stores.py (các kho dữ liệu), text_files.py, process_lock.py
-│  ├─ system\                       bot_process.py (bật/tắt bot nền), auto_update.py, log_files.py, first_run_setup.py,
-│  │                                server_client.py (gọi web bot lịch), 
-│  ├─ ui\admin\                     admin_web_server.py, settings_file.py, static\ (trang web quản lý)
-│  ├─ ui\desktop\                   desktop_app.py (cửa sổ), tray_icon.py, icon_images.py, windows_autostart.py
-│  └─ templates\                    file mẫu tạo userdata lần đầu
-├─ tests\
-├─ scripts\                         build exe (packaging\), chạy 24/7 bằng Task Scheduler
-└─ docs\                            PLAN.md (thiết kế), lenh-zalo.md (lệnh dùng trong Zalo)
+├─ src\pylos\                      THÀNH (code mới, chia khu → toà → căn hộ; xem city.md)
+│  ├─ management\                  Khu quản lý
+│  │  ├─ owner\admin_web\          trang web quản lý (admin_web_server.py, static\)
+│  │  └─ managers\plans\           kế hoạch (PLAN.md, KE-HOACH-CAP-NHAT-...)
+│  ├─ gate\                        Khu cổng
+│  │  ├─ main_gate\                zalo\ (nhận/gửi tin), external_apps\ (web bot lịch), logs\
+│  │  ├─ fence\                    token_limit\ (giới hạn tin/phút), speech_limit\ (bộ lọc tin)
+│  │  └─ side_gate\                vps\ (bật/tắt bot nền, điều khiển VPS), owner_commands\,
+│  │                               desktop\ (cửa sổ + khay; packaging\ build exe; windows_task\ chạy 24/7)
+│  ├─ lobby\                       Khu đại sảnh
+│  │  ├─ dispatch\                 bus\, clock\, permissions\, lifecycle\ (khoá 1 bản chạy), handover\, updater\
+│  │  ├─ office\agent_tools\       công cụ của agent
+│  │  ├─ library\knowledge\        hướng dẫn: lenh-zalo.md, dang-nhap-google.md, vps-dieu-khien.md
+│  │  └─ atlas\                    maps\ (city.md, atlas.md, atlas_map.toml), generator\ (atlas.py)
+│  └─ residential\                 Khu dân cư (chỗ cho từng bot)
+├─ src\bot\                       lối vào `python -m bot` + phần chưa dời (config, storage, agent, message_handler);
+│                                 các file khác ở đây chỉ là biển chỉ đường sang src\pylos\
+└─ tests\
 ```
 
 Lần đầu mở bản mới, bot **tự chuyển** dữ liệu của bản cũ (`.env`, `data/`, `logs/`, `workspace/`, tools tự viết trong `tools/`) vào `userdata\` và đổi sang tên mới ở trên (ví dụ `.env` → `settings.env`, `groups.txt` → `group_settings.txt`, `history/` → `session_history/`). Bạn không phải làm gì. Hai thư mục `workspace/` và `tools/` còn ở gốc chỉ chứa file mẫu, sẽ được gỡ ở bản cập nhật sau.
@@ -156,7 +141,7 @@ Exe chưa có chữ ký số, nên **Windows có thể chặn** ("Windows đã b
 - Hoặc chạy cùng ứng dụng đó từ mã nguồn (không bị chặn vì `pythonw.exe` đã được ký): `.venv\Scripts\pythonw.exe -m bot gui`.
 - Không nên tắt Smart App Control chỉ vì bot: tắt rồi thì không bật lại được nếu không cài lại Windows.
 
-Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `userdata\config\settings.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
+Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\packaging\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `userdata\config\settings.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
 
 Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gateway status` (kết quả in vào cửa sổ cmd).
 
@@ -190,7 +175,7 @@ Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được 
 
 Trang **Máy chủ** → **Kết nối VPS bằng Google** (đăng nhập Google một lần, không cần chép mã) là có công tắc **Máy này | VPS** trên đầu trang,
 trang **Máy chủ** (so sánh hai bên, cập nhật code VPS) và nút **Chuyển bot sang VPS / về máy này** (kèm dữ liệu, tự hoàn tác
-nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc cần chủ VPS làm một lần và chi tiết: [docs/vps-dieu-khien.md](docs/vps-dieu-khien.md).
+nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc cần chủ VPS làm một lần và chi tiết: [vps-dieu-khien.md](src/pylos/lobby/library/knowledge/vps-dieu-khien.md).
 
 ## Quản lý bot chạy nền (gateway)
 
@@ -209,7 +194,7 @@ nếu lỗi). Chỉ một bên chạy bot tại một thời điểm. Việc c�
 ## Chạy 24/7 trên máy này
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\install-task.ps1
+powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\windows_task\install-task.ps1
 ```
 
 - Script đăng ký hai Task Scheduler: `ZaloAssistantBot` (bot) và `ZaloAssistantBotAdmin` (giao diện). Chỉ muốn bot thì thêm `-NoAdmin`.
@@ -225,7 +210,7 @@ powercfg /change standby-timeout-ac 0
 Bot chỉ chạy khi bạn đã đăng nhập Windows. Muốn bot tự chạy sau khi máy khởi động lại mà không cần ai đăng nhập, hãy bật tự động đăng nhập Windows hoặc chuyển lên VPS.
 
 Các lệnh khác:
-- Gỡ task: `scripts\uninstall-task.ps1`.
+- Gỡ task: `src\pylos\gate\side_gate\desktop\windows_task\uninstall-task.ps1`.
 - Kiểm tra bot còn chạy: `.venv\Scripts\python.exe -m bot health` (mã thoát 0 = ổn).
 
 ## Chuyển sang webhook (khi có domain hoặc VPS)

@@ -1,12 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Build: powershell -ExecutionPolicy Bypass -File scripts\build-exe.ps1
+# Build: powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\packaging\build-exe.ps1
 # Một file ZaloBot.exe, dạng cửa sổ (không console). Không bao giờ đóng gói userdata/ (khoá, dữ liệu, log).
 import sys
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
-ROOT = Path(SPECPATH).parents[1]  # scripts/packaging/ -> thư mục dự án
+ROOT = next(p for p in Path(SPECPATH).parents if (p / "pyproject.toml").is_file())  # thư mục dự án (đi ngược từ packaging/)
+PACK = Path(SPECPATH)
 sys.path.insert(0, str(ROOT / "src"))
 
 from bot.ui.desktop.icon_images import write_ico  # noqa: E402
@@ -14,7 +15,9 @@ from bot.ui.desktop.icon_images import write_ico  # noqa: E402
 icon = write_ico(ROOT / "build" / "zalobot.ico")
 
 # File không phải .py trong package: ui/admin/static/*, templates/* (mẫu .env, SYSTEM.md, MEMORY.md, tool mẫu).
-datas = collect_data_files("bot") + collect_data_files("pylos")
+# pylos: chỉ lấy file tĩnh của trang quản trị. KHÔNG đóng gói lịch sử/kế hoạch riêng (owner/history), tài liệu, bản đồ, script build.
+datas = collect_data_files("bot") + collect_data_files(
+    "pylos", includes=["management/owner/admin_web/static/*", "management/owner/admin_web/static/fonts/*"])
 
 hiddenimports = (
     collect_submodules("bot")
@@ -27,7 +30,7 @@ hiddenimports = (
 )
 
 a = Analysis(
-    [str(ROOT / "scripts" / "packaging" / "zalobot_entry.py")],
+    [str(PACK / "zalobot_entry.py")],
     pathex=[str(ROOT / "src")],
     datas=datas,
     hiddenimports=hiddenimports,
@@ -45,7 +48,7 @@ exe = EXE(
     name="ZaloBot",
     console=False,
     icon=str(icon),
-    version=str(ROOT / "scripts" / "packaging" / "version_info.txt"),
+    version=str(PACK / "version_info.txt"),
     upx=False,  # UPX làm Windows Defender báo nhầm nhiều hơn
     debug=False,
     strip=False,

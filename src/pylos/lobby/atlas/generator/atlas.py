@@ -1,9 +1,9 @@
-"""Atlas of the PyloS city: renders docs/architecture/atlas.md from docs/architecture/atlas_map.toml.
+"""Atlas of the PyloS city: renders atlas.md from atlas_map.toml (both in src/pylos/lobby/atlas/maps/).
 
-    python scripts/atlas.py                  regenerate atlas.md
-    python scripts/atlas.py --check          exit 1 if a tracked file has no place, the map is invalid, or atlas.md is stale
-    python scripts/atlas.py region gate/fence   look at one region: its files and the links crossing its border
-    python scripts/atlas.py where <file|symbol> which zone/building a file or a code symbol belongs to
+    python -m pylos.lobby.atlas.generator.atlas                  regenerate atlas.md
+    python -m pylos.lobby.atlas.generator.atlas --check          exit 1 if a tracked file has no place, the map is invalid, or atlas.md is stale
+    python -m pylos.lobby.atlas.generator.atlas region gate/fence   look at one region: its files and the links crossing its border
+    python -m pylos.lobby.atlas.generator.atlas where <file|symbol> which zone/building a file or a code symbol belongs to
 
 The zoning (which file belongs to which building) comes from atlas_map.toml. The detailed map (symbols and the links
 between them) comes from graphify: graphify-out/graph.json, rebuilt after each commit by the graphify git hook.
@@ -22,9 +22,9 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-MAP_FILE = ROOT / "docs" / "architecture" / "atlas_map.toml"
-ATLAS_FILE = ROOT / "docs" / "architecture" / "atlas.md"
+ROOT = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())
+MAP_FILE = ROOT / "src" / "pylos" / "lobby" / "atlas" / "maps" / "atlas_map.toml"
+ATLAS_FILE = ROOT / "src" / "pylos" / "lobby" / "atlas" / "maps" / "atlas.md"
 GRAPH_FILE = ROOT / "graphify-out" / "graph.json"
 
 STATUSES = {
@@ -109,8 +109,8 @@ def render(zones: list[dict], rules: list[Rule]) -> str:
     lines = [
         "# PyloS Atlas",
         "",
-        "> **Generated** by `scripts/atlas.py` from [`atlas_map.toml`](atlas_map.toml). Do not edit by hand:",
-        "> edit the TOML, then run `python scripts/atlas.py`. What the city is and why: [city.md](city.md).",
+        "> **Generated** by `pylos.lobby.atlas.generator.atlas` from [`atlas_map.toml`](atlas_map.toml). Do not edit by hand:",
+        "> edit the TOML, then run `python -m pylos.lobby.atlas.generator.atlas`. What the city is and why: [city.md](city.md).",
         ">",
         "> Phase 1: the code has **not** moved yet. \"Current path\" is where a file is today, \"Goes to\" is its place in the city.",
         "",
@@ -348,7 +348,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         current = ATLAS_FILE.read_text(encoding="utf-8").replace("\r\n", "\n") if ATLAS_FILE.exists() else ""
         if current != text:
-            found.append(f"{ATLAS_FILE.relative_to(ROOT).as_posix()} is stale: run python scripts/atlas.py")
+            found.append(f"{ATLAS_FILE.relative_to(ROOT).as_posix()} is stale: run python -m pylos.lobby.atlas.generator.atlas")
     else:
         ATLAS_FILE.write_text(text, encoding="utf-8", newline="\n")
         print(f"wrote {ATLAS_FILE.relative_to(ROOT).as_posix()}")

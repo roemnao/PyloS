@@ -89,7 +89,7 @@ through the lobby.**
 - *Detailed map* — the graphify knowledge graph (`graphify-out/graph.json`): every symbol of the code and the links
   between them, rebuilt automatically after each commit. Nobody draws small maps by hand.
 - *Zoning* — [`atlas_map.toml`](atlas_map.toml): which file belongs to which building, with the owner's decision status.
-- A bot (or Claude Code) looks only at the region it needs: `python scripts/atlas.py region <zone/building>` lays the
+- A bot (or Claude Code) looks only at the region it needs: `python -m pylos.lobby.atlas.generator.atlas region <zone/building>` lays the
   zoning over the graph and shows the region's files and every link crossing its border.
 - Keeping the map right is the job of the **manager bot and the owner**.
 
@@ -195,8 +195,8 @@ Commands: *manager commands* act on bots (assign, start/stop); *owner commands* 
 - **New building**: allowed when needed (owner, or whoever edits the repo, Claude Code included). Add it to the
   atlas and tell the owner.
 - **New zone**: **ask the owner first.** Never add one on your own.
-- **New or moved file**: add it to [`atlas_map.toml`](atlas_map.toml), run `python scripts/atlas.py`.
-  `python scripts/atlas.py --check` (also run by the tests) fails when a tracked file has no place or `atlas.md` is stale.
+- **New or moved file**: add it to [`atlas_map.toml`](atlas_map.toml), run `python -m pylos.lobby.atlas.generator.atlas`.
+  `python -m pylos.lobby.atlas.generator.atlas --check` (also run by the tests) fails when a tracked file has no place or `atlas.md` is stale.
 
 ---
 

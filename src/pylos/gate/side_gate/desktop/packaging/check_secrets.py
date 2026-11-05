@@ -58,7 +58,7 @@ def check_dir(directory: Path, secrets: list[bytes]) -> list[str]:
 
 
 def main() -> int:
-    root = Path(__file__).resolve().parents[2]  # scripts/packaging/ -> thư mục dự án
+    root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())  # thư mục dự án
     exe = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "dist" / "ZaloBot.exe"
     build_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else root / "build"
     env = root / "userdata" / "config" / "settings.env"
