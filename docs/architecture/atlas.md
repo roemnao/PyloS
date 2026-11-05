@@ -342,11 +342,14 @@ Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only.
 | `src/bot/system/handover.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
 | `src/bot/system/handover_job.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
 | `src/pylos/lobby/dispatch/handover/__init__.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/handover/handover.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/handover/handover_job.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
 | `src/bot/storage/process_lock.py` | `lobby/dispatch/lifecycle` | agreed | Signpost: the code moved to src/pylos/lobby/dispatch/lifecycle/process_lock.py (step 4.1). Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update. |
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/bot/core/roles.py` | `lobby/dispatch/permissions` | agreed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/permissions/roles.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/registry/__init__.py` | `lobby/dispatch/registry` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/scheduler/__init__.py` | `lobby/dispatch/scheduler` | 🟡 proposed |  |
@@ -358,6 +361,7 @@ Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only.
 | `src/pylos/lobby/dispatch/shared/__init__.py` | `lobby/dispatch/shared` | 🟡 proposed |  |
 | `src/bot/system/auto_update.py` | `lobby/dispatch/updater` | agreed | Move last in phase 4 (high risk: self-update). |
 | `src/pylos/lobby/dispatch/updater/__init__.py` | `lobby/dispatch/updater` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/updater/auto_update.py` | `lobby/dispatch/updater` | 🟡 proposed |  |
 
 #### `lobby/office` — Toà văn phòng
 
@@ -474,7 +478,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-103 file(s) placed as `proposed` or `correction`.
+107 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -535,14 +539,18 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/dispatch/envelope_log/__init__.py` | `lobby/dispatch/envelope_log` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/envelope_log/envelope_log.py` | `lobby/dispatch/envelope_log` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/handover/__init__.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/handover/handover.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/handover/handover_job.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/permissions/roles.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/registry/__init__.py` | `lobby/dispatch/registry` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/scheduler/__init__.py` | `lobby/dispatch/scheduler` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/shared/__init__.py` | `lobby/dispatch/shared` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/updater/__init__.py` | `lobby/dispatch/updater` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/updater/auto_update.py` | `lobby/dispatch/updater` | 🟡 proposed |  |
 | `src/pylos/lobby/library/README.md` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/__init__.py` | `lobby/library` | 🟡 proposed |  |
 | `src/pylos/lobby/library/knowledge/__init__.py` | `lobby/library/knowledge` | 🟡 proposed |  |
