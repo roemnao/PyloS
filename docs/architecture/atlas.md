@@ -345,6 +345,7 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `tests/test_bot.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_config_client_webhook.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_desktop.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_entrypoints.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_filter.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_google_login.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_handover.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
