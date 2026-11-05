@@ -27,3 +27,4 @@ userdata/
 # Gói pylos: thư mục có tên logs/data/workspace là căn hộ của Thành, không phải dữ liệu
 !src/pylos/**/logs/
 !src/pylos/**/data/
+.ruff_cache/
