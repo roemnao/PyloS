@@ -35,6 +35,8 @@ KEEP_BACKUPS = 3
 SKIP_DIRS = {".backup", CONSOLE_TEST_DIR, "__pycache__"}
 SKIP_SUFFIXES = (".lock", ".pid", ".tmp")
 MANIFEST = "manifest.json"
+# Phiên bản bố cục dữ liệu trong gói. Tăng khi đổi chỗ lưu dữ liệu (vd túp lều); gói không ghi = bố cục 1.
+LAYOUT_VERSION = 1
 SESSION_ARC = "session/zalo_login_session.json"
 IDS_ARC = f"system/{PROCESSED_IDS_FILE}"
 
@@ -82,6 +84,7 @@ def export_bundle(settings: Settings, dest: Path, *, origin: str = "") -> dict[s
     sources = _sources(settings)
     manifest = {
         "origin": origin or socket.gethostname(), "created_at": now_ms(), "version": __version__,
+        "layout": LAYOUT_VERSION,
         "receive_mode": settings.receive_mode, "files": len(sources),
         "bytes": sum(p.stat().st_size for _, p in sources),
     }
@@ -169,6 +172,10 @@ def import_bundle(settings: Settings, zip_path: Path) -> dict[str, Any]:
     if bot_process.is_running(settings, bot_process.BOT):
         raise HandoverError("Bot đang chạy ở máy nhận. Hãy tắt bot trước khi nhận dữ liệu.")
     manifest = read_manifest(zip_path)
+    layout = manifest.get("layout", 1)
+    if layout != LAYOUT_VERSION:
+        raise HandoverError(f"Gói dùng bố cục dữ liệu {layout}, máy này dùng {LAYOUT_VERSION}. "
+                            "Cập nhật code ở cả hai bên lên cùng bản rồi chuyển lại.")
     plan = validate_bundle(settings, zip_path)
 
     backup = backup_dir(settings) / f"{now_vn():%Y%m%d-%H%M%S}.zip"

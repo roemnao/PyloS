@@ -116,6 +116,34 @@ def test_import_refused_while_bot_running(tmp_path, clean_env, running):
         handover.import_bundle(dst, bundle)
 
 
+def test_import_checks_data_layout_version(tmp_path, clean_env, running):
+    """Gói không ghi `layout` là bố cục 1 (gói cũ vẫn nhận được); khác phiên bản thì từ chối, không đụng dữ liệu."""
+    _, src = make_side(tmp_path / "a", LOCAL_TOKEN)
+    _, dst = make_side(tmp_path / "b", VPS_TOKEN)
+    bundle = tmp_path / "bundle.zip"
+    assert handover.export_bundle(src, bundle)["layout"] == handover.LAYOUT_VERSION
+
+    def with_layout(layout, path):
+        manifest = handover.read_manifest(bundle)
+        manifest.pop("layout")
+        if layout is not None:
+            manifest["layout"] = layout
+        with zipfile.ZipFile(bundle) as zin, zipfile.ZipFile(path, "w") as zout:
+            for item in zin.infolist():
+                if item.filename != handover.MANIFEST:
+                    zout.writestr(item, zin.read(item))
+            zout.writestr(handover.MANIFEST, __import__("json").dumps(manifest))
+        return path
+
+    handover.import_bundle(dst, with_layout(None, tmp_path / "old.zip"))
+    marker = dst.data_dir / "keep.txt"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("giữ", encoding="utf-8")
+    with pytest.raises(handover.HandoverError, match="bố cục dữ liệu"):
+        handover.import_bundle(dst, with_layout(handover.LAYOUT_VERSION + 1, tmp_path / "new.zip"))
+    assert marker.read_text(encoding="utf-8") == "giữ"
+
+
 @pytest.mark.parametrize("name", ["../evil.txt", "data/../../evil.txt", "/etc/passwd", "config/settings.env",
                                   "data/.backup/a.md", "userdata/config/settings.env", "data/a.lock"])
 def test_import_rejects_unsafe_names(tmp_path, clean_env, running, name):

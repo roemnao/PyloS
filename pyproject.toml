@@ -37,7 +37,7 @@ build = [
 ]
 
 [project.scripts]
-zalo-bot = "bot.cli:main"
+zalo-bot = "bot.command_line:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
