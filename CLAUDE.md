@@ -37,7 +37,7 @@ before adding, moving or naming anything. Where each existing file goes: [docs/a
 ## Tests
 
 ```bash
-pip install -e ".[dev,desktop,personal]"
+pip install -e ".[dev,desktop,personal,build]"
 pytest -q
 ```
 
