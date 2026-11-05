@@ -305,6 +305,8 @@ Map of the whole inner city: detailed map (graphify graph) + zoning (this file).
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/region_map.html` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/region_map.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
@@ -447,6 +449,7 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `tests/test_personal.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_polling.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_qrlogin.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_region_map.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_remote_proxy.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_roles.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_schedule_tool.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
@@ -467,7 +470,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-164 file(s) placed as `proposed` or `correction`.
+166 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -530,6 +533,8 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/region_map.html` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/generator/region_map.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |

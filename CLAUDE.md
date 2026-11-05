@@ -31,6 +31,7 @@ before adding, moving or naming anything. Where each existing file goes: [atlas.
 - Look at one region instead of the whole city:
   - `python -m pylos.lobby.atlas.generator.atlas region gate/fence` — files of the region and every graph link crossing its border.
   - `python -m pylos.lobby.atlas.generator.atlas where RateLimiter` — which building a file or symbol belongs to.
+  - `python -m pylos.lobby.atlas.generator.region_map` — graphify graph laid out by zone/building, written to `graphify-out/pylos_map.html`.
 - Before moving or adding code, run `region` on the target building: links to other zones that do not go through the
   `lobby` are what the migration has to remove.
 
