@@ -77,7 +77,7 @@ def test_no_visible_subprocess_calls_left_in_source():
             if re.search(r"subprocess\.(run|call|check_output|check_call)\(", line):
                 offenders.append(path.relative_to(ROOT).as_posix())
     # đúng một chỗ được phép: bên trong run_hidden
-    assert offenders == ["src/bot/system/bot_process.py"]
+    assert offenders == ["src/pylos/gate/side_gate/vps/bot_process.py"]
 
 
 def test_frozen_child_gets_its_own_unpack_dir(monkeypatch):

@@ -1,27 +1,6 @@
-"""Giới hạn số tin mỗi phút theo cửa sổ trượt, trong bộ nhớ."""
+"""Biển chỉ đường: mã thật đã dời sang pylos.gate.fence.token_limit.rate_limiter (import cũ vẫn chạy; gỡ ở giai đoạn cuối)."""
 
-from __future__ import annotations
+import importlib
+import sys
 
-import time
-from collections import defaultdict, deque
-from typing import Callable
-
-
-class RateLimiter:
-    def __init__(self, per_minute: int, clock: Callable[[], float] = time.monotonic) -> None:
-        self.per_minute = per_minute
-        self._clock = clock
-        self._hits: dict[str, deque[float]] = defaultdict(deque)
-
-    def allow(self, key: str) -> bool:
-        """0 = không giới hạn."""
-        if self.per_minute <= 0:
-            return True
-        now = self._clock()
-        hits = self._hits[key]
-        while hits and now - hits[0] >= 60:
-            hits.popleft()
-        if len(hits) >= self.per_minute:
-            return False
-        hits.append(now)
-        return True
+sys.modules[__name__] = importlib.import_module("pylos.gate.fence.token_limit.rate_limiter")

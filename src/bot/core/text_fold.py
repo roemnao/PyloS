@@ -1,11 +1,6 @@
-"""Chuẩn hoá chữ để so tên: không phân biệt hoa thường và dấu tiếng Việt."""
+"""Biển chỉ đường: mã thật đã dời sang pylos.gate.fence.speech_limit.text_fold (import cũ vẫn chạy; gỡ ở giai đoạn cuối)."""
 
-from __future__ import annotations
+import importlib
+import sys
 
-import unicodedata
-
-
-def fold(text: str) -> str:
-    """Chữ thường, bỏ dấu tiếng Việt: "Trợ Lý" -> "tro ly"."""
-    text = text.lower().replace("đ", "d")
-    return "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
+sys.modules[__name__] = importlib.import_module("pylos.gate.fence.speech_limit.text_fold")

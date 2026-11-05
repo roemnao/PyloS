@@ -184,9 +184,11 @@ Connections to the outer city, sessions, outside logs.
 | `src/pylos/gate/main_gate/__init__.py` | `gate/main_gate` | 🟡 proposed |  |
 | `src/bot/system/server_client.py` | `gate/main_gate/external_apps` | 🟠 correction | Round 2 put it in side_gate, but it talks to the calendar web app (iforgotmywayhome /api/agent/*), not the VPS. |
 | `src/pylos/gate/main_gate/external_apps/__init__.py` | `gate/main_gate/external_apps` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/external_apps/server_client.py` | `gate/main_gate/external_apps` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/external_bots/__init__.py` | `gate/main_gate/external_bots` | 🟡 proposed |  |
 | `src/bot/system/log_files.py` | `gate/main_gate/logs` | 🟡 proposed | Log setup (console + rotating file, secrets masked). Log data stays in userdata/system/logs. |
 | `src/pylos/gate/main_gate/logs/__init__.py` | `gate/main_gate/logs` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/logs/log_files.py` | `gate/main_gate/logs` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/sessions/__init__.py` | `gate/main_gate/sessions` | 🟡 proposed |  |
 | `src/bot/core/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed | @mention tags in Zalo groups. |
 | `src/bot/core/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed | Formats text for Zalo before sending. |
@@ -198,6 +200,14 @@ Connections to the outer city, sessions, outside logs.
 | `src/bot/zalo/receive_polling.py` | `gate/main_gate/zalo` | agreed |  |
 | `src/bot/zalo/receive_webhook.py` | `gate/main_gate/zalo` | agreed |  |
 | `src/pylos/gate/main_gate/zalo/__init__.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/bot_platform_api.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/incoming_message.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/personal_account.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/qr_login.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/receive_polling.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/receive_webhook.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
 
 #### `gate/fence` — Hàng rào
 
@@ -217,8 +227,11 @@ Limits, inbound and outbound: the rules and the code that enforces them.
 | `src/bot/core/message_filter.py` | `gate/fence/speech_limit` | agreed | Decides whether a message is asking the bot to reply. |
 | `src/bot/core/text_fold.py` | `gate/fence/speech_limit` | agreed | Name matching without case/diacritics; used by the filter. Could be lobby/dispatch/shared if others need it. |
 | `src/pylos/gate/fence/speech_limit/__init__.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/speech_limit/message_filter.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/speech_limit/text_fold.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
 | `src/bot/core/rate_limiter.py` | `gate/fence/token_limit` | agreed |  |
 | `src/pylos/gate/fence/token_limit/__init__.py` | `gate/fence/token_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/token_limit/rate_limiter.py` | `gate/fence/token_limit` | 🟡 proposed |  |
 
 #### `gate/side_gate` — Cổng phụ
 
@@ -244,15 +257,23 @@ Technical entry: receives commands from the owner, the VPS and MCP.
 | `src/bot/ui/desktop/tray_icon.py` | `gate/side_gate/desktop` | agreed |  |
 | `src/bot/ui/desktop/windows_autostart.py` | `gate/side_gate/desktop` | agreed |  |
 | `src/pylos/gate/side_gate/desktop/__init__.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/desktop_app.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/icon_images.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/tray_icon.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_autostart.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/emergency/__init__.py` | `gate/side_gate/emergency` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/mcp/__init__.py` | `gate/side_gate/mcp` | 🟡 proposed |  |
 | `src/bot/core/owner_commands.py` | `gate/side_gate/owner_commands` | agreed |  |
 | `src/pylos/gate/side_gate/owner_commands/__init__.py` | `gate/side_gate/owner_commands` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/owner_commands/owner_commands.py` | `gate/side_gate/owner_commands` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/shell/__init__.py` | `gate/side_gate/shell` | 🟡 proposed |  |
 | `src/bot/system/bot_process.py` | `gate/side_gate/vps` | agreed | Start/stop processes, systemctl, standby. Round 3 A1 may split the decisions out to lobby/dispatch/lifecycle. |
 | `src/bot/system/remote_server.py` | `gate/side_gate/vps` | agreed | This machine's app -> admin page on the VPS. |
 | `src/bot/system/server_info.py` | `gate/side_gate/vps` | 🟡 proposed | Machine info (RAM, disk, commit, services) for the Server page. |
 | `src/pylos/gate/side_gate/vps/__init__.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/bot_process.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/remote_server.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/server_info.py` | `gate/side_gate/vps` | 🟡 proposed |  |
 
 #### `gate/guest_house` — Toà khách
 
@@ -478,7 +499,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-111 file(s) placed as `proposed` or `correction`.
+132 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -506,24 +527,45 @@ These files have no place yet; the owner decides.
 | `src/pylos/gate/fence/__init__.py` | `gate/fence` | 🟡 proposed |  |
 | `src/pylos/gate/fence/ethics/__init__.py` | `gate/fence/ethics` | 🟡 proposed |  |
 | `src/pylos/gate/fence/speech_limit/__init__.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/speech_limit/message_filter.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/speech_limit/text_fold.py` | `gate/fence/speech_limit` | 🟡 proposed |  |
 | `src/pylos/gate/fence/token_limit/__init__.py` | `gate/fence/token_limit` | 🟡 proposed |  |
+| `src/pylos/gate/fence/token_limit/rate_limiter.py` | `gate/fence/token_limit` | 🟡 proposed |  |
 | `src/pylos/gate/guest_house/README.md` | `gate/guest_house` | 🟡 proposed |  |
 | `src/pylos/gate/guest_house/__init__.py` | `gate/guest_house` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/README.md` | `gate/main_gate` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/__init__.py` | `gate/main_gate` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/external_apps/__init__.py` | `gate/main_gate/external_apps` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/external_apps/server_client.py` | `gate/main_gate/external_apps` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/external_bots/__init__.py` | `gate/main_gate/external_bots` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/logs/__init__.py` | `gate/main_gate/logs` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/logs/log_files.py` | `gate/main_gate/logs` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/sessions/__init__.py` | `gate/main_gate/sessions` | 🟡 proposed |  |
 | `src/pylos/gate/main_gate/zalo/__init__.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/bot_platform_api.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/incoming_message.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/personal_account.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/qr_login.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/receive_polling.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/receive_webhook.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
+| `src/pylos/gate/main_gate/zalo/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/README.md` | `gate/side_gate` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/__init__.py` | `gate/side_gate` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/desktop/__init__.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/desktop_app.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/icon_images.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/tray_icon.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/desktop/windows_autostart.py` | `gate/side_gate/desktop` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/emergency/__init__.py` | `gate/side_gate/emergency` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/mcp/__init__.py` | `gate/side_gate/mcp` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/owner_commands/__init__.py` | `gate/side_gate/owner_commands` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/owner_commands/owner_commands.py` | `gate/side_gate/owner_commands` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/shell/__init__.py` | `gate/side_gate/shell` | 🟡 proposed |  |
 | `src/pylos/gate/side_gate/vps/__init__.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/bot_process.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/remote_server.py` | `gate/side_gate/vps` | 🟡 proposed |  |
+| `src/pylos/gate/side_gate/vps/server_info.py` | `gate/side_gate/vps` | 🟡 proposed |  |
 | `src/pylos/lobby/__init__.py` | `lobby` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/README.md` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
