@@ -7,13 +7,12 @@ from pathlib import Path
 
 from conftest import event
 
-SRC = Path(__file__).resolve().parents[1] / "src"
+SRC = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file()) / "src"
 ALLOWED = {"/zalo-link", "/assign", "/events", "/tasks", "/agenda", "/message"}
 
 
 def test_no_module_for_remote_config_sessions_or_heartbeat():
-    assert not (SRC / "bot/system/remote_config.py").exists()
-    assert not (SRC / "bot/system/session_upload.py").exists()
+    assert not list(SRC.rglob("remote_config.py")) and not list(SRC.rglob("session_upload.py"))
 
 
 def test_source_has_no_forbidden_web_paths():

@@ -224,7 +224,7 @@ note = "Owner Q&A rounds and the migration plan (Vietnamese working copies)."
 pattern = "tests/*"
 target = "outside/tests"
 status = "agreed"
-note = "Mirror the city later (round 3 F1)."
+note = "Mirrors the city: tests/<zone>/<building>/ (round 3 F1)."
 
 [[file]]
 pattern = "CLAUDE.md"

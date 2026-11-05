@@ -350,6 +350,7 @@ Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only.
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/permissions/path_guard.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/roles.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/registry/__init__.py` | `lobby/dispatch/registry` | 🟡 proposed |  |
@@ -429,34 +430,35 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `README.md` | `outside/repo_root` | agreed |  |
 | `ZaloBot.cmd` | `outside/repo_root` | agreed |  |
 | `pyproject.toml` | `outside/repo_root` | agreed |  |
-| `tests/conftest.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_admin.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_agent.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_assign_events.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_atlas.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_bot.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_bus.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_city_skeleton.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_config_client_webhook.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_desktop.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_entrypoints.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_filter.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_google_login.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_handover.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_memorydata.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_no_web_coupling.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_paths.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_personal.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_polling.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_qrlogin.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_region_map.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_remote_proxy.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_roles.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_schedule_tool.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_storage.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_text_and_models.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_updater.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
-| `tests/test_vps_supervisor.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/conftest.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/fence/test_filter.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/main_gate/test_config_client_webhook.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/main_gate/test_personal.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/main_gate/test_polling.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/main_gate/test_qrlogin.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/main_gate/test_text_and_models.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/side_gate/test_desktop.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/gate/side_gate/test_vps_supervisor.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/atlas/test_atlas.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/atlas/test_city_skeleton.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/atlas/test_region_map.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_bus.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_handover.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_path_guard.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_paths.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_roles.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_storage.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/dispatch/test_updater.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/office/test_assign_events.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/office/test_memorydata.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/lobby/office/test_schedule_tool.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/management/owner/test_admin.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/management/owner/test_google_login.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/management/owner/test_remote_proxy.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/residential/residents/test_agent.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/residential/residents/test_bot.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/residential/residents/test_no_web_coupling.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
+| `tests/test_entrypoints.py` | `outside/tests` | agreed | Mirrors the city: tests/<zone>/<building>/ (round 3 F1). |
 
 ## Undecided (`open`)
 
@@ -470,7 +472,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-166 file(s) placed as `proposed` or `correction`.
+167 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -554,6 +556,7 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/permissions/path_guard.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/roles.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/registry/__init__.py` | `lobby/dispatch/registry` | 🟡 proposed |  |

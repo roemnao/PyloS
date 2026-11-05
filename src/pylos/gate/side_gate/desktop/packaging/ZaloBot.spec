@@ -10,14 +10,15 @@ ROOT = next(p for p in Path(SPECPATH).parents if (p / "pyproject.toml").is_file(
 PACK = Path(SPECPATH)
 sys.path.insert(0, str(ROOT / "src"))
 
-from bot.ui.desktop.icon_images import write_ico  # noqa: E402
+from pylos.gate.side_gate.desktop.icon_images import write_ico  # noqa: E402
 
 icon = write_ico(ROOT / "build" / "zalobot.ico")
 
 # File không phải .py trong package: ui/admin/static/*, templates/* (mẫu .env, SYSTEM.md, MEMORY.md, tool mẫu).
-# pylos: chỉ lấy file tĩnh của trang quản trị. KHÔNG đóng gói lịch sử/kế hoạch riêng (owner/history), tài liệu, bản đồ, script build.
+# pylos: chỉ lấy file mẫu (templates) và file tĩnh của trang quản trị: phải khớp package-data trong pyproject.toml. KHÔNG đóng gói lịch sử/kế hoạch riêng (owner/history), tài liệu, bản đồ, script build.
 datas = collect_data_files("bot") + collect_data_files(
-    "pylos", includes=["management/owner/admin_web/static/*", "management/owner/admin_web/static/fonts/*"])
+    "pylos", includes=["lobby/dispatch/shared/templates/*", "management/owner/admin_web/static/*",
+                       "management/owner/admin_web/static/fonts/*"])
 
 hiddenimports = (
     collect_submodules("bot")

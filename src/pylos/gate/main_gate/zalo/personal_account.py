@@ -1,7 +1,7 @@
 """Chạy bot trên một tài khoản Zalo cá nhân (acc phụ) qua thư viện không chính thức zlapi.
 
 Khác Zalo Bot Platform: không có token. Bot đăng nhập bằng phiên (IMEI + cookies) có được
-khi quét mã QR (bot/zalo/qr_login.py), nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
+khi quét mã QR (qr_login.py), nhận tin qua websocket (như Zalo Web) và trả lời dưới tên acc đó.
 Cách này không được Zalo hỗ trợ chính thức: acc có thể bị khoá, thư viện có thể hỏng
 khi Zalo đổi giao thức. Chỉ dùng acc phụ.
 

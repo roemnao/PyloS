@@ -324,7 +324,7 @@ def main(argv: list[str] | None = None) -> int:
     region.add_argument("--tests", action="store_true", help="also count links from tests")
     region.add_argument("--examples", type=int, default=3, help="example links per neighbouring building")
     where = sub.add_parser("where", help="which building a file or a code symbol belongs to")
-    where.add_argument("query", help="a tracked path (src/bot/zalo/qr_login.py) or a symbol name (RateLimiter)")
+    where.add_argument("query", help="a tracked path (src/pylos/gate/main_gate/zalo/qr_login.py) or a symbol name (RateLimiter)")
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")

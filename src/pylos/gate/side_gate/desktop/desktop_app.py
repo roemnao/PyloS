@@ -26,7 +26,7 @@ from pylos.gate.main_gate.logs.log_files import setup_logging
 from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
 from pylos.lobby.dispatch.shared.userdata_paths import APP_WINDOW_PROFILE_DIR, GUI_LOCK_FILE, PENDING_UPDATES_FILE, SHOW_WINDOW_REQUEST, UPDATE_REQUEST
 
-log = logging.getLogger("bot.ui.desktop")
+log = logging.getLogger("pylos.gate.side_gate.desktop")
 
 TITLE = "Quản lý Bot Zalo"
 

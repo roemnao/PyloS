@@ -83,7 +83,7 @@ class Settings:
     admin_port: int = 8081
     admin_show_history: bool = True
     allow_all_chats: bool = False
-    # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem bot/zalo/personal_account.py)
+    # RECEIVE_MODE=personal: chạy trên acc Zalo cá nhân thay cho Zalo Bot (xem gate/main_gate/zalo/personal_account.py)
     zalo_imei: str = ""
     # Tên gọi bot: tin trong nhóm nhắc tới một trong các tên này (hoặc @tag acc bot) thì bot trả lời, không cần /bot
     bot_names: tuple[str, ...] = ("bot",)
@@ -100,7 +100,7 @@ class Settings:
     system_dir: Path = Path(SYSTEM_REL)
     # Ai bật/tắt bot: "process" (giao diện tự bật tiến trình nền) hoặc "systemd" (VPS: service pylos-bot)
     bot_supervisor: str = "process"
-    # Trang quản lý trên VPS mà ứng dụng ở máy này điều khiển (xem bot/system/remote_server.py)
+    # Trang quản lý trên VPS mà ứng dụng ở máy này điều khiển (xem gate/side_gate/vps/remote_server.py)
     remote_url: str = ""
     # Địa chỉ công khai của chính trang quản lý này khi chạy sau nginx (VPS), ví dụ https://unousgrowth.com.
     # Trình duyệt mở qua địa chỉ đó gửi Origin này; không đặt thì chỉ nhận Origin http://127.0.0.1:<cổng>.

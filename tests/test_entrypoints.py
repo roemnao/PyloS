@@ -74,3 +74,11 @@ def test_every_top_level_package_is_bundled_into_the_exe():
     for package in top_packages():
         assert re.search(rf'collect_submodules\("{package}"\)', spec), f"ZaloBot.spec thiếu collect_submodules({package!r})"
         assert re.search(rf'collect_data_files\(\s*"{package}"', spec), f"ZaloBot.spec thiếu collect_data_files({package!r})"
+
+
+def test_exe_bundles_every_package_data_pattern_of_pylos():
+    """Gói pylos chỉ đóng file dữ liệu liệt kê trong spec: phải đủ mọi mẫu package-data (templates, static trang quản trị)."""
+    data = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["tool"]["setuptools"]["package-data"]["pylos"]
+    spec = (ROOT / "src" / "pylos" / "gate" / "side_gate" / "desktop" / "packaging" / "ZaloBot.spec").read_text(encoding="utf-8")
+    for pattern in data:
+        assert f'"{pattern}"' in spec, f"ZaloBot.spec không đóng gói {pattern}: exe sẽ thiếu file này"

@@ -15,7 +15,7 @@ from pylos.gate.side_gate.vps import bot_process
 from pylos.lobby.dispatch.shared import config, userdata_paths
 from pylos.lobby.office.agent_tools import discover
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())
 
 
 # ---------- thư mục ứng dụng ----------

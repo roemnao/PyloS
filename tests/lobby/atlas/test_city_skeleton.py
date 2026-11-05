@@ -6,7 +6,7 @@ import importlib
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())
 CITY = ROOT / "src" / "pylos"
 ZONES = {"management", "gate", "lobby", "residential"}
 BUILDINGS = {
