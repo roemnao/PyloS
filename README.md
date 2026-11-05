@@ -445,7 +445,7 @@ Giá trị đặt trên web ghi đè giá trị trong `settings.env` khi bot đa
 1. Sao chép `userdata\data\custom_tools\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
 2. Sửa hàm và mô tả trong file đó, rồi khởi động lại bot.
 
-(Tool có sẵn của bot nằm trong `src/bot/agent/tools/`.)
+(Tool có sẵn của bot nằm trong `src/pylos/lobby/office/agent_tools/`. Tool tự viết vẫn `from bot.agent.tools import Tool, ToolContext` như cũ.)
 
 Tool chỉ dành cho chủ bot thì đặt `owner_only=True`.
 
