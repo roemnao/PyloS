@@ -43,7 +43,8 @@ zalo-bot = "bot.command_line:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-bot = ["ui/admin/static/*", "templates/*"]
+bot = ["templates/*"]
+pylos = ["management/owner/admin_web/static/*", "management/owner/admin_web/static/fonts/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

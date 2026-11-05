@@ -43,6 +43,8 @@ def test_every_folder_is_a_lowercase_snake_case_package():
     for path in CITY.rglob("*"):
         if path.relative_to(CITY).parts[2:3] == ("history",) and len(path.relative_to(CITY).parts) > 3:
             continue  # trong căn hộ history chỉ có dữ liệu (thư mục theo ngày), không phải gói Python
+        if "static" in path.relative_to(CITY).parts:
+            continue  # file tĩnh (css/js/font) của trang quản trị, không phải gói Python
         if path.is_dir() and path.name != "__pycache__":
             assert NAME.match(path.name), f"tên thư mục không hợp lệ: {path.relative_to(CITY)}"
             assert (path / "__init__.py").is_file(), f"thiếu __init__.py: {path.relative_to(CITY)}"

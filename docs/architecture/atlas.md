@@ -104,22 +104,26 @@ The owner's own tools and notes. Bots may not enter.
 | `src/bot/ui/admin/admin_web_server.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
 | `src/bot/ui/admin/google_login.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
 | `src/bot/ui/admin/settings_file.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/admin_page.css` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/admin_page.js` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/OFL.txt` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/index.html` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/theme.css` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
-| `src/bot/ui/admin/static/theme.js` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
 | `src/pylos/management/owner/admin_web/__init__.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/admin_sessions.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/admin_web_server.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/google_login.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/settings_file.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/admin_page.css` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/admin_page.js` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/OFL.txt` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/index.html` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/theme.css` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/theme.js` | `management/owner/admin_web` | 🟡 proposed |  |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-lam-ro-cau-truc.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-2.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
@@ -499,7 +503,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-132 file(s) placed as `proposed` or `correction`.
+151 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -620,6 +624,25 @@ These files have no place yet; the owner decides.
 | `src/pylos/management/owner/README.md` | `management/owner` | 🟡 proposed |  |
 | `src/pylos/management/owner/__init__.py` | `management/owner` | 🟡 proposed |  |
 | `src/pylos/management/owner/admin_web/__init__.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/admin_sessions.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/admin_web_server.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/google_login.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/settings_file.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/admin_page.css` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/admin_page.js` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/OFL.txt` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-latin-ext-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-400-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-500-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/fonts/be-vietnam-pro-vietnamese-600-normal.woff2` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/index.html` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/theme.css` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/admin_web/static/theme.js` | `management/owner/admin_web` | 🟡 proposed |  |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-lam-ro-cau-truc.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-2.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
