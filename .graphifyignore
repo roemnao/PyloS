@@ -1,0 +1,4 @@
+# Files graphify must not put into the city map (gitignore syntax).
+# Already skipped through .gitignore: userdata/, build/, dist/, .venv/
+.ua/
+graphify-out/

@@ -1,0 +1,411 @@
+# PyloS Atlas
+
+> **Generated** by `scripts/atlas.py` from [`atlas_map.toml`](atlas_map.toml). Do not edit by hand:
+> edit the TOML, then run `python scripts/atlas.py`. What the city is and why: [city.md](city.md).
+>
+> Phase 1: the code has **not** moved yet. "Current path" is where a file is today, "Goes to" is its place in the city.
+
+Status: **agreed** = owner agreed · **proposed** = suggested by Claude, not reviewed by the owner yet · **correction** = differs from what the owner agreed; see the note · **open** = not decided.
+
+## City tree
+
+```
+src/pylos/
+├── management/  (Khu quản lý)
+│   ├── owner/  (Toà Owner)
+│   │   ├── admin_web/
+│   │   ├── owner_log/
+│   │   ├── private_plans/
+│   │   └── secrets/  [open]
+│   └── managers/  (Toà quản lý)
+│       ├── guidelines/
+│       ├── bot_commands/
+│       ├── plans/
+│       ├── evaluations/
+│       ├── reports/
+│       └── bot_list/
+├── gate/  (Khu cổng)
+│   ├── main_gate/  (Cổng chính)
+│   │   ├── zalo/
+│   │   ├── external_apps/
+│   │   ├── external_bots/
+│   │   ├── sessions/
+│   │   └── logs/
+│   ├── fence/  (Hàng rào)
+│   │   ├── token_limit/
+│   │   ├── speech_limit/
+│   │   └── ethics/
+│   ├── side_gate/  (Cổng phụ)
+│   │   ├── vps/
+│   │   ├── cron/  [open]
+│   │   ├── mcp/
+│   │   ├── owner_commands/
+│   │   ├── shell/
+│   │   ├── emergency/
+│   │   └── desktop/
+│   └── guest_house/  (Toà khách)
+│       └── <hut_id>/
+├── lobby/  (Khu đại sảnh)
+│   ├── library/  (Toà thư viện)
+│   │   ├── skills/  [proposed]
+│   │   └── knowledge/  [proposed]
+│   ├── atlas/  (Toà bản đồ)
+│   │   ├── maps/  [proposed]
+│   │   └── generator/  [proposed]
+│   ├── dispatch/  (Toà điều phối)
+│   │   ├── bus/
+│   │   ├── clock/
+│   │   ├── registry/
+│   │   ├── queue/
+│   │   ├── envelope_log/
+│   │   ├── permissions/
+│   │   ├── scheduler/
+│   │   ├── lifecycle/  [open]
+│   │   ├── handover/
+│   │   ├── updater/
+│   │   └── shared/  [proposed]
+│   └── office/  (Toà văn phòng)
+│       ├── drawing/
+│       ├── documents/
+│       ├── code/
+│       ├── agent_tools/
+│       └── warehouse/
+└── residential/  (Khu dân cư)
+    └── residents/  (Toà nhà dân)
+        └── <bot_name>/
+```
+
+## Where every file goes
+
+### `management` — Khu quản lý
+
+Guidance, build plans, project management.
+
+#### `management/owner` — Toà Owner
+
+The owner's own tools and notes. Bots may not enter.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `admin_web` | admin web UI | agreed |
+| `owner_log` | what the owner did | agreed |
+| `private_plans` | plans and notes only the owner sees | agreed |
+| `secrets` | secrets/tokens, or only a description of where they live (round 3 A7) | 🔴 open |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/ui/__init__.py` | `management/owner/admin_web` | 🟡 proposed | Package marker; dissolves when ui/ is split. |
+| `src/bot/ui/admin/__init__.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/admin_sessions.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/admin_web_server.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/google_login.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/settings_file.py` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/admin_page.css` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/admin_page.js` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/OFL.txt` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-latin-ext-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-400-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-500-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/fonts/be-vietnam-pro-vietnamese-600-normal.woff2` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/index.html` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/theme.css` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/ui/admin/static/theme.js` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
+| `src/bot/templates/env.example` | `management/owner/secrets` | 🟡 proposed | Template for settings.env (round 3 A7). |
+
+#### `management/managers` — Toà quản lý
+
+What manager bots read to manage other bots.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `guidelines` | principles for manager bots | agreed |
+| `bot_commands` | commands that act on bots | agreed |
+| `plans` | public plans | agreed |
+| `evaluations` | weekly bot scores | agreed |
+| `reports` | reports | agreed |
+| `bot_list` | list of bots and their on/off switch | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `docs/KE-HOACH-CAP-NHAT-2026-11-01.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+| `docs/PLAN.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+| `docs/dang-nhap-google.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+| `docs/lenh-zalo.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+| `docs/vps-dieu-khien.md` | `management/managers/plans` | agreed | Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead. |
+
+### `gate` — Khu cổng
+
+Receives data from Zalo and outer-city bots; sends data out.
+
+#### `gate/main_gate` — Cổng chính
+
+Connections to the outer city, sessions, outside logs.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `zalo` | personal account, Bot Platform, QR login, polling, webhook | agreed |
+| `external_apps` | third-party apps and APIs | agreed |
+| `external_bots` | bots outside PyloS | agreed |
+| `sessions` | sessions between bots and the outside | agreed |
+| `logs` | logs of outside traffic | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/system/server_client.py` | `gate/main_gate/external_apps` | 🟠 correction | Round 2 put it in side_gate, but it talks to the calendar web app (iforgotmywayhome /api/agent/*), not the VPS. |
+| `src/bot/system/log_files.py` | `gate/main_gate/logs` | 🟡 proposed | Log setup (console + rotating file, secrets masked). Log data stays in userdata/system/logs. |
+| `src/bot/core/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed | @mention tags in Zalo groups. |
+| `src/bot/core/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed | Formats text for Zalo before sending. |
+| `src/bot/zalo/__init__.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/bot_platform_api.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/incoming_message.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/personal_account.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/qr_login.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/receive_polling.py` | `gate/main_gate/zalo` | agreed |  |
+| `src/bot/zalo/receive_webhook.py` | `gate/main_gate/zalo` | agreed |  |
+
+#### `gate/fence` — Hàng rào
+
+Limits, inbound and outbound: the rules and the code that enforces them.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `token_limit` | token limit (whole system, per month) and rate limits | agreed |
+| `speech_limit` | what may be said / what is a request to the bot | agreed |
+| `ethics` | ethics rules | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/core/message_filter.py` | `gate/fence/speech_limit` | agreed | Decides whether a message is asking the bot to reply. |
+| `src/bot/core/text_fold.py` | `gate/fence/speech_limit` | agreed | Name matching without case/diacritics; used by the filter. Could be lobby/dispatch/shared if others need it. |
+| `src/bot/core/rate_limiter.py` | `gate/fence/token_limit` | agreed |  |
+
+#### `gate/side_gate` — Cổng phụ
+
+Technical entry: receives commands from the owner, the VPS and MCP.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `vps` | VPS connection and control | agreed |
+| `cron` | schedule definitions; may move to dispatch (round 3 A2) | 🔴 open |
+| `mcp` | MCP connections | agreed |
+| `owner_commands` | commands only the owner may run | agreed |
+| `shell` | cmd/shell commands | agreed |
+| `emergency` | emergency requests from the main gate | agreed |
+| `desktop` | Windows desktop app (window + tray) | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/ui/desktop/__init__.py` | `gate/side_gate/desktop` | agreed |  |
+| `src/bot/ui/desktop/desktop_app.py` | `gate/side_gate/desktop` | agreed |  |
+| `src/bot/ui/desktop/icon_images.py` | `gate/side_gate/desktop` | agreed |  |
+| `src/bot/ui/desktop/tray_icon.py` | `gate/side_gate/desktop` | agreed |  |
+| `src/bot/ui/desktop/windows_autostart.py` | `gate/side_gate/desktop` | agreed |  |
+| `src/bot/core/owner_commands.py` | `gate/side_gate/owner_commands` | agreed |  |
+| `src/bot/system/bot_process.py` | `gate/side_gate/vps` | agreed | Start/stop processes, systemctl, standby. Round 3 A1 may split the decisions out to lobby/dispatch/lifecycle. |
+| `src/bot/system/remote_server.py` | `gate/side_gate/vps` | agreed | This machine's app -> admin page on the VPS. |
+| `src/bot/system/server_info.py` | `gate/side_gate/vps` | 🟡 proposed | Machine info (RAM, disk, commit, services) for the Server page. |
+
+#### `gate/guest_house` — Toà khách
+
+One hut per person or Zalo group: their repos, connections, schedule, profile, files.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `<hut_id>` | a hut, named by Zalo uid or group id; created on the first message | agreed |
+
+_No existing file goes here yet._
+
+### `lobby` — Khu đại sảnh
+
+Connects bots, the gate and the zones. Every flow between zones passes through here.
+
+#### `lobby/library` — Toà thư viện
+
+Knowledge and skills written or vetted by the owner. All bots read.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `skills` | skills (may carry scripts) | 🟡 proposed |
+| `knowledge` | documents, guides | 🟡 proposed |
+
+_No existing file goes here yet._
+
+#### `lobby/atlas` — Toà bản đồ
+
+Map of the whole inner city: detailed map (graphify graph) + zoning (this file). Manager bot and owner keep it right.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `maps` | city description, zoning, the generated atlas, the graphify graph | 🟡 proposed |
+| `generator` | atlas script: render, check, look at one region over the graph | 🟡 proposed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `scripts/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
+| `docs/architecture/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `docs/architecture/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `docs/architecture/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+
+#### `lobby/dispatch` — Toà điều phối
+
+Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `bus` | message bus / router between zones | agreed |
+| `clock` | shared clock (Vietnam time) | agreed |
+| `registry` | which bots exist, which are running or asleep | agreed |
+| `queue` | job queue | agreed |
+| `envelope_log` | log of envelopes (never message content) | agreed |
+| `permissions` | roles of each bot and each person | agreed |
+| `scheduler` | runs scheduled jobs | agreed |
+| `lifecycle` | start/stop, single-instance lock; split with side_gate is round 3 A1 | 🔴 open |
+| `handover` | moving the bot between this machine and the VPS | agreed |
+| `updater` | self-update from git | agreed |
+| `shared` | code every zone uses (config, data paths, file formats) | 🟡 proposed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/system/__init__.py` | `lobby/dispatch` | 🟡 proposed | Package marker; dissolves when system/ is split. |
+| `src/bot/core/vietnam_time.py` | `lobby/dispatch/clock` | agreed |  |
+| `src/bot/system/handover.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
+| `src/bot/system/handover_job.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
+| `src/bot/storage/process_lock.py` | `lobby/dispatch/lifecycle` | agreed | Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update. |
+| `src/bot/core/roles.py` | `lobby/dispatch/permissions` | agreed |  |
+| `src/bot/config.py` | `lobby/dispatch/shared` | 🟡 proposed | Settings read by every zone. Holds secrets in memory, but the file only reads them (round 3 A7). |
+| `src/bot/storage/text_files.py` | `lobby/dispatch/shared` | 🟡 proposed | JSON Lines file format used by every store. |
+| `src/bot/system/first_run_setup.py` | `lobby/dispatch/shared` | 🟡 proposed |  |
+| `src/bot/userdata_paths.py` | `lobby/dispatch/shared` | 🟡 proposed | The path layer that will map userdata/ into huts and apartments (round 3 C3). |
+| `src/bot/system/auto_update.py` | `lobby/dispatch/updater` | agreed | Move last in phase 4 (high risk: self-update). |
+
+#### `lobby/office` — Toà văn phòng
+
+Plugins and agent tools, plus the warehouse for generated files. Only the owner adds plugins.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `drawing` | drawing plugin | agreed |
+| `documents` | docx / text presentation plugins | agreed |
+| `code` | code plugin | agreed |
+| `agent_tools` | tools the agent can call | agreed |
+| `warehouse` | generated files, stored by type | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/agent/tools/__init__.py` | `lobby/office/agent_tools` | agreed |  |
+| `src/bot/agent/tools/_example.py` | `lobby/office/agent_tools` | agreed |  |
+| `src/bot/agent/tools/assign_events.py` | `lobby/office/agent_tools` | agreed |  |
+| `src/bot/agent/tools/read_chat_memory.py` | `lobby/office/agent_tools` | agreed |  |
+| `src/bot/agent/tools/schedule_web.py` | `lobby/office/agent_tools` | agreed |  |
+| `src/bot/templates/tool_example.py.tmpl` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed | Example for user-written tools (real ones live in userdata/data/custom_tools). |
+
+### `residential` — Khu dân cư
+
+Where bots live.
+
+#### `residential/residents` — Toà nhà dân
+
+One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and the owner enter.
+
+| Apartment | Holds | Status |
+|---|---|---|
+| `<bot_name>` | workspace/ persona/ bookshelf/ memory/{muscle,short_term,long_term,archive}/ | agreed |
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/agent/__init__.py` | `residential/residents/<bot_name>` | agreed |  |
+| `src/bot/agent/gemini_agent.py` | `residential/residents/<bot_name>` | agreed |  |
+| `src/bot/agent/system_prompt.py` | `residential/residents/<bot_name>` | agreed |  |
+| `src/bot/templates/MEMORY.md` | `residential/residents/<bot_name>` | agreed |  |
+| `src/bot/templates/SYSTEM.md` | `residential/residents/<bot_name>` | agreed | Persona. Rules part moves outside the apartment if round 3 E3 is accepted. |
+| `workspace/SYSTEM.md` | `residential/residents/<bot_name>` | agreed |  |
+
+## Outside the citadel
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `.gitattributes` | `outside/repo_root` | agreed |  |
+| `.gitignore` | `outside/repo_root` | agreed |  |
+| `CLAUDE.md` | `outside/repo_root` | agreed | Rules Claude Code reads on every session. |
+| `README.md` | `outside/repo_root` | agreed |  |
+| `ZaloBot.cmd` | `outside/repo_root` | agreed |  |
+| `pyproject.toml` | `outside/repo_root` | agreed |  |
+| `tests/conftest.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_admin.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_agent.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_assign_events.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_atlas.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_bot.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_config_client_webhook.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_desktop.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_filter.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_google_login.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_handover.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_memorydata.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_no_web_coupling.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_paths.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_personal.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_polling.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_qrlogin.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_remote_proxy.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_roles.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_schedule_tool.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_storage.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_text_and_models.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_updater.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_vps_supervisor.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `scripts/build-exe.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/install-task.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/packaging/ZaloBot.spec` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/packaging/check_secrets.py` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/packaging/version_info.txt` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/packaging/zalobot_entry.py` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/run-forever.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+| `scripts/uninstall-task.ps1` | `outside/tooling` | agreed | Build, packaging, Windows task scripts. |
+
+## Undecided (`open`)
+
+These files have no place yet; the owner decides.
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `src/bot/__init__.py` | `open` | 🔴 open | Stays as the thin `bot` entry package if round 3 C1 keeps `python -m bot run`. |
+| `src/bot/__main__.py` | `open` | 🔴 open | `python -m bot` entry used by the VPS systemd unit and ZaloBot.cmd; must keep working (round 3 C1). |
+| `src/bot/command_line.py` | `open` | 🔴 open | CLI (run, gui, admin...). Candidates: stay in the `bot` entry package, or side_gate/owner_commands. |
+| `src/bot/core/__init__.py` | `open` | 🔴 open | Package marker; dissolves when core/ is split. |
+| `src/bot/core/message_handler.py` | `open` | 🔴 open | Core reply pipeline: decide, queue per chat, send. Candidates: queue -> lobby/dispatch/queue, decision/reply -> residential/residents/<bot_name>. |
+| `src/bot/storage/__init__.py` | `open` | 🔴 open | Re-exports data_stores; follows it. |
+| `src/bot/storage/data_stores.py` | `open` | 🔴 open | All data stores in one file. Per-person stores -> gate/guest_house/<hut_id>; bot stores -> residential; system stores -> lobby/dispatch. Split in phase 6. |
+
+## Waiting for owner review
+
+19 file(s) placed as `proposed` or `correction`.
+
+| Current path | Goes to | Status | Note |
+|---|---|---|---|
+| `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
+| `docs/architecture/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `docs/architecture/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `docs/architecture/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `scripts/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
+| `src/bot/config.py` | `lobby/dispatch/shared` | 🟡 proposed | Settings read by every zone. Holds secrets in memory, but the file only reads them (round 3 A7). |
+| `src/bot/core/mention_tags.py` | `gate/main_gate/zalo` | 🟡 proposed | @mention tags in Zalo groups. |
+| `src/bot/core/reply_formatting.py` | `gate/main_gate/zalo` | 🟡 proposed | Formats text for Zalo before sending. |
+| `src/bot/storage/text_files.py` | `lobby/dispatch/shared` | 🟡 proposed | JSON Lines file format used by every store. |
+| `src/bot/system/__init__.py` | `lobby/dispatch` | 🟡 proposed | Package marker; dissolves when system/ is split. |
+| `src/bot/system/first_run_setup.py` | `lobby/dispatch/shared` | 🟡 proposed |  |
+| `src/bot/system/log_files.py` | `gate/main_gate/logs` | 🟡 proposed | Log setup (console + rotating file, secrets masked). Log data stays in userdata/system/logs. |
+| `src/bot/system/server_client.py` | `gate/main_gate/external_apps` | 🟠 correction | Round 2 put it in side_gate, but it talks to the calendar web app (iforgotmywayhome /api/agent/*), not the VPS. |
+| `src/bot/system/server_info.py` | `gate/side_gate/vps` | 🟡 proposed | Machine info (RAM, disk, commit, services) for the Server page. |
+| `src/bot/templates/env.example` | `management/owner/secrets` | 🟡 proposed | Template for settings.env (round 3 A7). |
+| `src/bot/templates/tool_example.py.tmpl` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/bot/ui/__init__.py` | `management/owner/admin_web` | 🟡 proposed | Package marker; dissolves when ui/ is split. |
+| `src/bot/userdata_paths.py` | `lobby/dispatch/shared` | 🟡 proposed | The path layer that will map userdata/ into huts and apartments (round 3 C3). |
+| `tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed | Example for user-written tools (real ones live in userdata/data/custom_tools). |

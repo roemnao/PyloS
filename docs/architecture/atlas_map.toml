@@ -1,0 +1,475 @@
+# Source of truth for docs/architecture/atlas.md.
+# Edit this file, then run: python scripts/atlas.py   (check only: python scripts/atlas.py --check)
+#
+# status:
+#   agreed      owner agreed (Q&A rounds 1-2)
+#   proposed    suggested by Claude, owner has not reviewed yet
+#   correction  differs from what the owner agreed; the note says why
+#   open        not decided; the note lists the candidates
+#
+# [[file]] target:
+#   <zone>/<building>[/<apartment>]   a place in the city ("<...>" apartments are per person / per bot)
+#   outside/<area>                    stays outside the citadel
+#   open                              undecided
+
+# ---------------------------------------------------------------- the city
+
+[[zone]]
+name = "management"
+vi = "Khu quản lý"
+purpose = "Guidance, build plans, project management."
+
+[[zone.building]]
+name = "owner"
+vi = "Toà Owner"
+purpose = "The owner's own tools and notes. Bots may not enter."
+apartments = [
+  { name = "admin_web", status = "agreed", purpose = "admin web UI" },
+  { name = "owner_log", status = "agreed", purpose = "what the owner did" },
+  { name = "private_plans", status = "agreed", purpose = "plans and notes only the owner sees" },
+  { name = "secrets", status = "open", purpose = "secrets/tokens, or only a description of where they live (round 3 A7)" },
+]
+
+[[zone.building]]
+name = "managers"
+vi = "Toà quản lý"
+purpose = "What manager bots read to manage other bots."
+apartments = [
+  { name = "guidelines", status = "agreed", purpose = "principles for manager bots" },
+  { name = "bot_commands", status = "agreed", purpose = "commands that act on bots" },
+  { name = "plans", status = "agreed", purpose = "public plans" },
+  { name = "evaluations", status = "agreed", purpose = "weekly bot scores" },
+  { name = "reports", status = "agreed", purpose = "reports" },
+  { name = "bot_list", status = "agreed", purpose = "list of bots and their on/off switch" },
+]
+
+[[zone]]
+name = "gate"
+vi = "Khu cổng"
+purpose = "Receives data from Zalo and outer-city bots; sends data out."
+
+[[zone.building]]
+name = "main_gate"
+vi = "Cổng chính"
+purpose = "Connections to the outer city, sessions, outside logs."
+apartments = [
+  { name = "zalo", status = "agreed", purpose = "personal account, Bot Platform, QR login, polling, webhook" },
+  { name = "external_apps", status = "agreed", purpose = "third-party apps and APIs" },
+  { name = "external_bots", status = "agreed", purpose = "bots outside PyloS" },
+  { name = "sessions", status = "agreed", purpose = "sessions between bots and the outside" },
+  { name = "logs", status = "agreed", purpose = "logs of outside traffic" },
+]
+
+[[zone.building]]
+name = "fence"
+vi = "Hàng rào"
+purpose = "Limits, inbound and outbound: the rules and the code that enforces them."
+apartments = [
+  { name = "token_limit", status = "agreed", purpose = "token limit (whole system, per month) and rate limits" },
+  { name = "speech_limit", status = "agreed", purpose = "what may be said / what is a request to the bot" },
+  { name = "ethics", status = "agreed", purpose = "ethics rules" },
+]
+
+[[zone.building]]
+name = "side_gate"
+vi = "Cổng phụ"
+purpose = "Technical entry: receives commands from the owner, the VPS and MCP."
+apartments = [
+  { name = "vps", status = "agreed", purpose = "VPS connection and control" },
+  { name = "cron", status = "open", purpose = "schedule definitions; may move to dispatch (round 3 A2)" },
+  { name = "mcp", status = "agreed", purpose = "MCP connections" },
+  { name = "owner_commands", status = "agreed", purpose = "commands only the owner may run" },
+  { name = "shell", status = "agreed", purpose = "cmd/shell commands" },
+  { name = "emergency", status = "agreed", purpose = "emergency requests from the main gate" },
+  { name = "desktop", status = "agreed", purpose = "Windows desktop app (window + tray)" },
+]
+
+[[zone.building]]
+name = "guest_house"
+vi = "Toà khách"
+purpose = "One hut per person or Zalo group: their repos, connections, schedule, profile, files."
+apartments = [
+  { name = "<hut_id>", status = "agreed", purpose = "a hut, named by Zalo uid or group id; created on the first message" },
+]
+
+[[zone]]
+name = "lobby"
+vi = "Khu đại sảnh"
+purpose = "Connects bots, the gate and the zones. Every flow between zones passes through here."
+
+[[zone.building]]
+name = "library"
+vi = "Toà thư viện"
+purpose = "Knowledge and skills written or vetted by the owner. All bots read."
+apartments = [
+  { name = "skills", status = "proposed", purpose = "skills (may carry scripts)" },
+  { name = "knowledge", status = "proposed", purpose = "documents, guides" },
+]
+
+[[zone.building]]
+name = "atlas"
+vi = "Toà bản đồ"
+purpose = "Map of the whole inner city: detailed map (graphify graph) + zoning (this file). Manager bot and owner keep it right."
+apartments = [
+  { name = "maps", status = "proposed", purpose = "city description, zoning, the generated atlas, the graphify graph" },
+  { name = "generator", status = "proposed", purpose = "atlas script: render, check, look at one region over the graph" },
+]
+
+[[zone.building]]
+name = "dispatch"
+vi = "Toà điều phối"
+purpose = "Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only."
+apartments = [
+  { name = "bus", status = "agreed", purpose = "message bus / router between zones" },
+  { name = "clock", status = "agreed", purpose = "shared clock (Vietnam time)" },
+  { name = "registry", status = "agreed", purpose = "which bots exist, which are running or asleep" },
+  { name = "queue", status = "agreed", purpose = "job queue" },
+  { name = "envelope_log", status = "agreed", purpose = "log of envelopes (never message content)" },
+  { name = "permissions", status = "agreed", purpose = "roles of each bot and each person" },
+  { name = "scheduler", status = "agreed", purpose = "runs scheduled jobs" },
+  { name = "lifecycle", status = "open", purpose = "start/stop, single-instance lock; split with side_gate is round 3 A1" },
+  { name = "handover", status = "agreed", purpose = "moving the bot between this machine and the VPS" },
+  { name = "updater", status = "agreed", purpose = "self-update from git" },
+  { name = "shared", status = "proposed", purpose = "code every zone uses (config, data paths, file formats)" },
+]
+
+[[zone.building]]
+name = "office"
+vi = "Toà văn phòng"
+purpose = "Plugins and agent tools, plus the warehouse for generated files. Only the owner adds plugins."
+apartments = [
+  { name = "drawing", status = "agreed", purpose = "drawing plugin" },
+  { name = "documents", status = "agreed", purpose = "docx / text presentation plugins" },
+  { name = "code", status = "agreed", purpose = "code plugin" },
+  { name = "agent_tools", status = "agreed", purpose = "tools the agent can call" },
+  { name = "warehouse", status = "agreed", purpose = "generated files, stored by type" },
+]
+
+[[zone]]
+name = "residential"
+vi = "Khu dân cư"
+purpose = "Where bots live."
+
+[[zone.building]]
+name = "residents"
+vi = "Toà nhà dân"
+purpose = "One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and the owner enter."
+apartments = [
+  { name = "<bot_name>", status = "agreed", purpose = "workspace/ persona/ bookshelf/ memory/{muscle,short_term,long_term,archive}/" },
+]
+
+# ---------------------------------------------------------------- where every file goes
+
+# Entry point and wiring
+[[file]]
+pattern = "src/bot/__init__.py"
+target = "open"
+status = "open"
+note = "Stays as the thin `bot` entry package if round 3 C1 keeps `python -m bot run`."
+
+[[file]]
+pattern = "src/bot/__main__.py"
+target = "open"
+status = "open"
+note = "`python -m bot` entry used by the VPS systemd unit and ZaloBot.cmd; must keep working (round 3 C1)."
+
+[[file]]
+pattern = "src/bot/command_line.py"
+target = "open"
+status = "open"
+note = "CLI (run, gui, admin...). Candidates: stay in the `bot` entry package, or side_gate/owner_commands."
+
+[[file]]
+pattern = "src/bot/config.py"
+target = "lobby/dispatch/shared"
+status = "proposed"
+note = "Settings read by every zone. Holds secrets in memory, but the file only reads them (round 3 A7)."
+
+[[file]]
+pattern = "src/bot/userdata_paths.py"
+target = "lobby/dispatch/shared"
+status = "proposed"
+note = "The path layer that will map userdata/ into huts and apartments (round 3 C3)."
+
+[[file]]
+pattern = "src/bot/system/first_run_setup.py"
+target = "lobby/dispatch/shared"
+status = "proposed"
+
+[[file]]
+pattern = "src/bot/system/__init__.py"
+target = "lobby/dispatch"
+status = "proposed"
+note = "Package marker; dissolves when system/ is split."
+
+# main_gate
+[[file]]
+pattern = "src/bot/zalo/*"
+target = "gate/main_gate/zalo"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/core/mention_tags.py"
+target = "gate/main_gate/zalo"
+status = "proposed"
+note = "@mention tags in Zalo groups."
+
+[[file]]
+pattern = "src/bot/core/reply_formatting.py"
+target = "gate/main_gate/zalo"
+status = "proposed"
+note = "Formats text for Zalo before sending."
+
+[[file]]
+pattern = "src/bot/system/server_client.py"
+target = "gate/main_gate/external_apps"
+status = "correction"
+note = "Round 2 put it in side_gate, but it talks to the calendar web app (iforgotmywayhome /api/agent/*), not the VPS."
+
+[[file]]
+pattern = "src/bot/system/log_files.py"
+target = "gate/main_gate/logs"
+status = "proposed"
+note = "Log setup (console + rotating file, secrets masked). Log data stays in userdata/system/logs."
+
+# fence
+[[file]]
+pattern = "src/bot/core/rate_limiter.py"
+target = "gate/fence/token_limit"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/core/message_filter.py"
+target = "gate/fence/speech_limit"
+status = "agreed"
+note = "Decides whether a message is asking the bot to reply."
+
+[[file]]
+pattern = "src/bot/core/text_fold.py"
+target = "gate/fence/speech_limit"
+status = "agreed"
+note = "Name matching without case/diacritics; used by the filter. Could be lobby/dispatch/shared if others need it."
+
+# side_gate
+[[file]]
+pattern = "src/bot/core/owner_commands.py"
+target = "gate/side_gate/owner_commands"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/system/remote_server.py"
+target = "gate/side_gate/vps"
+status = "agreed"
+note = "This machine's app -> admin page on the VPS."
+
+[[file]]
+pattern = "src/bot/system/server_info.py"
+target = "gate/side_gate/vps"
+status = "proposed"
+note = "Machine info (RAM, disk, commit, services) for the Server page."
+
+[[file]]
+pattern = "src/bot/system/bot_process.py"
+target = "gate/side_gate/vps"
+status = "agreed"
+note = "Start/stop processes, systemctl, standby. Round 3 A1 may split the decisions out to lobby/dispatch/lifecycle."
+
+[[file]]
+pattern = "src/bot/ui/desktop/*"
+target = "gate/side_gate/desktop"
+status = "agreed"
+
+# guest_house
+[[file]]
+pattern = "src/bot/storage/data_stores.py"
+target = "open"
+status = "open"
+note = "All data stores in one file. Per-person stores -> gate/guest_house/<hut_id>; bot stores -> residential; system stores -> lobby/dispatch. Split in phase 6."
+
+[[file]]
+pattern = "src/bot/storage/__init__.py"
+target = "open"
+status = "open"
+note = "Re-exports data_stores; follows it."
+
+[[file]]
+pattern = "src/bot/storage/text_files.py"
+target = "lobby/dispatch/shared"
+status = "proposed"
+note = "JSON Lines file format used by every store."
+
+# lobby
+[[file]]
+pattern = "src/bot/core/vietnam_time.py"
+target = "lobby/dispatch/clock"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/storage/process_lock.py"
+target = "lobby/dispatch/lifecycle"
+status = "agreed"
+note = "Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update."
+
+[[file]]
+pattern = "src/bot/core/roles.py"
+target = "lobby/dispatch/permissions"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/system/handover*.py"
+target = "lobby/dispatch/handover"
+status = "agreed"
+note = "Move last in phase 4 (high risk: machine <-> VPS transfer)."
+
+[[file]]
+pattern = "src/bot/system/auto_update.py"
+target = "lobby/dispatch/updater"
+status = "agreed"
+note = "Move last in phase 4 (high risk: self-update)."
+
+[[file]]
+pattern = "src/bot/core/message_handler.py"
+target = "open"
+status = "open"
+note = "Core reply pipeline: decide, queue per chat, send. Candidates: queue -> lobby/dispatch/queue, decision/reply -> residential/residents/<bot_name>."
+
+[[file]]
+pattern = "src/bot/core/__init__.py"
+target = "open"
+status = "open"
+note = "Package marker; dissolves when core/ is split."
+
+[[file]]
+pattern = "src/bot/agent/tools/*"
+target = "lobby/office/agent_tools"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/templates/tool_example.py.tmpl"
+target = "lobby/office/agent_tools"
+status = "proposed"
+
+[[file]]
+pattern = "tools/_example.py"
+target = "lobby/office/agent_tools"
+status = "proposed"
+note = "Example for user-written tools (real ones live in userdata/data/custom_tools)."
+
+[[file]]
+pattern = "docs/architecture/*"
+target = "lobby/atlas/maps"
+status = "proposed"
+
+[[file]]
+pattern = "scripts/atlas.py"
+target = "lobby/atlas/generator"
+status = "proposed"
+
+[[file]]
+pattern = "docs/*"
+target = "management/managers/plans"
+status = "agreed"
+note = "Plans go to managers/plans; how-to guides (dang-nhap-google, lenh-zalo, vps-dieu-khien) may go to lobby/library/knowledge instead."
+
+# residential
+[[file]]
+pattern = "src/bot/agent/__init__.py"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/agent/gemini_agent.py"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/agent/system_prompt.py"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/templates/MEMORY.md"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+
+[[file]]
+pattern = "src/bot/templates/SYSTEM.md"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+note = "Persona. Rules part moves outside the apartment if round 3 E3 is accepted."
+
+[[file]]
+pattern = "workspace/SYSTEM.md"
+target = "residential/residents/<bot_name>"
+status = "agreed"
+
+# management
+[[file]]
+pattern = "src/bot/ui/admin/*"
+target = "management/owner/admin_web"
+status = "agreed"
+note = "static/ is package-data in pyproject.toml: update it when moving."
+
+[[file]]
+pattern = "src/bot/ui/__init__.py"
+target = "management/owner/admin_web"
+status = "proposed"
+note = "Package marker; dissolves when ui/ is split."
+
+[[file]]
+pattern = "src/bot/templates/env.example"
+target = "management/owner/secrets"
+status = "proposed"
+note = "Template for settings.env (round 3 A7)."
+
+[[file]]
+pattern = "PyloS-*.md"
+target = "management/owner/private_plans"
+status = "proposed"
+optional = true
+note = "Owner Q&A rounds and the migration plan (Vietnamese working copies)."
+
+# outside the citadel
+[[file]]
+pattern = "tests/*"
+target = "outside/tests"
+status = "agreed"
+note = "Mirror the city later (round 3 F1)."
+
+[[file]]
+pattern = "scripts/*"
+target = "outside/tooling"
+status = "agreed"
+note = "Build, packaging, Windows task scripts."
+
+[[file]]
+pattern = "CLAUDE.md"
+target = "outside/repo_root"
+status = "agreed"
+note = "Rules Claude Code reads on every session."
+
+[[file]]
+pattern = "README.md"
+target = "outside/repo_root"
+status = "agreed"
+
+[[file]]
+pattern = "pyproject.toml"
+target = "outside/repo_root"
+status = "agreed"
+
+[[file]]
+pattern = "ZaloBot.cmd"
+target = "outside/repo_root"
+status = "agreed"
+
+[[file]]
+pattern = ".git*"
+target = "outside/repo_root"
+status = "agreed"
+
+[[file]]
+pattern = ".graphifyignore"
+target = "lobby/atlas/maps"
+status = "proposed"
+note = "What graphify leaves out of the detailed map."
