@@ -3,8 +3,10 @@
 The source of truth for how PyloS is organised. Every folder, file and data flow has a place in "the city".
 Where each existing file goes: [atlas.md](atlas.md) (generated). How to change it: [Changing the city](#changing-the-city).
 
-> **Status: Phase 3 — empty skeleton.** The structure below exists as empty packages in `src/pylos/` (one `README.md`
-> per building). Code still lives in `src/bot/`; nothing has been moved yet. The migration plan is in `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` (Vietnamese, owner's working copy).
+> **Status: migration under way (phases 3–5 and 8.1 done on branch `claude/g3-city-skeleton`).** Code moved into
+> `src/pylos/`: dispatch (clock, lock, roles, handover, updater, bus), office agent tools, the whole gate zone except
+> `message_handler`/storage, and the admin web UI. Each moved module leaves a signpost in `src/bot/` (an alias to the new
+> module) until the last phase. Still in `src/bot/`: entry point, config, `userdata_paths`, `storage`, `message_handler`, `agent`. The migration plan is in `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` (Vietnamese, owner's working copy).
 
 ---
 

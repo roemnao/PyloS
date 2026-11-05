@@ -20,7 +20,7 @@ before adding, moving or naming anything. Where each existing file goes: [docs/a
 - New folders, files and documents in the city: **English**, folders in `snake_case`, package names lower case.
 - City names, not function names: `lobby`, `gate`, `guest_house`, `hut`, `bookshelf`…
 - Existing code comments and docstrings are Vietnamese: match the surrounding code when editing it.
-- Status of the migration: Phase 3 done (empty skeleton in `src/pylos/`, code still in `src/bot/`). The plan is `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md`; open owner decisions
+- Status of the migration: phases 3–5 and 8.1 done (see city.md status); modules moved to `src/pylos/` leave an alias signpost in `src/bot/`. Edit the real module in `src/pylos/`, never the signpost. The plan is `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md`; open owner decisions
   are listed at the end of `city.md`. The owner accepted the working assumptions (2026-11-05), so moving code (Phase 4, lobby first) may start, one PR per step.
 
 ## Finding things: one map, two layers
