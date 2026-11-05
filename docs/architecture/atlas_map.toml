@@ -27,6 +27,7 @@ apartments = [
   { name = "admin_web", status = "agreed", purpose = "admin web UI" },
   { name = "owner_log", status = "agreed", purpose = "what the owner did" },
   { name = "private_plans", status = "agreed", purpose = "plans and notes only the owner sees" },
+  { name = "history", status = "proposed", purpose = "dated snapshots: plans, Q&A rounds, maps (data only, e.g. 5-11-2026/)" },
   { name = "secrets", status = "open", purpose = "secrets/tokens, or only a description of where they live (round 3 A7)" },
 ]
 
@@ -775,3 +776,9 @@ status = "proposed"
 pattern = "src/pylos/residential/__init__.py"
 target = "residential"
 status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/owner/history/*"
+target = "management/owner/history"
+status = "proposed"
+note = "Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache)."

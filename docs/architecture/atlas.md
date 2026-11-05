@@ -16,6 +16,7 @@ src/pylos/
 │   │   ├── admin_web/
 │   │   ├── owner_log/
 │   │   ├── private_plans/
+│   │   ├── history/  [proposed]
 │   │   └── secrets/  [open]
 │   └── managers/  (Toà quản lý)
 │       ├── guidelines/
@@ -90,6 +91,7 @@ The owner's own tools and notes. Bots may not enter.
 | `admin_web` | admin web UI | agreed |
 | `owner_log` | what the owner did | agreed |
 | `private_plans` | plans and notes only the owner sees | agreed |
+| `history` | dated snapshots: plans, Q&A rounds, maps (data only, e.g. 5-11-2026/) | 🟡 proposed |
 | `secrets` | secrets/tokens, or only a description of where they live (round 3 A7) | 🔴 open |
 
 | Current path | Goes to | Status | Note |
@@ -118,6 +120,15 @@ The owner's own tools and notes. Bots may not enter.
 | `src/bot/ui/admin/static/theme.css` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
 | `src/bot/ui/admin/static/theme.js` | `management/owner/admin_web` | agreed | static/ is package-data in pyproject.toml: update it when moving. |
 | `src/pylos/management/owner/admin_web/__init__.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-lam-ro-cau-truc.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-2.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-3.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/GRAPH_REPORT.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/graph.html` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/graph.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/manifest.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/__init__.py` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/owner_log/__init__.py` | `management/owner/owner_log` | 🟡 proposed |  |
 | `src/pylos/management/owner/private_plans/__init__.py` | `management/owner/private_plans` | 🟡 proposed |  |
 | `src/bot/templates/env.example` | `management/owner/secrets` | 🟡 proposed | Template for settings.env (round 3 A7). |
@@ -412,6 +423,7 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | `tests/test_assign_events.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_atlas.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_bot.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
+| `tests/test_city_skeleton.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_config_client_webhook.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_desktop.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
 | `tests/test_entrypoints.py` | `outside/tests` | agreed | Mirror the city later (round 3 F1). |
@@ -456,7 +468,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-89 file(s) placed as `proposed` or `correction`.
+98 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -543,6 +555,15 @@ These files have no place yet; the owner decides.
 | `src/pylos/management/owner/README.md` | `management/owner` | 🟡 proposed |  |
 | `src/pylos/management/owner/__init__.py` | `management/owner` | 🟡 proposed |  |
 | `src/pylos/management/owner/admin_web/__init__.py` | `management/owner/admin_web` | 🟡 proposed |  |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-lam-ro-cau-truc.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-2.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/PyloS-trac-nghiem-vong-3.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/GRAPH_REPORT.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/graph.html` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/graph.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/5-11-2026/late-map/manifest.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/__init__.py` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/owner_log/__init__.py` | `management/owner/owner_log` | 🟡 proposed |  |
 | `src/pylos/management/owner/private_plans/__init__.py` | `management/owner/private_plans` | 🟡 proposed |  |
 | `src/pylos/residential/__init__.py` | `residential` | 🟡 proposed |  |
