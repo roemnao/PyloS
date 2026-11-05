@@ -380,12 +380,12 @@ Plugins and agent tools, plus the warehouse for generated files. Only the owner 
 | `src/pylos/lobby/office/README.md` | `lobby/office` | 🟡 proposed |  |
 | `src/pylos/lobby/office/__init__.py` | `lobby/office` | 🟡 proposed |  |
 | `src/bot/agent/tools/__init__.py` | `lobby/office/agent_tools` | agreed |  |
-| `src/bot/agent/tools/_example.py` | `lobby/office/agent_tools` | agreed |  |
-| `src/bot/agent/tools/assign_events.py` | `lobby/office/agent_tools` | agreed |  |
-| `src/bot/agent/tools/read_chat_memory.py` | `lobby/office/agent_tools` | agreed |  |
-| `src/bot/agent/tools/schedule_web.py` | `lobby/office/agent_tools` | agreed |  |
 | `src/bot/templates/tool_example.py.tmpl` | `lobby/office/agent_tools` | 🟡 proposed |  |
 | `src/pylos/lobby/office/agent_tools/__init__.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/assign_events.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/read_chat_memory.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/schedule_web.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
 | `tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed | Example for user-written tools (real ones live in userdata/data/custom_tools). |
 | `src/pylos/lobby/office/code/__init__.py` | `lobby/office/code` | 🟡 proposed |  |
 | `src/pylos/lobby/office/documents/__init__.py` | `lobby/office/documents` | 🟡 proposed |  |
@@ -478,7 +478,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-107 file(s) placed as `proposed` or `correction`.
+111 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -558,6 +558,10 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/office/README.md` | `lobby/office` | 🟡 proposed |  |
 | `src/pylos/lobby/office/__init__.py` | `lobby/office` | 🟡 proposed |  |
 | `src/pylos/lobby/office/agent_tools/__init__.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/_example.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/assign_events.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/read_chat_memory.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
+| `src/pylos/lobby/office/agent_tools/schedule_web.py` | `lobby/office/agent_tools` | 🟡 proposed |  |
 | `src/pylos/lobby/office/code/__init__.py` | `lobby/office/code` | 🟡 proposed |  |
 | `src/pylos/lobby/office/documents/__init__.py` | `lobby/office/documents` | 🟡 proposed |  |
 | `src/pylos/lobby/office/drawing/__init__.py` | `lobby/office/drawing` | 🟡 proposed |  |

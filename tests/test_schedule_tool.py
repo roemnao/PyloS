@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from bot.agent import ToolContext
-from bot.agent.tools import schedule_web
+from pylos.lobby.office.agent_tools import schedule_web
 from bot.system import server_client
 
 CTX = ToolContext("g1", "u1", "An", True)

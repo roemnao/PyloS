@@ -4,7 +4,7 @@
 khởi động lại bot, tool sẽ tự được đăng ký.
 """
 
-from bot.agent.tools import Tool, ToolContext
+from pylos.lobby.office.agent_tools import Tool, ToolContext
 from bot.core.vietnam_time import now_vn
 
 

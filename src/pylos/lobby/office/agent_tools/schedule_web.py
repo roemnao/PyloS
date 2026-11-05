@@ -19,7 +19,7 @@ import logging
 from typing import Any
 from urllib.parse import quote
 
-from bot.agent.tools import Tool, ToolContext
+from pylos.lobby.office.agent_tools import Tool, ToolContext
 from bot.system.server_client import DEFAULT_URL, base_url, env_values, request, server_config  # noqa: F401
 
 log = logging.getLogger(__name__)

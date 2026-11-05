@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from bot.agent import ToolContext
-from bot.agent.tools import assign_events
+from pylos.lobby.office.agent_tools import assign_events
 
 MEMBERS = {"u-an": "Nguyễn Văn An", "u-binh": "Trần Thị Bình", "u-anh": "Hoàng Anh", "u-binh2": "Bình Lê", "bot": "roemnao"}
 

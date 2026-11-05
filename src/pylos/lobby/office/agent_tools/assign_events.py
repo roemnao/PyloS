@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from bot.agent.tools import Tool, ToolContext
+from pylos.lobby.office.agent_tools import Tool, ToolContext
 from bot.core.text_fold import fold
 from bot.core.vietnam_time import VN_TZ, now_ms
 from bot.storage.text_files import JsonLinesFile

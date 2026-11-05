@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from bot.agent.tools.assign_events import match_member
+from pylos.lobby.office.agent_tools.assign_events import match_member
 from bot.core.roles import (
     BASIC, LABEL, LEADER, LEADER_OFF, LEADER_REMOVE, OWNER, allows, required_role,
 )

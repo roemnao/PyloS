@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from bot.agent.tools import Tool, ToolContext
+from pylos.lobby.office.agent_tools import Tool, ToolContext
 from bot.core.message_filter import fold
 from bot.storage import MemoryDataStore
 from bot.core.vietnam_time import VN_TZ
