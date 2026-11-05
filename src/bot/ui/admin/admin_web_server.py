@@ -656,6 +656,32 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             message += "\nKhởi động lại giao diện (python -m bot admin restart) để dùng giao diện mới."
         return {"ok": True, "message": message}
 
+    @app.get("/api/rollback")
+    def rollback_status() -> dict[str, Any]:
+        from bot.system import auto_update
+
+        system_dir = ctx.settings().system_dir
+        return {"last_good": auto_update.last_good(system_dir), "held": auto_update.hold_state(system_dir)}
+
+    @app.post("/api/rollback")
+    def rollback_app(body: dict[str, Any] = Body(default={})) -> dict[str, Any]:
+        """Quay về bản tốt (hoặc `{"resume": true}` để nhận code mới). Dùng khi một bản cập nhật làm bot không lên."""
+        from bot.system import auto_update
+
+        settings = ctx.settings()
+        try:
+            result = (auto_update.resume if body.get("resume") else auto_update.rollback)(settings.system_dir)
+        except auto_update.UpdateError as exc:
+            return {"ok": False, "message": str(exc)}
+        message = result.message
+        if result.changed and bot_process.is_running(settings, bot_process.BOT):
+            message += "\n" + bot_process.restart(settings, bot_process.BOT).message
+        if result.changed and settings.bot_supervisor == "systemd" and os.name != "nt":
+            # systemd (Restart=on-failure) dựng lại giao diện bằng code vừa quay về.
+            threading.Timer(2.0, os._exit, args=(1,)).start()
+            message += "\nGiao diện sẽ tự khởi động lại sau vài giây."
+        return {"ok": True, "changed": result.changed, "message": message}
+
     # ---------- đăng nhập acc Zalo cá nhân bằng mã QR ----------
 
     qr: dict[str, Any] = {"login": None}

@@ -316,6 +316,40 @@ def _update(settings: Settings) -> int:
     return 0
 
 
+GOOD_AFTER_SECONDS = 90
+
+
+def _mark_good(system_dir) -> None:
+    from bot.system import auto_update
+
+    try:
+        auto_update.mark_good(system_dir)
+    except Exception:  # mốc bản tốt không được làm hỏng giao diện
+        log.exception("Không ghi được mốc bản tốt")
+
+
+def _rollback(settings: Settings, resume: bool, status: bool) -> int:
+    from bot.system import bot_process, auto_update
+
+    system_dir = settings.system_dir
+    if status:
+        state = auto_update.hold_state(system_dir)
+        print(f"Bản tốt gần nhất: {auto_update.last_good(system_dir)[:7] or '(chưa có)'}")
+        print(f"Đang giữ ở bản tốt: {'có, bỏ qua ' + state['from'][:7] if state else 'không'}")
+        return 0
+    try:
+        result = auto_update.resume(system_dir) if resume else auto_update.rollback(system_dir)
+    except auto_update.UpdateError as exc:
+        print(f"Lỗi: {exc}", file=sys.stderr)
+        return 1
+    print(result.message)
+    if result.changed:
+        for service in (bot_process.BOT, bot_process.ADMIN):
+            if bot_process.is_running(settings, service):
+                print(bot_process.restart(settings, service).message)
+    return 0
+
+
 def _admin(settings: Settings, action: str, open_browser: bool) -> int:
     import webbrowser
 
@@ -364,6 +398,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
         print(f"Giao diện quản lý: {url}\nMã truy cập: ADMIN_TOKEN trong {env_path}\nCtrl+C để dừng.", flush=True)
         if open_browser:
             threading.Timer(1.5, webbrowser.open, [login_url]).start()
+        threading.Timer(GOOD_AFTER_SECONDS, _mark_good, [settings.system_dir]).start()  # sống tới lúc này = bản tốt
         uvicorn.run(app, host="127.0.0.1", port=settings.admin_port, log_config=None, access_log=False)
     except KeyboardInterrupt:
         pass
@@ -451,6 +486,9 @@ def main(argv: list[str] | None = None) -> int:
     health = sub.add_parser("health", help="kiểm tra bot còn chạy")
     health.add_argument("--max-age", type=int, default=180, help="số giây tối đa từ lần poll cuối")
     sub.add_parser("update", help="lấy code mới từ GitHub và khởi động lại bot")
+    rb = sub.add_parser("rollback", help="quay về bản code chạy ổn định gần nhất (VPS giữ ở đó, không tự cập nhật)")
+    rb.add_argument("--resume", action="store_true", help="thôi giữ ở bản tốt, nhận code mới nhất")
+    rb.add_argument("--status", action="store_true", help="chỉ xem bản tốt và trạng thái giữ")
     zlogin = sub.add_parser("zalo-login", help="đăng nhập acc Zalo cá nhân bằng mã QR (chế độ personal)")
     zlogin.add_argument("--no-open", action="store_true", help="không tự mở ảnh mã QR (máy không có màn hình)")
     args = parser.parse_args(argv)
@@ -496,6 +534,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "update":
         return _update(settings)
+
+    if command == "rollback":
+        return _rollback(settings, args.resume, args.status)
 
     if command == "gateway":
         from bot.system import bot_process

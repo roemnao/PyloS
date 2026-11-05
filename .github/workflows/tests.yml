@@ -1,0 +1,21 @@
+# Chạy test cho mọi PR và mọi lần đẩy lên main. VPS tự kéo main mỗi 10 phút, nên một commit hỏng lọt vào main là lên VPS ngay.
+# Bật "Require status checks to pass" (check: test) cho nhánh main ở Settings > Branches để chặn merge khi test đỏ.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest   # cùng hệ điều hành với VPS: bắt lỗi chữ hoa/thường trong đường dẫn import
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,personal]"
+      - run: python scripts/atlas.py --check
+      - run: pytest -q

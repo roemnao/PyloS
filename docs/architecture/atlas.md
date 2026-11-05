@@ -332,6 +332,7 @@ One apartment per bot: workspace, persona, bookshelf, memory. Only that bot and 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
 | `.gitattributes` | `outside/repo_root` | agreed |  |
+| `.github/workflows/tests.yml` | `outside/repo_root` | agreed | CI: runs the tests on every PR (main deploys to the VPS). |
 | `.gitignore` | `outside/repo_root` | agreed |  |
 | `CLAUDE.md` | `outside/repo_root` | agreed | Rules Claude Code reads on every session. |
 | `README.md` | `outside/repo_root` | agreed |  |

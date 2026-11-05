@@ -473,3 +473,9 @@ pattern = ".graphifyignore"
 target = "lobby/atlas/maps"
 status = "proposed"
 note = "What graphify leaves out of the detailed map."
+
+[[file]]
+pattern = ".github/*"
+target = "outside/repo_root"
+status = "agreed"
+note = "CI: runs the tests on every PR (main deploys to the VPS)."

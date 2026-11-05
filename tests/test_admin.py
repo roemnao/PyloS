@@ -262,8 +262,11 @@ def test_playground_uses_echo_without_key_and_keeps_group_history_clean(client, 
     assert client.post("/api/playground", json={"messages": []}, headers=AUTH).status_code == 400
 
 
-def test_tools_list_has_only_builtin_memorydata_by_default(client):
-    assert [t["name"] for t in client.get("/api/tools", headers=AUTH).json()["tools"]] == ["doc_memorydata"]
+def test_tools_list_has_only_builtin_tools_by_default(client):
+    from bot.agent import discover
+
+    names = [t["name"] for t in client.get("/api/tools", headers=AUTH).json()["tools"]]
+    assert names == discover().names() and "doc_memorydata" in names
 
 
 def test_bot_control_uses_gateway(client, monkeypatch):
@@ -378,3 +381,12 @@ def test_session_tokens_expire_and_are_capped():
         now[0] += 1
         sessions.issue()
     assert not sessions.valid(first)
+
+
+def test_rollback_endpoint_needs_auth_and_reports_state(client):
+    assert client.get("/api/rollback").status_code == 401
+    body = client.get("/api/rollback", headers=AUTH).json()
+    assert body == {"last_good": "", "held": None}
+    # Chưa có mốc bản tốt: báo lỗi rõ ràng, không đụng vào git.
+    res = client.post("/api/rollback", headers=AUTH, json={}).json()
+    assert res["ok"] is False and "mốc bản tốt" in res["message"]
