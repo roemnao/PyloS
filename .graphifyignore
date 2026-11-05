@@ -2,3 +2,5 @@
 # Already skipped through .gitignore: userdata/, build/, dist/, .venv/
 .ua/
 graphify-out/
+# Dated snapshots (old plans, Q&A, a copy of an old graph): data only, would duplicate the live map.
+src/pylos/management/owner/history/
