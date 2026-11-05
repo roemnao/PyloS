@@ -332,14 +332,16 @@ Core of PyloS: bus, clock, registry, queue, permissions, scheduling. Owner only.
 | `src/pylos/lobby/dispatch/README.md` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/__init__.py` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/bus/__init__.py` | `lobby/dispatch/bus` | 🟡 proposed |  |
-| `src/bot/core/vietnam_time.py` | `lobby/dispatch/clock` | agreed |  |
+| `src/bot/core/vietnam_time.py` | `lobby/dispatch/clock` | agreed | Signpost: the code moved to src/pylos/lobby/dispatch/clock/vietnam_time.py (step 4.1). Remove in the last phase. |
 | `src/pylos/lobby/dispatch/clock/__init__.py` | `lobby/dispatch/clock` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/clock/vietnam_time.py` | `lobby/dispatch/clock` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/envelope_log/__init__.py` | `lobby/dispatch/envelope_log` | 🟡 proposed |  |
 | `src/bot/system/handover.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
 | `src/bot/system/handover_job.py` | `lobby/dispatch/handover` | agreed | Move last in phase 4 (high risk: machine <-> VPS transfer). |
 | `src/pylos/lobby/dispatch/handover/__init__.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
-| `src/bot/storage/process_lock.py` | `lobby/dispatch/lifecycle` | agreed | Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update. |
+| `src/bot/storage/process_lock.py` | `lobby/dispatch/lifecycle` | agreed | Signpost: the code moved to src/pylos/lobby/dispatch/lifecycle/process_lock.py (step 4.1). Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update. |
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/bot/core/roles.py` | `lobby/dispatch/permissions` | agreed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
@@ -468,7 +470,7 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-98 file(s) placed as `proposed` or `correction`.
+100 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
@@ -523,9 +525,11 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/dispatch/__init__.py` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/bus/__init__.py` | `lobby/dispatch/bus` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/clock/__init__.py` | `lobby/dispatch/clock` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/clock/vietnam_time.py` | `lobby/dispatch/clock` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/envelope_log/__init__.py` | `lobby/dispatch/envelope_log` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/handover/__init__.py` | `lobby/dispatch/handover` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/lifecycle/__init__.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
+| `src/pylos/lobby/dispatch/lifecycle/process_lock.py` | `lobby/dispatch/lifecycle` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/permissions/__init__.py` | `lobby/dispatch/permissions` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/queue/__init__.py` | `lobby/dispatch/queue` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/registry/__init__.py` | `lobby/dispatch/registry` | 🟡 proposed |  |

@@ -304,12 +304,13 @@ note = "JSON Lines file format used by every store."
 pattern = "src/bot/core/vietnam_time.py"
 target = "lobby/dispatch/clock"
 status = "agreed"
+note = "Signpost: the code moved to src/pylos/lobby/dispatch/clock/vietnam_time.py (step 4.1). Remove in the last phase."
 
 [[file]]
 pattern = "src/bot/storage/process_lock.py"
 target = "lobby/dispatch/lifecycle"
 status = "agreed"
-note = "Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update."
+note = "Signpost: the code moved to src/pylos/lobby/dispatch/lifecycle/process_lock.py (step 4.1). Keep the lock FILE path unchanged when moving the code, or two bots can run on one Zalo account during an update."
 
 [[file]]
 pattern = "src/bot/core/roles.py"
