@@ -366,7 +366,7 @@ class Bot:
         was_over = self._over_budget()
         try:
             reply = await self.agent.reply(system, turns, ctx)
-        except Exception as exc:
+        except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
             self.stats.incr("errors")
             await self._say(msg.chat_id, ERROR_REPLY)

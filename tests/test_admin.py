@@ -390,3 +390,19 @@ def test_rollback_endpoint_needs_auth_and_reports_state(client):
     # Chưa có mốc bản tốt: báo lỗi rõ ràng, không đụng vào git.
     res = client.post("/api/rollback", headers=AUTH, json={}).json()
     assert res["ok"] is False and "mốc bản tốt" in res["message"]
+
+
+def test_page_and_every_asset_it_links_are_served(client):
+    """Sau khi dời ui/admin sang management/owner/admin_web: trang, css/js và font mà css trỏ tới phải còn tải được."""
+    import re
+
+    page = client.get("/")
+    assert page.status_code == 200
+    assets = re.findall(r'(?:href|src)="/?(static/[^"]+)"', page.text)
+    assert assets, "index.html không còn trỏ tới file tĩnh nào"
+    for asset in assets:
+        resp = client.get("/" + asset)
+        assert resp.status_code == 200, asset
+        if asset.endswith(".css"):
+            for font in re.findall(r"url\(([^)]+)\)", resp.text):
+                assert client.get("/static/" + font.strip("'\"")).status_code == 200, font
