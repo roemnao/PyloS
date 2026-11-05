@@ -479,3 +479,299 @@ pattern = ".github/*"
 target = "outside/repo_root"
 status = "agreed"
 note = "CI: runs the tests on every PR (main deploys to the VPS)."
+
+[[file]]
+pattern = "src/pylos/__init__.py"
+target = "lobby/dispatch/shared"
+status = "proposed"
+note = "The root package of the city (empty; code is moved in step by step)."
+
+[[file]]
+pattern = "src/pylos/management/owner/*"
+target = "management/owner"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/owner/admin_web/*"
+target = "management/owner/admin_web"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/owner/owner_log/*"
+target = "management/owner/owner_log"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/owner/private_plans/*"
+target = "management/owner/private_plans"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/*"
+target = "management/managers"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/guidelines/*"
+target = "management/managers/guidelines"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/bot_commands/*"
+target = "management/managers/bot_commands"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/plans/*"
+target = "management/managers/plans"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/evaluations/*"
+target = "management/managers/evaluations"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/reports/*"
+target = "management/managers/reports"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/managers/bot_list/*"
+target = "management/managers/bot_list"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/*"
+target = "gate/main_gate"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/zalo/*"
+target = "gate/main_gate/zalo"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/external_apps/*"
+target = "gate/main_gate/external_apps"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/external_bots/*"
+target = "gate/main_gate/external_bots"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/sessions/*"
+target = "gate/main_gate/sessions"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/main_gate/logs/*"
+target = "gate/main_gate/logs"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/fence/*"
+target = "gate/fence"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/fence/token_limit/*"
+target = "gate/fence/token_limit"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/fence/speech_limit/*"
+target = "gate/fence/speech_limit"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/fence/ethics/*"
+target = "gate/fence/ethics"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/*"
+target = "gate/side_gate"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/vps/*"
+target = "gate/side_gate/vps"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/mcp/*"
+target = "gate/side_gate/mcp"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/owner_commands/*"
+target = "gate/side_gate/owner_commands"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/shell/*"
+target = "gate/side_gate/shell"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/emergency/*"
+target = "gate/side_gate/emergency"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/side_gate/desktop/*"
+target = "gate/side_gate/desktop"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/guest_house/*"
+target = "gate/guest_house"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/library/*"
+target = "lobby/library"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/library/skills/*"
+target = "lobby/library/skills"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/library/knowledge/*"
+target = "lobby/library/knowledge"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/atlas/*"
+target = "lobby/atlas"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/atlas/maps/*"
+target = "lobby/atlas/maps"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/atlas/generator/*"
+target = "lobby/atlas/generator"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/*"
+target = "lobby/dispatch"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/bus/*"
+target = "lobby/dispatch/bus"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/clock/*"
+target = "lobby/dispatch/clock"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/registry/*"
+target = "lobby/dispatch/registry"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/queue/*"
+target = "lobby/dispatch/queue"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/envelope_log/*"
+target = "lobby/dispatch/envelope_log"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/permissions/*"
+target = "lobby/dispatch/permissions"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/scheduler/*"
+target = "lobby/dispatch/scheduler"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/lifecycle/*"
+target = "lobby/dispatch/lifecycle"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/handover/*"
+target = "lobby/dispatch/handover"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/updater/*"
+target = "lobby/dispatch/updater"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/dispatch/shared/*"
+target = "lobby/dispatch/shared"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/*"
+target = "lobby/office"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/drawing/*"
+target = "lobby/office/drawing"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/documents/*"
+target = "lobby/office/documents"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/code/*"
+target = "lobby/office/code"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/agent_tools/*"
+target = "lobby/office/agent_tools"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/office/warehouse/*"
+target = "lobby/office/warehouse"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/residential/residents/*"
+target = "residential/residents"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/management/__init__.py"
+target = "management"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/gate/__init__.py"
+target = "gate"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/lobby/__init__.py"
+target = "lobby"
+status = "proposed"
+
+[[file]]
+pattern = "src/pylos/residential/__init__.py"
+target = "residential"
+status = "proposed"

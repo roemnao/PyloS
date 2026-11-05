@@ -14,10 +14,11 @@ from bot.ui.desktop.icon_images import write_ico  # noqa: E402
 icon = write_ico(ROOT / "build" / "zalobot.ico")
 
 # File không phải .py trong package: ui/admin/static/*, templates/* (mẫu .env, SYSTEM.md, MEMORY.md, tool mẫu).
-datas = collect_data_files("bot")
+datas = collect_data_files("bot") + collect_data_files("pylos")
 
 hiddenimports = (
     collect_submodules("bot")
+    + collect_submodules("pylos")
     + collect_submodules("uvicorn")
     + collect_submodules("google.genai")
     # Chế độ acc Zalo cá nhân (đăng nhập QR) import zlapi lúc chạy nên PyInstaller không tự thấy.

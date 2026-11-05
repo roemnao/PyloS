@@ -3,8 +3,8 @@
 The source of truth for how PyloS is organised. Every folder, file and data flow has a place in "the city".
 Where each existing file goes: [atlas.md](atlas.md) (generated). How to change it: [Changing the city](#changing-the-city).
 
-> **Status: Phase 1 — documentation only.** The structure below is the target. Code still lives in `src/bot/`;
-> nothing has been moved yet. The migration plan is in `PyloS-PLAN-thanh-chinh.md` (Vietnamese, owner's working copy).
+> **Status: Phase 3 — empty skeleton.** The structure below exists as empty packages in `src/pylos/` (one `README.md`
+> per building). Code still lives in `src/bot/`; nothing has been moved yet. The migration plan is in `PyloS-PLAN-thanh-chinh.md` (Vietnamese, owner's working copy).
 
 ---
 

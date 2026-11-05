@@ -1,0 +1,1 @@
+"""evaluations: weekly bot scores"""
