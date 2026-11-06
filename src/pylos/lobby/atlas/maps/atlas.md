@@ -126,6 +126,8 @@ The owner's own tools and notes. Bots may not enter.
 | `src/pylos/management/owner/history/5-11-2026/late-map/graph.html` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/late-map/graph.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/late-map/manifest.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/6-11-2026/PyloS-PLAN-ban-do-trung-tam.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/6-11-2026/PyloS-PLAN-ban-do-vong-vay.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/__init__.py` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/owner_log/__init__.py` | `management/owner/owner_log` | 🟡 proposed |  |
 | `src/pylos/management/owner/private_plans/__init__.py` | `management/owner/private_plans` | 🟡 proposed |  |
@@ -305,13 +307,14 @@ Map of the whole inner city: detailed map (graphify graph) + zoning (this file).
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
-| `src/pylos/lobby/atlas/generator/region_map.html` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/region_map.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
+| `.graphifyrc` | `lobby/atlas/maps` | 🟡 proposed | graphify project settings: points graphify-regions at maps/regions.json. |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/regions.json` | `lobby/atlas/maps` | 🟡 proposed |  |
 
 #### `lobby/dispatch` — Toà điều phối
 
@@ -472,11 +475,12 @@ These files have no place yet; the owner decides.
 
 ## Waiting for owner review
 
-167 file(s) placed as `proposed` or `correction`.
+170 file(s) placed as `proposed` or `correction`.
 
 | Current path | Goes to | Status | Note |
 |---|---|---|---|
 | `.graphifyignore` | `lobby/atlas/maps` | 🟡 proposed | What graphify leaves out of the detailed map. |
+| `.graphifyrc` | `lobby/atlas/maps` | 🟡 proposed | graphify project settings: points graphify-regions at maps/regions.json. |
 | `src/pylos/__init__.py` | `lobby/dispatch/shared` | 🟡 proposed | The root package of the city (empty; code is moved in step by step). |
 | `src/pylos/gate/__init__.py` | `gate` | 🟡 proposed |  |
 | `src/pylos/gate/fence/README.md` | `gate/fence` | 🟡 proposed |  |
@@ -535,12 +539,12 @@ These files have no place yet; the owner decides.
 | `src/pylos/lobby/atlas/__init__.py` | `lobby/atlas` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/__init__.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/atlas.py` | `lobby/atlas/generator` | 🟡 proposed |  |
-| `src/pylos/lobby/atlas/generator/region_map.html` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/generator/region_map.py` | `lobby/atlas/generator` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/__init__.py` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas.md` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/atlas_map.toml` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/atlas/maps/city.md` | `lobby/atlas/maps` | 🟡 proposed |  |
+| `src/pylos/lobby/atlas/maps/regions.json` | `lobby/atlas/maps` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/README.md` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/__init__.py` | `lobby/dispatch` | 🟡 proposed |  |
 | `src/pylos/lobby/dispatch/bus/__init__.py` | `lobby/dispatch/bus` | 🟡 proposed |  |
@@ -633,6 +637,8 @@ These files have no place yet; the owner decides.
 | `src/pylos/management/owner/history/5-11-2026/late-map/graph.html` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/late-map/graph.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/5-11-2026/late-map/manifest.json` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/6-11-2026/PyloS-PLAN-ban-do-trung-tam.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
+| `src/pylos/management/owner/history/6-11-2026/PyloS-PLAN-ban-do-vong-vay.md` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/history/__init__.py` | `management/owner/history` | 🟡 proposed | Data only. Subfolders are dates (d-m-yyyy); late-map is a copy of graphify-out (without the cache). |
 | `src/pylos/management/owner/owner_log/__init__.py` | `management/owner/owner_log` | 🟡 proposed |  |
 | `src/pylos/management/owner/private_plans/__init__.py` | `management/owner/private_plans` | 🟡 proposed |  |

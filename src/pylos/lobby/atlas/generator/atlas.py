@@ -290,7 +290,38 @@ def region_report(place: str, rules: list[Rule], graph: Graph | None, with_tests
         if not entries:
             lines.append("none")
         lines.append("")
+    if graph:
+        lines += community_section(graph, owner, place)
     return "\n".join(lines)
+
+
+def community_section(graph: Graph, owner: dict[str, Rule], place: str, top: int = 12) -> list[str]:
+    """Graphify communities with nodes in `place`: how many are here, which other buildings they also reach."""
+    here: Counter = Counter()
+    elsewhere: dict[int, Counter] = defaultdict(Counter)
+    names: dict[int, str] = {}
+    for node in graph.nodes.values():
+        cid = node.get("community")
+        rule = owner.get(node.get("source_file", ""))
+        if cid is None or not rule:
+            continue
+        names.setdefault(cid, str(node.get("community_name") or f"#{cid}"))
+        if in_region(rule.target, place):
+            here[cid] += 1
+        else:
+            elsewhere[cid][district(rule.target)] += 1
+    lines = ["## Communities in this region", ""]
+    for cid, count in here.most_common(top):
+        other = elsewhere.get(cid, Counter())
+        spread = len({*other, district(place)}) if other else 1
+        tail = f"; also in {', '.join(f'{b} {n}' for b, n in other.most_common(4))}" if other else ""
+        if spread >= 3:
+            tail += f"  [spans {spread} buildings]"
+        lines.append(f"- {names[cid]} (community {cid}): {count} nodes here{tail}")
+    if not here:
+        lines.append("none")
+    lines.append("")
+    return lines
 
 
 def where_report(query: str, rules: list[Rule], graph: Graph | None) -> str:
@@ -349,9 +380,15 @@ def main(argv: list[str] | None = None) -> int:
         current = ATLAS_FILE.read_text(encoding="utf-8").replace("\r\n", "\n") if ATLAS_FILE.exists() else ""
         if current != text:
             found.append(f"{ATLAS_FILE.relative_to(ROOT).as_posix()} is stale: run python -m pylos.lobby.atlas.generator.atlas")
+        from pylos.lobby.atlas.generator import region_map
+        regions = region_map.REGIONS_FILE
+        if not regions.exists() or regions.read_text(encoding="utf-8").replace("\r\n", "\n") != region_map.regions_text():
+            found.append(f"{regions.relative_to(ROOT).as_posix()} is stale: run python -m pylos.lobby.atlas.generator.atlas")
     else:
         ATLAS_FILE.write_text(text, encoding="utf-8", newline="\n")
         print(f"wrote {ATLAS_FILE.relative_to(ROOT).as_posix()}")
+        from pylos.lobby.atlas.generator import region_map
+        region_map.main()
     for problem in found:
         print(problem, file=sys.stderr)
     return 1 if found else 0

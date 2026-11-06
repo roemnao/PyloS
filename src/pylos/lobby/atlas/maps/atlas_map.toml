@@ -259,6 +259,12 @@ status = "proposed"
 note = "What graphify leaves out of the detailed map."
 
 [[file]]
+pattern = ".graphifyrc"
+target = "lobby/atlas/maps"
+status = "proposed"
+note = "graphify project settings: points graphify-regions at maps/regions.json."
+
+[[file]]
 pattern = ".github/*"
 target = "outside/repo_root"
 status = "agreed"

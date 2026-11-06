@@ -31,7 +31,14 @@ before adding, moving or naming anything. Where each existing file goes: [atlas.
 - Look at one region instead of the whole city:
   - `python -m pylos.lobby.atlas.generator.atlas region gate/fence` — files of the region and every graph link crossing its border.
   - `python -m pylos.lobby.atlas.generator.atlas where RateLimiter` — which building a file or symbol belongs to.
-  - `python -m pylos.lobby.atlas.generator.region_map` — graphify graph laid out by zone/building, written to `graphify-out/pylos_map.html`.
+  - The zone/building map picture is drawn by graphify itself on the admin machine (graphify-regions, patched into the
+    installed graphify; source in `C:/Users/tp/graphify-regions`, re-run its `install.py` after `uv tool upgrade graphifyy`).
+    PyloS only keeps `src/pylos/lobby/atlas/maps/regions.json` (file -> building, generated from the atlas by
+    `python -m pylos.lobby.atlas.generator.atlas`) and `.graphifyrc` pointing at it. Colour = building, shape = kind of code,
+    dashed outline = community, `?` button = legend. Inner buildings have no `pos`/`color` in `regions.json`: ONE centre building is picked (call links + node count +
+    biggest node; override: `"center"` in regions.json), the others go into rings by how many links reach the inner rings,
+    each zone gets an angular sector so its buildings sit together, and colour follows the ring: centre and ring 1 get distinct warm colours (red, orange, pink, gold), ring 2+ cool ones (teal → blue → indigo → violet), no yellow-green; the page adapts lightness to the light/dark theme.
+    `outside/tests|repo_root|tooling|external` stay pinned and grey in a row at the bottom. A machine without graphify-regions still builds a plain `graph.html`.
 - Before moving or adding code, run `region` on the target building: links to other zones that do not go through the
   `lobby` are what the migration has to remove.
 
