@@ -31,19 +31,19 @@ desktop = [
     "pystray>=0.19",
     "pillow>=10.1",
 ]
-# Đóng gói ZaloBot.exe: scripts/build-exe.ps1
+# Đóng gói ZaloBot.exe: src/pylos/gate/side_gate/desktop/packaging/build-exe.ps1
 build = [
     "pyinstaller>=6",
 ]
 
 [project.scripts]
-zalo-bot = "bot.cli:main"
+zalo-bot = "bot.command_line:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-bot = ["ui/admin/static/*", "templates/*"]
+pylos = ["lobby/dispatch/shared/templates/*", "management/owner/admin_web/static/*", "management/owner/admin_web/static/fonts/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

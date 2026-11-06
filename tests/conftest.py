@@ -7,11 +7,11 @@ from typing import Any
 import httpx
 import pytest
 
-from bot.agent import AgentReply, PromptBuilder, ToolContext, Turn
-from bot.core.message_handler import Bot
-from bot.config import Settings
-from bot.core.vietnam_time import now_ms
-from bot.zalo import ZaloError
+from pylos.residential.residents.pylos import AgentReply, PromptBuilder, ToolContext, Turn
+from pylos.residential.residents.pylos.message_handler import Bot
+from pylos.lobby.dispatch.shared.config import Settings
+from pylos.lobby.dispatch.clock.vietnam_time import now_ms
+from pylos.gate.main_gate.zalo import ZaloError
 
 OWNER = "owner-1"
 GROUP = "group-1"
@@ -158,12 +158,12 @@ class FakeWeb:
 
 @pytest.fixture
 def web(monkeypatch, tmp_path) -> FakeWeb:
-    from bot.system import server_client
+    from pylos.gate.main_gate.external_apps import server_client
 
     fake = FakeWeb()
     real = httpx.AsyncClient
     monkeypatch.setattr(server_client.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(fake.handler), **kw))
-    monkeypatch.setattr("bot.config.APP_HOME", tmp_path)  # không đọc settings.env thật của máy
+    monkeypatch.setattr("pylos.lobby.dispatch.shared.config.APP_HOME", tmp_path)  # không đọc settings.env thật của máy
     monkeypatch.setenv("SCHEDULE_API_URL", "https://web.example")
     monkeypatch.setenv("SCHEDULE_API_KEY", "k3y")
     return fake

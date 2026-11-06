@@ -1,0 +1,5 @@
+# Bản đồ vùng (phần bổ sung trong skill /graphify, máy admin)
+# regions.file: tệp phân vùng duy nhất (tiền tố đường dẫn -> toà)
+# regions.out: toàn bộ đầu ra graphify nằm ở đây; graphify-out ở gốc repo là junction trỏ vào
+regions.file=src/pylos/lobby/atlas/regions.json
+regions.out=src/pylos/lobby/atlas

@@ -1,20 +1,6 @@
-"""Thời gian. Việt Nam là UTC+7 cố định (không có giờ mùa hè), nên không cần tzdata."""
+"""Compat: tool tự viết trong userdata/data/custom_tools vẫn `from bot.core.vietnam_time import now_vn`. Mã thật ở pylos.lobby.dispatch.clock.vietnam_time."""
 
-from __future__ import annotations
+import importlib
+import sys
 
-import time
-from datetime import datetime, timedelta, timezone
-
-VN_TZ = timezone(timedelta(hours=7), name="Asia/Ho_Chi_Minh")
-
-
-def now_ms() -> int:
-    return int(time.time() * 1000)
-
-
-def now_vn() -> datetime:
-    return datetime.now(VN_TZ)
-
-
-def today_vn() -> str:
-    return now_vn().date().isoformat()
+sys.modules[__name__] = importlib.import_module("pylos.lobby.dispatch.clock.vietnam_time")

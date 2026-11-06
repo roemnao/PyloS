@@ -23,3 +23,17 @@ dist/
 # Dữ liệu của người dùng: khoá, phiên Zalo, lịch sử, log (xem src/bot/paths.py)
 userdata/
 .migrate.lock
+
+# Gói pylos: thư mục có tên logs/data/workspace là căn hộ của Thành, không phải dữ liệu
+!src/pylos/**/logs/
+!src/pylos/**/data/
+.ruff_cache/
+
+# graphify: graphify-out là junction trỏ vào Toà bản đồ; bộ đệm trích xuất và đường dẫn riêng của máy thì không commit
+graphify-out
+src/pylos/lobby/atlas/cache/
+src/pylos/lobby/atlas/.graphify_python
+src/pylos/lobby/atlas/.graphify_root
+
+# Thư mục tạm của công cụ phân tích (rác, không commit)
+.ua/
