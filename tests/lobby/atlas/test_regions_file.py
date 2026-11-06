@@ -1,48 +1,41 @@
-"""regions.json: tệp phân vùng duy nhất. Mỗi file theo dõi phải rơi đúng toà (theo tiền tố đường dẫn)."""
+"""regions.json: tệp phân vùng duy nhất (tiền tố đường dẫn -> toà). Mỗi file trong một toà phải rơi đúng toà đó."""
 
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())
-ATLAS = ROOT / "src" / "pylos" / "lobby" / "atlas"
-sys.path.insert(0, str(ATLAS / "graphify_regions"))
-
-from regions import zoning  # noqa: E402
-
-REGIONS = ATLAS / "regions.json"
+DATA = json.loads((ROOT / "src" / "pylos" / "lobby" / "atlas" / "regions.json").read_text(encoding="utf-8"))
+IDS = {r["id"] for r in DATA["regions"]}
 
 
-def tracked() -> list[str]:
-    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
-    return [f for f in out.splitlines() if (ROOT / f).is_file()]
+def region_of(path: str) -> str:
+    """Giống graphify-regions: file lẻ thắng, rồi tiền tố dài nhất, không khớp thì unplaced_region."""
+    if path in DATA.get("files", {}):
+        return DATA["files"][path]
+    hits = [r for r in DATA.get("rules", []) if path.startswith(r["prefix"])]
+    return max(hits, key=lambda r: len(r["prefix"]))["region"] if hits else DATA["unplaced_region"]
 
 
-def test_regions_file_loads_and_has_the_inner_buildings():
-    z = zoning.from_file(REGIONS)
-    ids = {r["id"] for r in z.regions}
-    assert {"lobby/dispatch", "gate/fence", "management/owner", "residential/residents"} <= ids
-    assert z.external in ids and z.tests in ids
+def test_every_region_named_in_rules_and_files_exists():
+    used = {r["region"] for r in DATA["rules"]} | set(DATA["files"].values())
+    used |= {DATA["unplaced_region"], DATA["external_region"], DATA["tests_region"]}
+    assert used <= IDS, used - IDS
 
 
 def test_pinned_regions_are_only_the_grey_outside_ones():
-    data = json.loads(REGIONS.read_text(encoding="utf-8"))
-    pinned = {r["id"] for r in data["regions"] if r.get("pos") or r.get("color")}
+    pinned = {r["id"] for r in DATA["regions"] if r.get("pos") or r.get("color")}
     assert pinned == {"outside/tests", "outside/repo_root", "outside/external"}
 
 
 def test_every_file_under_a_building_lands_in_that_building():
-    z = zoning.from_file(REGIONS)
-    for f in tracked():
+    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    for f in out.splitlines():
         parts = f.split("/")
-        if parts[:2] == ["src", "pylos"] and len(parts) > 4 and parts[2] != "history":
-            building = f"{parts[2]}/{parts[3]}"
-            assert z.node_region("n", {"source_file": f}) == building, f
+        if parts[:2] == ["src", "pylos"] and len(parts) > 4:
+            assert region_of(f) == f"{parts[2]}/{parts[3]}", f
 
 
 def test_tests_and_root_files_have_their_regions():
-    z = zoning.from_file(REGIONS)
-    assert z.node_region("n", {"source_file": "tests/lobby/dispatch/test_x.py"}) == "outside/tests"
-    assert z.node_region("n", {"source_file": "README.md"}) == "outside/repo_root"
-    assert z.node_region("n", {}) == "outside/external"
+    assert region_of("tests/lobby/dispatch/test_x.py") == "outside/tests"
+    assert region_of("README.md") == "outside/repo_root"

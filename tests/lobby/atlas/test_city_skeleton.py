@@ -1,4 +1,5 @@
-"""Khung của Thành (`src/pylos/`): đủ 4 khu, đủ toà đã chốt, tên snake_case chữ thường, đường dẫn không quá dài."""
+"""Khung của Thành (`src/pylos/`): đủ 4 khu, đủ toà đã chốt, tên snake_case chữ thường, đường dẫn không quá dài.
+Toà không cần README: mô tả nằm trong city.md và bản đồ (lobby/atlas)."""
 
 from __future__ import annotations
 
@@ -33,16 +34,12 @@ def test_every_zone_has_its_agreed_buildings():
         assert {p.name for p in folders(CITY / zone)} == buildings, zone
 
 
-def test_every_building_has_a_readme():
-    for zone, buildings in BUILDINGS.items():
-        for building in buildings:
-            assert (CITY / zone / building / "README.md").is_file(), f"{zone}/{building} thiếu README.md"
-
-
 def test_every_folder_is_a_lowercase_snake_case_package():
     for path in CITY.rglob("*"):
         if path.relative_to(CITY).parts[2:3] == ("history",) and len(path.relative_to(CITY).parts) > 3:
             continue  # trong căn hộ history chỉ có dữ liệu (thư mục theo ngày), không phải gói Python
+        if path.relative_to(CITY).parts[:2] == ("lobby", "atlas"):
+            continue  # Toà bản đồ: đầu ra của graphify (dữ liệu), không phải gói Python
         if {"static", "packaging", "windows_task", "templates"} & set(path.relative_to(CITY).parts):
             continue  # file tĩnh, script build/Windows: không phải gói Python
         if path.is_dir() and path.name != "__pycache__":
@@ -51,7 +48,8 @@ def test_every_folder_is_a_lowercase_snake_case_package():
 
 
 def test_longest_path_stays_short_for_windows():
-    longest = max((str(p.relative_to(ROOT)) for p in CITY.rglob("*")), key=len)
+    atlas = CITY / "lobby" / "atlas"  # đầu ra graphify (bộ đệm tên dài), không đóng gói vào exe
+    longest = max((str(p.relative_to(ROOT)) for p in CITY.rglob("*") if atlas not in p.parents), key=len)
     assert len(longest) <= MAX_RELATIVE_PATH, longest
 
 

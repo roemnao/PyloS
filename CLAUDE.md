@@ -25,12 +25,15 @@ before adding, moving or naming anything. Which building a file belongs to: [reg
 
 ## Finding things: one map
 
-- **Detailed map = graphify** (`graphify-out/graph.json`: every symbol and the links between them). Rebuilt after each
-  commit by the graphify git hook; by hand: `graphify update .`. Do not draw small maps of your own.
+- **The map is `src/pylos/lobby/atlas/`**: all graphify output lives there (`graph.html` to look at, `GRAPH_REPORT.md` to
+  read first, `graph.json`), plus `city.md` and `regions.json`. No `__init__.py`, no README: it is data, not a package.
+  On the admin machine `graphify-out/` at the repo root is a junction to it, so every `graphify-out/...` path below works.
+  Rebuilt after each commit by the graphify git hook; by hand: `graphify update .`, or `/graphify` to redraw everything.
+  Do not draw small maps of your own. Buildings have no README either: their purpose is in `city.md` and on the map.
 - **Zoning = `regions.json`** (the only zoning file): path prefix -> building. Owner and manager bot keep it right.
-- The zone/building map picture is drawn by graphify itself on the admin machine: `graphify_regions` (in `lobby/atlas`) is copied
-  into the installed graphify by `python src/pylos/lobby/atlas/graphify_regions/install.py` (re-run after `uv tool upgrade graphifyy`).
-  `.graphifyrc` points graphify at `regions.json`; open `graphify-out/graph.html`. Colour = building, shape = kind of code,
+- The zone/building drawing is an add-on of the `/graphify` skill (`~/.claude/skills/graphify/regions_addon/`, backup and
+  heavy tests in `C:/Users/tp/graphify-regions`). Step 0.5 of the skill re-installs it into graphify when missing (also after
+  `uv tool upgrade graphifyy`) and makes `graphify-out` point at `regions.out` from `.graphifyrc`. Colour = building, shape = kind of code,
   dashed outline = community, `?` button = legend. ONE centre building is picked (call links + node count + biggest node;
   override: `"center"` in regions.json), the others go into rings by how many links reach the inner rings, each zone gets an
   angular sector, and colour follows the ring (centre and ring 1 distinct warm, ring 2+ cool, no yellow-green; lightness adapts

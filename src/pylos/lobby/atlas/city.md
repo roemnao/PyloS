@@ -89,8 +89,9 @@ through the lobby.**
 - *Detailed map* — the graphify knowledge graph (`graphify-out/graph.json`): every symbol of the code and the links
   between them, rebuilt automatically after each commit. Nobody draws small maps by hand.
 - *Zoning* — [`regions.json`](regions.json): the only zoning file, path prefix -> building.
-- The picture is drawn by graphify itself on the admin machine ([`graphify_regions`](graphify_regions/README.md)): open `graphify-out/graph.html`.
-  A bot (or Claude Code) asks `graphify query` for the region it needs instead of reading everything.
+- This folder IS the map: all graphify output lands here (`graph.html` to look at, `GRAPH_REPORT.md` for bots, `graph.json`),
+  drawn by `/graphify` on the admin machine (the region add-on lives in the graphify skill). A bot reads `GRAPH_REPORT.md`
+  or asks `graphify query` for the region it needs instead of reading everything.
 - Keeping the map right is the job of the **manager bot and the owner**.
 
 The lobby reads only the **envelope** of a message (who sent it, to whom, what kind), never its content.

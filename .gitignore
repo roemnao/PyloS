@@ -28,3 +28,9 @@ userdata/
 !src/pylos/**/logs/
 !src/pylos/**/data/
 .ruff_cache/
+
+# graphify: graphify-out là junction trỏ vào Toà bản đồ; bộ đệm trích xuất và đường dẫn riêng của máy thì không commit
+graphify-out
+src/pylos/lobby/atlas/cache/
+src/pylos/lobby/atlas/.graphify_python
+src/pylos/lobby/atlas/.graphify_root
