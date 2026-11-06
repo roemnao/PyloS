@@ -2,14 +2,15 @@
 
 Zone: `lobby`.
 
-Map of the whole inner city: detailed map (graphify graph) + zoning (this file). Manager bot and owner keep it right.
+Map of the whole inner city for people and bots: the city description, ONE zoning file and the graphify map drawer.
 
-## Apartments
+## Contents
 
-| Apartment | Holds |
+| What | Holds |
 |---|---|
-| `maps` | city description, zoning, the generated atlas, the graphify graph |
-| `generator` | atlas script: render, check, look at one region over the graph |
+| `city.md` | the city: zones, buildings, apartments, rules |
+| `regions.json` | the only zoning file: path prefix -> building (`rules`), a few single files (`files`) |
+| `graphify_regions` | draws graphify's `graph.html` as the zone/building map (admin machine; `install.py`) |
 
 ## Rules
 

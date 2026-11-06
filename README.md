@@ -43,7 +43,7 @@ D:\pylosSever\
 │  │  ├─ dispatch\                 bus\, clock\, permissions\, lifecycle\ (khoá 1 bản chạy), handover\, updater\
 │  │  ├─ office\agent_tools\       công cụ của agent
 │  │  ├─ library\knowledge\        hướng dẫn: lenh-zalo.md, dang-nhap-google.md, vps-dieu-khien.md
-│  │  └─ atlas\                    maps\ (city.md, atlas.md, atlas_map.toml), generator\ (atlas.py)
+│  │  └─ atlas\                    city.md, regions.json (phân vùng), graphify_regions\ (vẽ bản đồ)
 │  └─ residential\                 Khu dân cư (chỗ cho từng bot)
 ├─ src\bot\                       lối vào `python -m bot` + phần chưa dời (config, storage, agent, message_handler);
 │                                 các file khác ở đây chỉ là biển chỉ đường sang src\pylos\

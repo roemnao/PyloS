@@ -73,7 +73,7 @@ def test_no_visible_subprocess_calls_left_in_source():
     import re
 
     offenders = []
-    dev_tools = ("lobby/atlas/generator", "side_gate/desktop/packaging")  # công cụ cho người phát triển, không chạy trong bot
+    dev_tools = ("lobby/atlas/graphify_regions", "side_gate/desktop/packaging")  # công cụ cho người phát triển, không chạy trong bot
     for path in (ROOT / "src").rglob("*.py"):
         if any(d in path.as_posix() for d in dev_tools):
             continue

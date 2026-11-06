@@ -1,2 +1,2 @@
-# Bản đồ vùng (graphify-regions, máy admin): file nào thuộc khu/toà nào, sinh từ atlas_map.toml
-regions.file=src/pylos/lobby/atlas/maps/regions.json
+# Bản đồ vùng (graphify-regions, máy admin): tệp phân vùng duy nhất của PyloS
+regions.file=src/pylos/lobby/atlas/regions.json

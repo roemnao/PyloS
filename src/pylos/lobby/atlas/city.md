@@ -1,7 +1,7 @@
 # PyloS City
 
 The source of truth for how PyloS is organised. Every folder, file and data flow has a place in "the city".
-Where each existing file goes: [atlas.md](atlas.md) (generated). How to change it: [Changing the city](#changing-the-city).
+Which building a file belongs to: [regions.json](regions.json). How to change it: [Changing the city](#changing-the-city).
 
 > **Status: migration under way (phases 3–5 and 8.1 done on branch `claude/g3-city-skeleton`).** Code moved into
 > `src/pylos/`: dispatch (clock, lock, roles, handover, updater, bus), office agent tools, the whole gate zone except
@@ -81,16 +81,16 @@ through the lobby.**
 | Building | Vietnamese | Holds | Access |
 |---|---|---|---|
 | `library` | Toà thư viện | knowledge and skills written or vetted by the owner | All bots read; managers and owner write |
-| `atlas` | Toà bản đồ | the map of the whole inner city, in two layers (see below) | All bots read; managers and owner write |
+| `atlas` | Toà bản đồ | the city description, the zoning file and the map drawer (see below) | All bots read; managers and owner write |
 | `dispatch` | Toà điều phối | message bus, shared clock (Vietnam time), bot registry, job queue, envelope log, permissions (roles), scheduler, start/stop | Owner only |
 | `office` | Toà văn phòng | plugins (drawing, documents, code), agent tools, and the `warehouse` where generated files are stored by type | Bots use; only the owner adds or changes plugins |
 
 **The map has two layers.**
 - *Detailed map* — the graphify knowledge graph (`graphify-out/graph.json`): every symbol of the code and the links
   between them, rebuilt automatically after each commit. Nobody draws small maps by hand.
-- *Zoning* — [`atlas_map.toml`](atlas_map.toml): which file belongs to which building, with the owner's decision status.
-- A bot (or Claude Code) looks only at the region it needs: `python -m pylos.lobby.atlas.generator.atlas region <zone/building>` lays the
-  zoning over the graph and shows the region's files and every link crossing its border.
+- *Zoning* — [`regions.json`](regions.json): the only zoning file, path prefix -> building.
+- The picture is drawn by graphify itself on the admin machine ([`graphify_regions`](graphify_regions/README.md)): open `graphify-out/graph.html`.
+  A bot (or Claude Code) asks `graphify query` for the region it needs instead of reading everything.
 - Keeping the map right is the job of the **manager bot and the owner**.
 
 The lobby reads only the **envelope** of a message (who sent it, to whom, what kind), never its content.
@@ -193,10 +193,10 @@ Commands: *manager commands* act on bots (assign, start/stop); *owner commands* 
 ## 6. Changing the city
 
 - **New building**: allowed when needed (owner, or whoever edits the repo, Claude Code included). Add it to the
-  atlas and tell the owner.
+  `regions.json` (one line in `rules`) and tell the owner.
 - **New zone**: **ask the owner first.** Never add one on your own.
-- **New or moved file**: add it to [`atlas_map.toml`](atlas_map.toml), run `python -m pylos.lobby.atlas.generator.atlas`.
-  `python -m pylos.lobby.atlas.generator.atlas --check` (also run by the tests) fails when a tracked file has no place or `atlas.md` is stale.
+- **New or moved file**: nothing to do under `src/pylos/<zone>/<building>/`. A new top-level folder or building needs one line in
+  [`regions.json`](regions.json) `rules` (the tests fail when a tracked file would land in the unplaced region by accident).
 
 ---
 

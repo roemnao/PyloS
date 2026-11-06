@@ -1,0 +1,210 @@
+{
+ "_note": "Tệp phân vùng DUY NHẤT của PyloS cho graphify-regions. rules = tiền tố đường dẫn -> toà (tiền tố dài nhất thắng); files = từng file lẻ (thắng rules); file không khớp -> unplaced_region. Toà mới trong Thành: thêm một dòng vào rules.",
+ "version": 1,
+ "levels": {
+  "group": "Khu",
+  "region": "Toà"
+ },
+ "groups": [
+  {
+   "id": "management",
+   "name": "Khu quản lý"
+  },
+  {
+   "id": "gate",
+   "name": "Khu cổng"
+  },
+  {
+   "id": "lobby",
+   "name": "Khu đại sảnh"
+  },
+  {
+   "id": "residential",
+   "name": "Khu dân cư"
+  },
+  {
+   "id": "outside",
+   "name": "Ngoài Thành"
+  }
+ ],
+ "regions": [
+  {
+   "id": "management/owner",
+   "name": "Toà Owner",
+   "group": "management"
+  },
+  {
+   "id": "management/managers",
+   "name": "Toà quản lý",
+   "group": "management"
+  },
+  {
+   "id": "gate/main_gate",
+   "name": "Cổng chính",
+   "group": "gate"
+  },
+  {
+   "id": "gate/fence",
+   "name": "Hàng rào",
+   "group": "gate"
+  },
+  {
+   "id": "gate/side_gate",
+   "name": "Cổng phụ",
+   "group": "gate"
+  },
+  {
+   "id": "gate/guest_house",
+   "name": "Toà khách",
+   "group": "gate"
+  },
+  {
+   "id": "lobby/dispatch",
+   "name": "Điều phối",
+   "group": "lobby"
+  },
+  {
+   "id": "lobby/office",
+   "name": "Văn phòng",
+   "group": "lobby"
+  },
+  {
+   "id": "lobby/atlas",
+   "name": "Bản đồ",
+   "group": "lobby"
+  },
+  {
+   "id": "lobby/library",
+   "name": "Thư viện",
+   "group": "lobby"
+  },
+  {
+   "id": "residential/residents",
+   "name": "Toà nhà dân",
+   "group": "residential"
+  },
+  {
+   "id": "outside/entry",
+   "name": "Lối vào bot",
+   "group": "outside"
+  },
+  {
+   "id": "outside/tests",
+   "name": "Test",
+   "group": "outside",
+   "color": [
+    0,
+    0,
+    66
+   ],
+   "pos": [
+    -1.6,
+    4.2
+   ]
+  },
+  {
+   "id": "outside/repo_root",
+   "name": "Gốc repo",
+   "group": "outside",
+   "color": [
+    0,
+    0,
+    55
+   ],
+   "pos": [
+    0.6,
+    4.2
+   ]
+  },
+  {
+   "id": "outside/external",
+   "name": "Thư viện ngoài",
+   "group": "outside",
+   "color": [
+    0,
+    0,
+    33
+   ],
+   "pos": [
+    4.6,
+    3.8
+   ]
+  }
+ ],
+ "unplaced_region": "outside/repo_root",
+ "external_region": "outside/external",
+ "tests_region": "outside/tests",
+ "rules": [
+  {
+   "prefix": ".github/",
+   "region": "outside/repo_root"
+  },
+  {
+   "prefix": "tests/",
+   "region": "outside/tests"
+  },
+  {
+   "prefix": "src/bot/agent/",
+   "region": "lobby/office"
+  },
+  {
+   "prefix": "src/bot/core/",
+   "region": "lobby/dispatch"
+  },
+  {
+   "prefix": "src/pylos/residential/",
+   "region": "residential/residents"
+  },
+  {
+   "prefix": "src/pylos/gate/fence/",
+   "region": "gate/fence"
+  },
+  {
+   "prefix": "src/pylos/gate/guest_house/",
+   "region": "gate/guest_house"
+  },
+  {
+   "prefix": "src/pylos/gate/main_gate/",
+   "region": "gate/main_gate"
+  },
+  {
+   "prefix": "src/pylos/gate/side_gate/",
+   "region": "gate/side_gate"
+  },
+  {
+   "prefix": "src/pylos/lobby/atlas/",
+   "region": "lobby/atlas"
+  },
+  {
+   "prefix": "src/pylos/lobby/dispatch/",
+   "region": "lobby/dispatch"
+  },
+  {
+   "prefix": "src/pylos/lobby/library/",
+   "region": "lobby/library"
+  },
+  {
+   "prefix": "src/pylos/lobby/office/",
+   "region": "lobby/office"
+  },
+  {
+   "prefix": "src/pylos/management/managers/",
+   "region": "management/managers"
+  },
+  {
+   "prefix": "src/pylos/management/owner/",
+   "region": "management/owner"
+  }
+ ],
+ "files": {
+  ".graphifyignore": "lobby/atlas",
+  ".graphifyrc": "lobby/atlas",
+  "src/bot/__init__.py": "outside/entry",
+  "src/bot/__main__.py": "outside/entry",
+  "src/bot/command_line.py": "outside/entry",
+  "src/pylos/__init__.py": "lobby/dispatch",
+  "src/pylos/gate/__init__.py": "gate/main_gate",
+  "src/pylos/lobby/__init__.py": "lobby/dispatch",
+  "src/pylos/management/__init__.py": "management/owner"
+ }
+}

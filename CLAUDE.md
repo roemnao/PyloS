@@ -1,7 +1,7 @@
 # PyloS — rules for Claude Code
 
-PyloS is organised as a city: `<zone>/<building>/<apartment>/`. Read [city.md](src/pylos/lobby/atlas/maps/city.md)
-before adding, moving or naming anything. Where each existing file goes: [atlas.md](src/pylos/lobby/atlas/maps/atlas.md).
+PyloS is organised as a city: `<zone>/<building>/<apartment>/`. Read [city.md](src/pylos/lobby/atlas/city.md)
+before adding, moving or naming anything. Which building a file belongs to: [regions.json](src/pylos/lobby/atlas/regions.json) (path prefix -> building).
 
 ## Hard rules
 
@@ -9,9 +9,9 @@ before adding, moving or naming anything. Where each existing file goes: [atlas.
 2. **Keep `python -m bot run` and `python -m bot gui` working.** The VPS systemd unit (root-owned) runs
    `python -m bot run` with `PYTHONPATH=/opt/pylos/src`. Do not rename or remove the `bot` package.
 3. **Never add a zone** (`management`, `gate`, `lobby`, `residential`) without asking the owner. A new building is
-   allowed: add it to the atlas and tell the owner.
-4. **Every tracked file has a place in the atlas.** After adding or moving a file: update
-   `src/pylos/lobby/atlas/maps/atlas_map.toml`, `git add` the new files, run `python -m pylos.lobby.atlas.generator.atlas` (`--check` runs in the tests).
+   allowed: add a line to `regions.json` `rules` and tell the owner.
+4. **Every tracked file has a building.** `src/pylos/lobby/atlas/regions.json` maps path prefixes to buildings; files under
+   `src/pylos/<zone>/<building>/` need nothing. Only a new building or a new top-level folder needs one line in `rules` (the tests check it).
 5. **Do not change where data lives in `userdata/`** (settings, Zalo session, lock file, standby file, handover bundle)
    unless that is the task. Data moves need a backup and must be safe to run twice.
 
@@ -23,24 +23,20 @@ before adding, moving or naming anything. Where each existing file goes: [atlas.
 - Status of the migration: phases 3–5 and 8.1 done (see city.md status); modules moved to `src/pylos/` leave an alias signpost in `src/bot/`. Edit the real module in `src/pylos/`, never the signpost. The plan is `src/pylos/management/owner/history/5-11-2026/PyloS-PLAN-thanh-chinh.md`; open owner decisions
   are listed at the end of `city.md`. The owner accepted the working assumptions (2026-11-05), so moving code (Phase 4, lobby first) may start, one PR per step.
 
-## Finding things: one map, two layers
+## Finding things: one map
 
 - **Detailed map = graphify** (`graphify-out/graph.json`: every symbol and the links between them). Rebuilt after each
   commit by the graphify git hook; by hand: `graphify update .`. Do not draw small maps of your own.
-- **Zoning = the atlas** (`atlas_map.toml`: which file belongs to which building). Owner and manager bot keep it right.
-- Look at one region instead of the whole city:
-  - `python -m pylos.lobby.atlas.generator.atlas region gate/fence` — files of the region and every graph link crossing its border.
-  - `python -m pylos.lobby.atlas.generator.atlas where RateLimiter` — which building a file or symbol belongs to.
-  - The zone/building map picture is drawn by graphify itself on the admin machine (graphify-regions, patched into the
-    installed graphify; source in `C:/Users/tp/graphify-regions`, re-run its `install.py` after `uv tool upgrade graphifyy`).
-    PyloS only keeps `src/pylos/lobby/atlas/maps/regions.json` (file -> building, generated from the atlas by
-    `python -m pylos.lobby.atlas.generator.atlas`) and `.graphifyrc` pointing at it. Colour = building, shape = kind of code,
-    dashed outline = community, `?` button = legend. Inner buildings have no `pos`/`color` in `regions.json`: ONE centre building is picked (call links + node count +
-    biggest node; override: `"center"` in regions.json), the others go into rings by how many links reach the inner rings,
-    each zone gets an angular sector so its buildings sit together, and colour follows the ring: centre and ring 1 get distinct warm colours (red, orange, pink, gold), ring 2+ cool ones (teal → blue → indigo → violet), no yellow-green; the page adapts lightness to the light/dark theme.
-    `outside/tests|repo_root|tooling|external` stay pinned and grey in a row at the bottom. A machine without graphify-regions still builds a plain `graph.html`.
-- Before moving or adding code, run `region` on the target building: links to other zones that do not go through the
-  `lobby` are what the migration has to remove.
+- **Zoning = `regions.json`** (the only zoning file): path prefix -> building. Owner and manager bot keep it right.
+- The zone/building map picture is drawn by graphify itself on the admin machine: `graphify_regions` (in `lobby/atlas`) is copied
+  into the installed graphify by `python src/pylos/lobby/atlas/graphify_regions/install.py` (re-run after `uv tool upgrade graphifyy`).
+  `.graphifyrc` points graphify at `regions.json`; open `graphify-out/graph.html`. Colour = building, shape = kind of code,
+  dashed outline = community, `?` button = legend. ONE centre building is picked (call links + node count + biggest node;
+  override: `"center"` in regions.json), the others go into rings by how many links reach the inner rings, each zone gets an
+  angular sector, and colour follows the ring (centre and ring 1 distinct warm, ring 2+ cool, no yellow-green; lightness adapts
+  to the theme). `outside/tests|repo_root|external` stay pinned and grey at the bottom. A machine without it builds a plain `graph.html`.
+- Before moving or adding code, look at the target building in `graph.html` (click a building) or ask `graphify query`:
+  links to other zones that do not go through the `lobby` are what the migration has to remove.
 
 ## Tests
 
