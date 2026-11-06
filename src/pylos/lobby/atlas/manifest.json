@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793936717.1198366,
-    "seen": 1793936838.3012347,
-    "ast_hash": "622d98d5a1f84ba68da0963473789b5c",
+    "mtime": 1793938445.4298885,
+    "seen": 1793938462.3760643,
+    "ast_hash": "93d1e98bae6d9aeba05213301bd2b68b",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793936717.1394813,
-    "seen": 1793936838.3012347,
-    "ast_hash": "05464dc99a4d0f5e9ebbd780c0d51815",
+    "mtime": 1793938444.7928371,
+    "seen": 1793938462.3760643,
+    "ast_hash": "690d5aa113a2924ade6beff22e1306e5",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
@@ -870,9 +870,9 @@
     "semantic_hash": ""
   },
   "tests/lobby/atlas/test_city_skeleton.py": {
-    "mtime": 1793938320.1010613,
-    "seen": 1793938336.9813027,
-    "ast_hash": "a901927fd240c07860788d01bc8edd15",
+    "mtime": 1793938384.2849128,
+    "seen": 1793938462.3760643,
+    "ast_hash": "ade4981cf0bec17c012f5ae555e4ffa9",
     "semantic_hash": ""
   },
   "tests/lobby/dispatch/test_bus.py": {
