@@ -1,0 +1,372 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
+  "results": [
+    {
+      "path": "docs/PLAN.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 624,
+      "nonEmptyLines": 499,
+      "sections": [
+        {
+          "heading": "Kế hoạch: Server Bot Zalo chạy Agent (AI)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "0. Quyết định đã chốt",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "1. Chọn kênh Zalo",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "1a. Zalo Bot Platform: các sự kiện đã xác minh",
+          "level": 3,
+          "line": 36
+        },
+        {
+          "heading": "2. Kiến trúc",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "3. Công nghệ",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "3a. Nhận tin khi chạy local, chưa có domain",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "3b. Chạy 24/7 khi chưa có VPS",
+          "level": 3,
+          "line": 89
+        },
+        {
+          "heading": "4. Cấu trúc thư mục",
+          "level": 2,
+          "line": 109
+        },
+        {
+          "heading": "4b. Lưu trữ `.txt` và workspace `.md`",
+          "level": 3,
+          "line": 143
+        },
+        {
+          "heading": "4a. Cấu hình và bí mật để trống",
+          "level": 3,
+          "line": 179
+        },
+        {
+          "heading": "5. Luồng xử lý một tin nhắn",
+          "level": 2,
+          "line": 200
+        },
+        {
+          "heading": "5b. Agent (chi tiết)",
+          "level": 2,
+          "line": 212
+        },
+        {
+          "heading": "5c. Chat nhóm",
+          "level": 2,
+          "line": 221
+        },
+        {
+          "heading": "6. Bảo mật và vận hành",
+          "level": 2,
+          "line": 238
+        },
+        {
+          "heading": "7. Lộ trình",
+          "level": 2,
+          "line": 250
+        },
+        {
+          "heading": "8. Rủi ro",
+          "level": 2,
+          "line": 267
+        },
+        {
+          "heading": "9. Cần bạn xác nhận",
+          "level": 2,
+          "line": 286
+        },
+        {
+          "heading": "10. Tiến độ",
+          "level": 2,
+          "line": 297
+        },
+        {
+          "heading": "11. Kế hoạch: giao diện quản lý bot (web dashboard)",
+          "level": 2,
+          "line": 319
+        },
+        {
+          "heading": "11.1 Mục tiêu",
+          "level": 3,
+          "line": 321
+        },
+        {
+          "heading": "11.2 Kiến trúc",
+          "level": 3,
+          "line": 334
+        },
+        {
+          "heading": "11.3 Các trang",
+          "level": 3,
+          "line": 352
+        },
+        {
+          "heading": "11.4 API (JSON, dưới `/api`)",
+          "level": 3,
+          "line": 366
+        },
+        {
+          "heading": "11.5 Bảo mật (quan trọng nhất của phần này)",
+          "level": 3,
+          "line": 382
+        },
+        {
+          "heading": "11.6 Việc phải bổ sung vào bot hiện có",
+          "level": 3,
+          "line": 396
+        },
+        {
+          "heading": "11.7 Thư mục dự kiến",
+          "level": 3,
+          "line": 408
+        },
+        {
+          "heading": "11.8 Lộ trình",
+          "level": 3,
+          "line": 425
+        },
+        {
+          "heading": "11.9 Rủi ro",
+          "level": 3,
+          "line": 440
+        },
+        {
+          "heading": "11.10 Cần bạn xác nhận trước khi làm",
+          "level": 3,
+          "line": 451
+        },
+        {
+          "heading": "11.11 Tiến độ (2026-10-22)",
+          "level": 3,
+          "line": 459
+        },
+        {
+          "heading": "12. Kế hoạch: file .exe mở giao diện quản lý bot (Windows)",
+          "level": 2,
+          "line": 479
+        },
+        {
+          "heading": "12.1 Mục tiêu",
+          "level": 3,
+          "line": 481
+        },
+        {
+          "heading": "12.2 Chọn cách làm",
+          "level": 3,
+          "line": 487
+        },
+        {
+          "heading": "12.3 Kiến trúc",
+          "level": 3,
+          "line": 497
+        },
+        {
+          "heading": "12.4 Biểu tượng khay (system tray)",
+          "level": 3,
+          "line": 512
+        },
+        {
+          "heading": "12.5 Những chỗ trong code hiện tại phải sửa để đóng gói được",
+          "level": 3,
+          "line": 520
+        },
+        {
+          "heading": "12.6 Đóng gói",
+          "level": 3,
+          "line": 536
+        },
+        {
+          "heading": "12.7 Bảo mật khi phát hành exe",
+          "level": 3,
+          "line": 548
+        },
+        {
+          "heading": "12.8 Lộ trình",
+          "level": 3,
+          "line": 555
+        },
+        {
+          "heading": "12.9 Rủi ro",
+          "level": 3,
+          "line": 566
+        },
+        {
+          "heading": "12.10 Cần bạn xác nhận trước khi làm",
+          "level": 3,
+          "line": 578
+        },
+        {
+          "heading": "12.11 Tiến độ (2026-10-22)",
+          "level": 3,
+          "line": 586
+        },
+        {
+          "heading": "13. Điều khiển bot trên VPS từ ứng dụng ở máy này",
+          "level": 2,
+          "line": 612
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 44
+      }
+    },
+    {
+      "path": "docs/lenh-zalo.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 80,
+      "nonEmptyLines": 56,
+      "sections": [
+        {
+          "heading": "Cách dùng bot trên Zalo",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Ba vai trò",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Lệnh",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Gọi bot ở chế độ default",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "Giao lịch cho người khác (web iforgotmywayhome)",
+          "level": 2,
+          "line": 42
+        },
+        {
+          "heading": "Lấy ID của bạn lần đầu",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Hạn mức token",
+          "level": 2,
+          "line": 73
+        },
+        {
+          "heading": "Các file trong thư mục này",
+          "level": 2,
+          "line": 77
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "docs/vps-dieu-khien.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 120,
+      "nonEmptyLines": 92,
+      "sections": [
+        {
+          "heading": "Điều khiển bot trên VPS từ ZaloBot.exe",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Cách hoạt động",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "Kết nối từ máy Windows: đăng nhập Gmail",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "Việc chủ VPS làm một lần (user `em` và `pylos` không tự làm được)",
+          "level": 2,
+          "line": 43
+        },
+        {
+          "heading": "1. Service cho bot",
+          "level": 3,
+          "line": 47
+        },
+        {
+          "heading": "2. Cho user `pylos` điều khiển đúng 2 service (chọn MỘT cách)",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "3. Bật chế độ systemd cho bot trên VPS",
+          "level": 3,
+          "line": 102
+        },
+        {
+          "heading": "4. nginx",
+          "level": 3,
+          "line": 109
+        },
+        {
+          "heading": "Kiểm tra",
+          "level": 3,
+          "line": 115
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    }
+  ]
+}

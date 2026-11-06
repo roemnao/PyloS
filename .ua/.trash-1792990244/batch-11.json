@@ -1,0 +1,9 @@
+{"nodes":[
+{"id":"file:src/bot/ui/admin/static/admin_page.css","type":"file","name":"admin_page.css","filePath":"src/bot/ui/admin/static/admin_page.css","summary":"Layout and component styles for the bot admin page: grid layout with sticky topbar and side nav, headings, and page-specific blocks built on the shared theme variables.","tags":["css","stylesheet","admin-ui","layout"],"complexity":"moderate","languageNotes":"Relies on CSS custom properties and color-mix() defined in theme.css."},
+{"id":"file:src/bot/ui/admin/static/index.html","type":"file","name":"index.html","filePath":"src/bot/ui/admin/static/index.html","summary":"Single-page shell of the Vietnamese admin UI: SVG icon sprite, token/Gmail login form, and an app layout with topbar (target switch, status pill, theme toggle, logout), nav and main container populated by admin_page.js.","tags":["html","admin-ui","entry-point","login"],"complexity":"simple"},
+{"id":"file:src/bot/ui/admin/static/theme.css","type":"file","name":"theme.css","filePath":"src/bot/ui/admin/static/theme.css","summary":"Shared 'iforgotmywayhome' theme with self-hosted font-faces, dark-default and light color tokens, pastel accents, and base styles for buttons, inputs and cards; kept in sync with a copy from another repo.","tags":["css","theme","design-tokens","stylesheet"],"complexity":"moderate","languageNotes":"Dark theme default; light mode via html[data-theme=light]."}
+],"edges":[
+{"source":"file:src/bot/ui/admin/static/index.html","target":"file:src/bot/ui/admin/static/theme.css","type":"related","direction":"forward","weight":0.5},
+{"source":"file:src/bot/ui/admin/static/index.html","target":"file:src/bot/ui/admin/static/admin_page.css","type":"related","direction":"forward","weight":0.5},
+{"source":"file:src/bot/ui/admin/static/admin_page.css","target":"file:src/bot/ui/admin/static/theme.css","type":"depends_on","direction":"forward","weight":0.6}
+]}

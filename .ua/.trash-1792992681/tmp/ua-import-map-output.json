@@ -1,0 +1,302 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 107,
+    "filesWithImports": 41,
+    "totalEdges": 143
+  },
+  "failures": [],
+  "importMap": {
+    ".gitattributes": [],
+    "PROJECT_MAP.md": [],
+    "README.md": [],
+    "ZaloBot.cmd": [],
+    "docs/PLAN.md": [],
+    "docs/lenh-zalo.md": [],
+    "docs/vps-dieu-khien.md": [],
+    "pyproject.toml": [],
+    "scripts/build-exe.ps1": [],
+    "scripts/install-task.ps1": [],
+    "scripts/packaging/ZaloBot.spec": [],
+    "scripts/packaging/check_secrets.py": [],
+    "scripts/packaging/version_info.txt": [],
+    "scripts/packaging/zalobot_entry.py": [],
+    "scripts/run-forever.ps1": [],
+    "scripts/uninstall-task.ps1": [],
+    "src/bot/__init__.py": [],
+    "src/bot/__main__.py": [
+      "src/bot/command_line.py"
+    ],
+    "src/bot/agent/__init__.py": [
+      "src/bot/agent/gemini_agent.py",
+      "src/bot/agent/system_prompt.py",
+      "src/bot/agent/tools/__init__.py"
+    ],
+    "src/bot/agent/gemini_agent.py": [
+      "src/bot/agent/tools/__init__.py"
+    ],
+    "src/bot/agent/system_prompt.py": [
+      "src/bot/core/vietnam_time.py"
+    ],
+    "src/bot/agent/tools/__init__.py": [],
+    "src/bot/agent/tools/_example.py": [
+      "src/bot/agent/tools/__init__.py",
+      "src/bot/core/vietnam_time.py"
+    ],
+    "src/bot/agent/tools/assign_events.py": [
+      "src/bot/agent/tools/__init__.py",
+      "src/bot/core/text_fold.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/text_files.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/server_client.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/agent/tools/read_chat_memory.py": [
+      "src/bot/agent/tools/__init__.py",
+      "src/bot/core/message_filter.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/agent/tools/schedule_web.py": [
+      "src/bot/agent/tools/__init__.py",
+      "src/bot/system/server_client.py"
+    ],
+    "src/bot/command_line.py": [
+      "src/bot/agent/__init__.py",
+      "src/bot/config.py",
+      "src/bot/core/message_handler.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/storage/process_lock.py",
+      "src/bot/system/log_files.py",
+      "src/bot/userdata_paths.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/config.py": [
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/core/__init__.py": [],
+    "src/bot/core/mention_tags.py": [],
+    "src/bot/core/message_filter.py": [
+      "src/bot/config.py",
+      "src/bot/core/text_fold.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/core/message_handler.py": [
+      "src/bot/agent/__init__.py",
+      "src/bot/config.py",
+      "src/bot/core/mention_tags.py",
+      "src/bot/core/message_filter.py",
+      "src/bot/core/owner_commands.py",
+      "src/bot/core/rate_limiter.py",
+      "src/bot/core/reply_formatting.py",
+      "src/bot/core/roles.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/userdata_paths.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/core/owner_commands.py": [
+      "src/bot/agent/tools/assign_events.py",
+      "src/bot/core/roles.py",
+      "src/bot/core/text_fold.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/core/rate_limiter.py": [],
+    "src/bot/core/reply_formatting.py": [],
+    "src/bot/core/roles.py": [
+      "src/bot/storage/__init__.py"
+    ],
+    "src/bot/core/text_fold.py": [],
+    "src/bot/core/vietnam_time.py": [],
+    "src/bot/storage/__init__.py": [
+      "src/bot/storage/data_stores.py",
+      "src/bot/storage/text_files.py"
+    ],
+    "src/bot/storage/data_stores.py": [
+      "src/bot/core/text_fold.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/text_files.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/storage/process_lock.py": [],
+    "src/bot/storage/text_files.py": [],
+    "src/bot/system/__init__.py": [],
+    "src/bot/system/auto_update.py": [
+      "src/bot/config.py"
+    ],
+    "src/bot/system/bot_process.py": [
+      "src/bot/config.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/storage/process_lock.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/system/first_run_setup.py": [
+      "src/bot/config.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/system/handover.py": [
+      "src/bot/config.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/bot_process.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/system/handover_job.py": [
+      "src/bot/config.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/bot_process.py",
+      "src/bot/system/handover.py",
+      "src/bot/system/remote_server.py"
+    ],
+    "src/bot/system/log_files.py": [],
+    "src/bot/system/remote_config.py": [
+      "src/bot/config.py",
+      "src/bot/storage/text_files.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/server_client.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/system/remote_server.py": [
+      "src/bot/config.py"
+    ],
+    "src/bot/system/server_client.py": [],
+    "src/bot/system/server_info.py": [
+      "src/bot/config.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/auto_update.py",
+      "src/bot/system/bot_process.py"
+    ],
+    "src/bot/system/session_upload.py": [
+      "src/bot/system/__init__.py",
+      "src/bot/system/server_client.py"
+    ],
+    "src/bot/templates/MEMORY.md": [],
+    "src/bot/templates/SYSTEM.md": [],
+    "src/bot/templates/env.example": [],
+    "src/bot/templates/tool_example.py.tmpl": [],
+    "src/bot/ui/__init__.py": [],
+    "src/bot/ui/admin/__init__.py": [],
+    "src/bot/ui/admin/admin_sessions.py": [],
+    "src/bot/ui/admin/admin_web_server.py": [
+      "src/bot/agent/__init__.py",
+      "src/bot/config.py",
+      "src/bot/core/reply_formatting.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/bot_process.py",
+      "src/bot/system/handover.py",
+      "src/bot/system/handover_job.py",
+      "src/bot/system/remote_config.py",
+      "src/bot/system/remote_server.py",
+      "src/bot/system/server_client.py",
+      "src/bot/ui/admin/__init__.py",
+      "src/bot/ui/admin/admin_sessions.py",
+      "src/bot/ui/admin/settings_file.py",
+      "src/bot/userdata_paths.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/ui/admin/settings_file.py": [
+      "src/bot/config.py",
+      "src/bot/storage/__init__.py"
+    ],
+    "src/bot/ui/admin/static/admin_page.css": [],
+    "src/bot/ui/admin/static/admin_page.js": [],
+    "src/bot/ui/admin/static/fonts/OFL.txt": [],
+    "src/bot/ui/admin/static/index.html": [],
+    "src/bot/ui/admin/static/theme.css": [],
+    "src/bot/ui/admin/static/theme.js": [],
+    "src/bot/ui/desktop/__init__.py": [],
+    "src/bot/ui/desktop/desktop_app.py": [
+      "src/bot/config.py",
+      "src/bot/storage/process_lock.py",
+      "src/bot/system/__init__.py",
+      "src/bot/system/bot_process.py",
+      "src/bot/system/first_run_setup.py",
+      "src/bot/system/log_files.py",
+      "src/bot/system/remote_server.py",
+      "src/bot/userdata_paths.py"
+    ],
+    "src/bot/ui/desktop/icon_images.py": [],
+    "src/bot/ui/desktop/tray_icon.py": [
+      "src/bot/config.py",
+      "src/bot/ui/desktop/__init__.py",
+      "src/bot/ui/desktop/icon_images.py",
+      "src/bot/ui/desktop/windows_autostart.py"
+    ],
+    "src/bot/ui/desktop/windows_autostart.py": [
+      "src/bot/config.py"
+    ],
+    "src/bot/userdata_paths.py": [],
+    "src/bot/zalo/__init__.py": [
+      "src/bot/zalo/bot_platform_api.py",
+      "src/bot/zalo/incoming_message.py"
+    ],
+    "src/bot/zalo/bot_platform_api.py": [],
+    "src/bot/zalo/incoming_message.py": [],
+    "src/bot/zalo/personal_account.py": [
+      "src/bot/config.py",
+      "src/bot/core/mention_tags.py",
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/userdata_paths.py",
+      "src/bot/zalo/bot_platform_api.py",
+      "src/bot/zalo/incoming_message.py"
+    ],
+    "src/bot/zalo/qr_login.py": [
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py"
+    ],
+    "src/bot/zalo/receive_polling.py": [
+      "src/bot/core/vietnam_time.py",
+      "src/bot/storage/__init__.py",
+      "src/bot/zalo/__init__.py"
+    ],
+    "src/bot/zalo/receive_webhook.py": [
+      "src/bot/storage/__init__.py"
+    ],
+    "tests/conftest.py": [],
+    "tests/test_admin.py": [],
+    "tests/test_agent.py": [],
+    "tests/test_assign_events.py": [],
+    "tests/test_bot.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_config_client_webhook.py": [],
+    "tests/test_desktop.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_filter.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_gmail_connect.py": [],
+    "tests/test_handover.py": [],
+    "tests/test_memorydata.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_paths.py": [],
+    "tests/test_personal.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_polling.py": [],
+    "tests/test_qrlogin.py": [],
+    "tests/test_remote_config.py": [
+      "tests/conftest.py"
+    ],
+    "tests/test_remote_proxy.py": [],
+    "tests/test_roles.py": [],
+    "tests/test_schedule_tool.py": [],
+    "tests/test_storage.py": [],
+    "tests/test_text_and_models.py": [],
+    "tests/test_updater.py": [],
+    "tests/test_vps_supervisor.py": [],
+    "tools/_example.py": [],
+    "workspace/SYSTEM.md": []
+  }
+}

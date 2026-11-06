@@ -1,0 +1,796 @@
+{
+ "nodes": [
+  {
+   "id": "file:.gitattributes",
+   "type": "file",
+   "name": ".gitattributes",
+   "filePath": ".gitattributes",
+   "summary": "Git attributes forcing CRLF line endings for .cmd batch files.",
+   "tags": [
+    "configuration",
+    "git",
+    "line-endings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:.ua/config.json",
+   "type": "config",
+   "name": "config.json",
+   "filePath": ".ua/config.json",
+   "summary": "Understand-Anything plugin config setting the output language to English.",
+   "tags": [
+    "configuration",
+    "tooling",
+    "understand-anything"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:scripts/packaging/ZaloBot.spec",
+   "type": "file",
+   "name": "ZaloBot.spec",
+   "filePath": "scripts/packaging/ZaloBot.spec",
+   "summary": "PyInstaller spec that builds a windowed single-file ZaloBot.exe, bundling package data and hidden imports while never packaging userdata.",
+   "tags": [
+    "build-system",
+    "packaging",
+    "pyinstaller",
+    "deployment"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "PyInstaller spec files are executed Python."
+  },
+  {
+   "id": "file:scripts/packaging/check_secrets.py",
+   "type": "file",
+   "name": "check_secrets.py",
+   "filePath": "scripts/packaging/check_secrets.py",
+   "summary": "Post-build check verifying the packaged exe and build dir contain no .env/userdata and none of the secret values from settings.env.",
+   "tags": [
+    "security",
+    "build-system",
+    "validation",
+    "script"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:scripts/packaging/version_info.txt",
+   "type": "document",
+   "name": "version_info.txt",
+   "filePath": "scripts/packaging/version_info.txt",
+   "summary": "Windows version resource for ZaloBot.exe (version 0.2.0, product and company metadata) consumed by PyInstaller.",
+   "tags": [
+    "packaging",
+    "metadata",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:scripts/packaging/zalobot_entry.py",
+   "type": "file",
+   "name": "zalobot_entry.py",
+   "filePath": "scripts/packaging/zalobot_entry.py",
+   "summary": "PyInstaller entry point that delegates to bot.command_line.main.",
+   "tags": [
+    "entry-point",
+    "packaging",
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/__init__.py",
+   "summary": "Package init declaring the bot description and __version__ 0.1.0.",
+   "tags": [
+    "package-init",
+    "metadata",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/core/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/core/__init__.py",
+   "summary": "Package marker for the core module.",
+   "tags": [
+    "package-init",
+    "core",
+    "barrel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:src/bot/templates/MEMORY.md",
+   "type": "document",
+   "name": "MEMORY.md",
+   "filePath": "src/bot/templates/MEMORY.md",
+   "summary": "Template for the long-term memory file of the bot, loaded into the prompt as reference data and reloaded live.",
+   "tags": [
+    "template",
+    "memory",
+    "documentation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:src/bot/templates/SYSTEM.md",
+   "type": "document",
+   "name": "SYSTEM.md",
+   "filePath": "src/bot/templates/SYSTEM.md",
+   "summary": "Default system prompt template: Vietnamese plain-text assistant role, answer style, and prompt-injection limits.",
+   "tags": [
+    "template",
+    "prompt",
+    "documentation",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:src/bot/templates/env.example",
+   "type": "config",
+   "name": "env.example",
+   "filePath": "src/bot/templates/env.example",
+   "summary": "Example settings.env template listing required tokens, Gemini model, owner ID, and allowed chats, copied to userdata on first run.",
+   "tags": [
+    "configuration",
+    "template",
+    "environment",
+    "secrets"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/templates/tool_example.py.tmpl",
+   "type": "file",
+   "name": "tool_example.py.tmpl",
+   "filePath": "src/bot/templates/tool_example.py.tmpl",
+   "summary": "Template showing how to define a custom Tool with a handler returning the current Vietnam time; not loaded until renamed.",
+   "tags": [
+    "template",
+    "tool",
+    "example",
+    "plugin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/ui/__init__.py",
+   "summary": "Package marker for the UI module.",
+   "tags": [
+    "package-init",
+    "ui",
+    "barrel"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/admin/static/admin_page.js",
+   "type": "file",
+   "name": "admin_page.js",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "summary": "Single-page admin UI script: token login, hash-routed pages (overview, servers, groups, history, workspace, playground, logs, failed, settings, tools), local/VPS targeting, and Gmail login, rendering via textContent only.",
+   "tags": [
+    "frontend",
+    "admin-ui",
+    "spa",
+    "api-client"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Vanilla JS with a small h() DOM helper; avoids innerHTML for XSS safety."
+  },
+  {
+   "id": "document:src/bot/ui/admin/static/fonts/OFL.txt",
+   "type": "document",
+   "name": "OFL.txt",
+   "filePath": "src/bot/ui/admin/static/fonts/OFL.txt",
+   "summary": "SIL Open Font License 1.1 notice for bundled fonts (Cinzel, Cormorant Garamond, Be Vietnam Pro).",
+   "tags": [
+    "license",
+    "documentation",
+    "fonts"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/admin/static/theme.js",
+   "type": "file",
+   "name": "theme.js",
+   "filePath": "src/bot/ui/admin/static/theme.js",
+   "summary": "IIFE managing light/dark theme persisted in localStorage, updating theme-color meta and toggle buttons.",
+   "tags": [
+    "frontend",
+    "theme",
+    "ui",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:tests/test_admin.py",
+   "type": "file",
+   "name": "test_admin.py",
+   "filePath": "tests/test_admin.py",
+   "summary": "Tests the admin FastAPI app: auth, host/origin checks, secret handling, settings editing, groups, history, workspace, logs, playground, bot control, QR login, and Gmail session tokens.",
+   "tags": [
+    "test",
+    "pytest",
+    "admin",
+    "api"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:tests/test_agent.py",
+   "type": "file",
+   "name": "test_agent.py",
+   "filePath": "tests/test_agent.py",
+   "summary": "Tests GeminiAgent with a fake models client: retries, empty replies, function-calling loop, tool registry, and prompt builder.",
+   "tags": [
+    "test",
+    "pytest",
+    "agent",
+    "gemini"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_assign_events.py",
+   "type": "file",
+   "name": "test_assign_events.py",
+   "filePath": "tests/test_assign_events.py",
+   "summary": "Tests the assign_events calendar tool: person resolution, permissions by role, update/cancel, and listing.",
+   "tags": [
+    "test",
+    "pytest",
+    "tools",
+    "calendar"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_config_client_webhook.py",
+   "type": "file",
+   "name": "test_config_client_webhook.py",
+   "filePath": "tests/test_config_client_webhook.py",
+   "summary": "Tests Settings validation, ZaloClient URL/errors, secret redaction logging, and the webhook secret check.",
+   "tags": [
+    "test",
+    "pytest",
+    "config",
+    "webhook"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_gmail_connect.py",
+   "type": "file",
+   "name": "test_gmail_connect.py",
+   "filePath": "tests/test_gmail_connect.py",
+   "summary": "Tests Gmail-based VPS connection: hashed device keys, expiry, admin restriction, and revocation.",
+   "tags": [
+    "test",
+    "pytest",
+    "gmail",
+    "auth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_handover.py",
+   "type": "file",
+   "name": "test_handover.py",
+   "filePath": "tests/test_handover.py",
+   "summary": "Tests moving bot data between local and VPS: export/import bundles, unsafe names, rollback, and endpoints.",
+   "tags": [
+    "test",
+    "pytest",
+    "handover",
+    "migration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:tests/test_paths.py",
+   "type": "file",
+   "name": "test_paths.py",
+   "filePath": "tests/test_paths.py",
+   "summary": "Tests migration of legacy home files into userdata and restoration of defaults.",
+   "tags": [
+    "test",
+    "pytest",
+    "paths",
+    "migration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_polling.py",
+   "type": "file",
+   "name": "test_polling.py",
+   "filePath": "tests/test_polling.py",
+   "summary": "Tests that Zalo polling delivers updates and survives errors.",
+   "tags": [
+    "test",
+    "pytest",
+    "polling",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:tests/test_qrlogin.py",
+   "type": "file",
+   "name": "test_qrlogin.py",
+   "filePath": "tests/test_qrlogin.py",
+   "summary": "Tests the Zalo QR login flow with fake HTTP: approval, decline, cancel, cookies, session saving.",
+   "tags": [
+    "test",
+    "pytest",
+    "zalo",
+    "login"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:scripts/packaging/check_secrets.py:secrets_from_env",
+   "type": "function",
+   "name": "secrets_from_env",
+   "filePath": "scripts/packaging/check_secrets.py",
+   "lineRange": [
+    21,
+    28
+   ],
+   "summary": "Reads secret keys from settings.env and returns their UTF-8 and UTF-16-LE byte forms, skipping values under 8 chars.",
+   "tags": [
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:scripts/packaging/check_secrets.py:check_exe",
+   "type": "function",
+   "name": "check_exe",
+   "filePath": "scripts/packaging/check_secrets.py",
+   "lineRange": [
+    31,
+    47
+   ],
+   "summary": "Scans the PyInstaller archive entries and raw bytes of the exe for forbidden names and secret values.",
+   "tags": [
+    "security",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:scripts/packaging/check_secrets.py:check_dir",
+   "type": "function",
+   "name": "check_dir",
+   "filePath": "scripts/packaging/check_secrets.py",
+   "lineRange": [
+    50,
+    57
+   ],
+   "summary": "Scans build directory files for forbidden names and secret bytes.",
+   "tags": [
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:scripts/packaging/check_secrets.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "scripts/packaging/check_secrets.py",
+   "lineRange": [
+    60,
+    75
+   ],
+   "summary": "CLI entry running exe and directory checks and returning exit code 0 or 1.",
+   "tags": [
+    "entry-point",
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:h",
+   "type": "function",
+   "name": "h",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    43,
+    62
+   ],
+   "summary": "DOM builder helper creating elements with attributes and children using textContent.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:api",
+   "type": "function",
+   "name": "api",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    99,
+    112
+   ],
+   "summary": "Fetch wrapper adding the bearer token and target routing, throwing ApiError on failure.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:tryLogin",
+   "type": "function",
+   "name": "tryLogin",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    136,
+    148
+   ],
+   "summary": "Validates the entered admin token against the API and starts the app.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:render",
+   "type": "function",
+   "name": "render",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    168,
+    181
+   ],
+   "summary": "Router that clears the current page and dispatches to the page renderer.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:renderOverview",
+   "type": "function",
+   "name": "renderOverview",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    262,
+    338
+   ],
+   "summary": "Draws the overview page with bot status, stats, alerts, and start/stop control.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:connectVps",
+   "type": "function",
+   "name": "connectVps",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    386,
+    425
+   ],
+   "summary": "Handles connecting to a VPS with Gmail code or key and updates target state.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:renderGroups",
+   "type": "function",
+   "name": "renderGroups",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    573,
+    627
+   ],
+   "summary": "Renders the group list with allow/deny and leader controls.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:renderHistory",
+   "type": "function",
+   "name": "renderHistory",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    631,
+    694
+   ],
+   "summary": "Renders conversation history browsing and toggle.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:renderLogs",
+   "type": "function",
+   "name": "renderLogs",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    807,
+    880
+   ],
+   "summary": "Renders grouped, filterable logs with live updates.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:renderSettings",
+   "type": "function",
+   "name": "renderSettings",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    965,
+    1047
+   ],
+   "summary": "Renders the settings form with write-only secret fields and saving.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:gmailLogin",
+   "type": "function",
+   "name": "gmailLogin",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    1085,
+    1115
+   ],
+   "summary": "Runs Gmail code login flow and stores the returned session token.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/static/admin_page.js:boot",
+   "type": "function",
+   "name": "boot",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    1136,
+    1165
+   ],
+   "summary": "Initializes the app: restores token, loads status, builds nav, and shows the first page.",
+   "tags": [
+    "frontend",
+    "ui"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/ui/admin/static/admin_page.js:ApiError",
+   "type": "class",
+   "name": "ApiError",
+   "filePath": "src/bot/ui/admin/static/admin_page.js",
+   "lineRange": [
+    92,
+    92
+   ],
+   "summary": "Error subclass carrying HTTP status for failed admin API calls.",
+   "tags": [
+    "error",
+    "api-client"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:scripts/packaging/check_secrets.py",
+   "target": "function:scripts/packaging/check_secrets.py:secrets_from_env",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:scripts/packaging/check_secrets.py",
+   "target": "function:scripts/packaging/check_secrets.py:check_exe",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:scripts/packaging/check_secrets.py",
+   "target": "function:scripts/packaging/check_secrets.py:check_dir",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:scripts/packaging/check_secrets.py",
+   "target": "function:scripts/packaging/check_secrets.py:main",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:h",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:api",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:tryLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:render",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:renderOverview",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:connectVps",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:renderGroups",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:renderHistory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:renderLogs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:renderSettings",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:gmailLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "function:src/bot/ui/admin/static/admin_page.js:boot",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/admin_page.js",
+   "target": "class:src/bot/ui/admin/static/admin_page.js:ApiError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:scripts/packaging/ZaloBot.spec",
+   "target": "file:scripts/packaging/zalobot_entry.py",
+   "type": "deploys",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "document:scripts/packaging/version_info.txt",
+   "target": "file:scripts/packaging/ZaloBot.spec",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:scripts/packaging/check_secrets.py",
+   "target": "file:scripts/packaging/ZaloBot.spec",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "config:src/bot/templates/env.example",
+   "target": "file:src/bot/__init__.py",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:src/bot/templates/SYSTEM.md",
+   "target": "file:src/bot/__init__.py",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:src/bot/ui/admin/static/theme.js",
+   "target": "file:src/bot/ui/admin/static/admin_page.js",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:src/bot/ui/admin/static/fonts/OFL.txt",
+   "target": "file:src/bot/ui/admin/static/admin_page.js",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:tests/test_admin.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

@@ -1,0 +1,1210 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/bot/system/remote_server.py",
+   "type": "file",
+   "name": "remote_server.py",
+   "filePath": "src/bot/system/remote_server.py",
+   "summary": "HTTP client layer (async and sync, via httpx) for calling the remote VPS server, with streaming, file upload/download and Vietnamese error messages.",
+   "tags": [
+    "http-client",
+    "remote",
+    "vps",
+    "api-client"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:request",
+   "type": "function",
+   "name": "request",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    72,
+    85
+   ],
+   "summary": "Async HTTP request to the VPS with auth and error mapping to RemoteError.",
+   "tags": [
+    "http-client",
+    "async",
+    "vps"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:json_request",
+   "type": "function",
+   "name": "json_request",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    88,
+    103
+   ],
+   "summary": "Async request returning parsed JSON, converting HTTP errors to RemoteError.",
+   "tags": [
+    "http-client",
+    "json",
+    "async"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:stream",
+   "type": "function",
+   "name": "stream",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    106,
+    133
+   ],
+   "summary": "Async generator streaming bytes such as live logs from the VPS.",
+   "tags": [
+    "streaming",
+    "http-client",
+    "async"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:call_sync",
+   "type": "function",
+   "name": "call_sync",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    146,
+    163
+   ],
+   "summary": "Synchronous JSON call to the VPS raising RemoteError with Vietnamese messages.",
+   "tags": [
+    "http-client",
+    "sync",
+    "vps"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:status_sync",
+   "type": "function",
+   "name": "status_sync",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    166,
+    177
+   ],
+   "summary": "Returns configured/ok/running/standby/error summary for the tray menu.",
+   "tags": [
+    "status",
+    "tray",
+    "http-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:download_sync",
+   "type": "function",
+   "name": "download_sync",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    180,
+    193
+   ],
+   "summary": "Downloads a handover bundle from the VPS to a destination file.",
+   "tags": [
+    "download",
+    "handover",
+    "http-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/remote_server.py:upload_sync",
+   "type": "function",
+   "name": "upload_sync",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    196,
+    213
+   ],
+   "summary": "Uploads a handover bundle to the VPS and returns the JSON response.",
+   "tags": [
+    "upload",
+    "handover",
+    "http-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/system/remote_server.py:RemoteError",
+   "type": "class",
+   "name": "RemoteError",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    26,
+    27
+   ],
+   "summary": "Exception carrying a user-ready message for remote call failures.",
+   "tags": [
+    "exception",
+    "remote",
+    "error-handling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/system/remote_server.py:Reply",
+   "type": "class",
+   "name": "Reply",
+   "filePath": "src/bot/system/remote_server.py",
+   "lineRange": [
+    31,
+    34
+   ],
+   "summary": "Simple dataclass wrapping an HTTP reply from the VPS.",
+   "tags": [
+    "dataclass",
+    "http",
+    "remote"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/system/server_info.py",
+   "type": "file",
+   "name": "server_info.py",
+   "filePath": "src/bot/system/server_info.py",
+   "summary": "Collects server status data (uptime, memory, git version versus remote head, systemd state, last update run) for the admin Server page.",
+   "tags": [
+    "monitoring",
+    "server-info",
+    "git",
+    "system"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/system/server_info.py:_memory",
+   "type": "function",
+   "name": "_memory",
+   "filePath": "src/bot/system/server_info.py",
+   "lineRange": [
+    38,
+    65
+   ],
+   "summary": "Reads total and available memory in bytes.",
+   "tags": [
+    "system",
+    "memory",
+    "monitoring"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/system/server_info.py:code_version",
+   "type": "function",
+   "name": "code_version",
+   "filePath": "src/bot/system/server_info.py",
+   "lineRange": [
+    90,
+    99
+   ],
+   "summary": "Reports the running commit and the latest remote commit via git ls-remote.",
+   "tags": [
+    "git",
+    "version",
+    "monitoring"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/server_info.py:collect",
+   "type": "function",
+   "name": "collect",
+   "filePath": "src/bot/system/server_info.py",
+   "lineRange": [
+    120,
+    148
+   ],
+   "summary": "Aggregates uptime, memory, code version, systemd state and last update into one dict.",
+   "tags": [
+    "monitoring",
+    "aggregation",
+    "server-info"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/ui/admin/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/ui/admin/__init__.py",
+   "summary": "Package marker for the admin web UI subpackage.",
+   "tags": [
+    "package",
+    "barrel",
+    "admin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/admin/admin_sessions.py",
+   "type": "file",
+   "name": "admin_sessions.py",
+   "filePath": "src/bot/ui/admin/admin_sessions.py",
+   "summary": "In-memory TTL admin session tokens plus persistent hashed device tokens that can be listed and revoked.",
+   "tags": [
+    "authentication",
+    "sessions",
+    "security",
+    "admin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/ui/admin/admin_sessions.py:AdminSessions",
+   "type": "class",
+   "name": "AdminSessions",
+   "filePath": "src/bot/ui/admin/admin_sessions.py",
+   "lineRange": [
+    17,
+    44
+   ],
+   "summary": "Issues and validates short-lived in-memory session tokens with a TTL.",
+   "tags": [
+    "authentication",
+    "sessions",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/ui/admin/admin_sessions.py:AdminDevices",
+   "type": "class",
+   "name": "AdminDevices",
+   "filePath": "src/bot/ui/admin/admin_sessions.py",
+   "lineRange": [
+    51,
+    129
+   ],
+   "summary": "Persists hashed device tokens for remote apps, with issue, validate, list and revoke.",
+   "tags": [
+    "authentication",
+    "devices",
+    "persistence"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/ui/admin/admin_web_server.py",
+   "type": "file",
+   "name": "admin_web_server.py",
+   "filePath": "src/bot/ui/admin/admin_web_server.py",
+   "summary": "FastAPI factory building the admin web app: auth, bot control, handover, groups, history, workspace files, settings, logs, failed replies, Zalo login, update and playground endpoints.",
+   "tags": [
+    "fastapi",
+    "admin",
+    "api-handler",
+    "web-server",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/ui/admin/admin_web_server.py:create_app",
+   "type": "function",
+   "name": "create_app",
+   "filePath": "src/bot/ui/admin/admin_web_server.py",
+   "lineRange": [
+    103,
+    813
+   ],
+   "summary": "Builds the FastAPI app with middleware and all admin API routes (auth, bot control, handover, groups, settings, logs, Zalo login, update, playground).",
+   "tags": [
+    "fastapi",
+    "routing",
+    "api-handler"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/ui/admin/admin_web_server.py:AdminContext",
+   "type": "class",
+   "name": "AdminContext",
+   "filePath": "src/bot/ui/admin/admin_web_server.py",
+   "lineRange": [
+    88,
+    96
+   ],
+   "summary": "Holds shared state for the admin app, including a settings accessor.",
+   "tags": [
+    "context",
+    "state",
+    "admin"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/admin/settings_file.py",
+   "type": "file",
+   "name": "settings_file.py",
+   "filePath": "src/bot/ui/admin/settings_file.py",
+   "summary": "Reads, validates and writes the .env settings file with field specs, comment-preserving updates and .env.bak backups.",
+   "tags": [
+    "settings",
+    "env-file",
+    "validation",
+    "admin"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/ui/admin/settings_file.py:read_values",
+   "type": "function",
+   "name": "read_values",
+   "filePath": "src/bot/ui/admin/settings_file.py",
+   "lineRange": [
+    105,
+    108
+   ],
+   "summary": "Parses the .env file into a key-value dict.",
+   "tags": [
+    "env-file",
+    "parsing",
+    "settings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/admin/settings_file.py:validate",
+   "type": "function",
+   "name": "validate",
+   "filePath": "src/bot/ui/admin/settings_file.py",
+   "lineRange": [
+    120,
+    129
+   ],
+   "summary": "Cleans and validates changes using Settings.from_env rules.",
+   "tags": [
+    "validation",
+    "settings",
+    "env-file"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/admin/settings_file.py:update",
+   "type": "function",
+   "name": "update",
+   "filePath": "src/bot/ui/admin/settings_file.py",
+   "lineRange": [
+    132,
+    145
+   ],
+   "summary": "Writes validated changes to .env preserving comments and backing up to .env.bak.",
+   "tags": [
+    "env-file",
+    "persistence",
+    "settings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/ui/admin/settings_file.py:FieldSpec",
+   "type": "class",
+   "name": "FieldSpec",
+   "filePath": "src/bot/ui/admin/settings_file.py",
+   "lineRange": [
+    21,
+    27
+   ],
+   "summary": "Dataclass describing one editable .env field.",
+   "tags": [
+    "dataclass",
+    "schema",
+    "settings"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/ui/desktop/desktop_app.py",
+   "type": "file",
+   "name": "desktop_app.py",
+   "filePath": "src/bot/ui/desktop/desktop_app.py",
+   "summary": "Desktop GUI application (window plus tray) that hosts the admin web server, controls the bot, checks updates and manages VPS handover.",
+   "tags": [
+    "desktop",
+    "gui",
+    "tray",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/ui/desktop/desktop_app.py:update_flag_file",
+   "type": "function",
+   "name": "update_flag_file",
+   "filePath": "src/bot/ui/desktop/desktop_app.py",
+   "lineRange": [
+    435,
+    437
+   ],
+   "summary": "Returns the path of data/update.txt used to show the update button.",
+   "tags": [
+    "path",
+    "update",
+    "gui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/ui/desktop/desktop_app.py:run_gui",
+   "type": "function",
+   "name": "run_gui",
+   "filePath": "src/bot/ui/desktop/desktop_app.py",
+   "lineRange": [
+    440,
+    471
+   ],
+   "summary": "Entry point launching the desktop GUI, with options for tray-only, auto-start bot and after-update.",
+   "tags": [
+    "entry-point",
+    "gui",
+    "desktop"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/ui/desktop/desktop_app.py:Desktop",
+   "type": "class",
+   "name": "Desktop",
+   "filePath": "src/bot/ui/desktop/desktop_app.py",
+   "lineRange": [
+    61,
+    432
+   ],
+   "summary": "Main desktop app controller: window, tray, embedded admin server, bot start/stop, update checks and VPS handover actions.",
+   "tags": [
+    "gui",
+    "controller",
+    "tray"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/bot/userdata_paths.py",
+   "type": "file",
+   "name": "userdata_paths.py",
+   "filePath": "src/bot/userdata_paths.py",
+   "summary": "Resolves the app home and userdata paths (frozen exe versus source) and migrates legacy data layout into userdata/.",
+   "tags": [
+    "paths",
+    "migration",
+    "filesystem",
+    "configuration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/userdata_paths.py:is_frozen",
+   "type": "function",
+   "name": "is_frozen",
+   "filePath": "src/bot/userdata_paths.py",
+   "lineRange": [
+    63,
+    65
+   ],
+   "summary": "True when running from the PyInstaller-packaged exe.",
+   "tags": [
+    "environment",
+    "pyinstaller",
+    "paths"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/userdata_paths.py:app_home",
+   "type": "function",
+   "name": "app_home",
+   "filePath": "src/bot/userdata_paths.py",
+   "lineRange": [
+    79,
+    94
+   ],
+   "summary": "Resolves the writable application home directory for frozen or source runs.",
+   "tags": [
+    "paths",
+    "filesystem",
+    "configuration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/userdata_paths.py:done_file",
+   "type": "function",
+   "name": "done_file",
+   "filePath": "src/bot/userdata_paths.py",
+   "lineRange": [
+    101,
+    104
+   ],
+   "summary": "Maps a failed-replies filename to its _done counterpart.",
+   "tags": [
+    "naming",
+    "utility",
+    "paths"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/userdata_paths.py:needs_migration",
+   "type": "function",
+   "name": "needs_migration",
+   "filePath": "src/bot/userdata_paths.py",
+   "lineRange": [
+    142,
+    144
+   ],
+   "summary": "Detects legacy layout data needing migration into userdata.",
+   "tags": [
+    "migration",
+    "detection",
+    "paths"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/userdata_paths.py:migrate_legacy",
+   "type": "function",
+   "name": "migrate_legacy",
+   "filePath": "src/bot/userdata_paths.py",
+   "lineRange": [
+    208,
+    261
+   ],
+   "summary": "Moves legacy .env, data, logs, workspace and tools into userdata, restoring git defaults.",
+   "tags": [
+    "migration",
+    "filesystem",
+    "legacy"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:request",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:request",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:json_request",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:json_request",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:stream",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:stream",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:call_sync",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:call_sync",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:status_sync",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:status_sync",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:download_sync",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:download_sync",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:upload_sync",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "function:src/bot/system/remote_server.py:upload_sync",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "class:src/bot/system/remote_server.py:RemoteError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "class:src/bot/system/remote_server.py:RemoteError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "class:src/bot/system/remote_server.py:Reply",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/remote_server.py",
+   "target": "class:src/bot/system/remote_server.py:Reply",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "file:src/bot/system/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "file:src/bot/system/auto_update.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "file:src/bot/system/bot_process.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:_memory",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:_memory",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:code_version",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:code_version",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:collect",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/server_info.py",
+   "target": "function:src/bot/system/server_info.py:collect",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_sessions.py",
+   "target": "class:src/bot/ui/admin/admin_sessions.py:AdminSessions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_sessions.py",
+   "target": "class:src/bot/ui/admin/admin_sessions.py:AdminSessions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_sessions.py",
+   "target": "class:src/bot/ui/admin/admin_sessions.py:AdminDevices",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_sessions.py",
+   "target": "class:src/bot/ui/admin/admin_sessions.py:AdminDevices",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/agent/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/core/reply_formatting.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/bot_process.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/handover.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/handover_job.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/remote_config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/remote_server.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/system/server_client.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/ui/admin/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/ui/admin/admin_sessions.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/ui/admin/settings_file.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "function:src/bot/ui/admin/admin_web_server.py:create_app",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "function:src/bot/ui/admin/admin_web_server.py:create_app",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "class:src/bot/ui/admin/admin_web_server.py:AdminContext",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/admin_web_server.py",
+   "target": "class:src/bot/ui/admin/admin_web_server.py:AdminContext",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:read_values",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:read_values",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:validate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:validate",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:update",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "function:src/bot/ui/admin/settings_file.py:update",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "class:src/bot/ui/admin/settings_file.py:FieldSpec",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/admin/settings_file.py",
+   "target": "class:src/bot/ui/admin/settings_file.py:FieldSpec",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/storage/process_lock.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/system/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/system/bot_process.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/system/first_run_setup.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/system/log_files.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/system/remote_server.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "function:src/bot/ui/desktop/desktop_app.py:update_flag_file",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "function:src/bot/ui/desktop/desktop_app.py:update_flag_file",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "function:src/bot/ui/desktop/desktop_app.py:run_gui",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "function:src/bot/ui/desktop/desktop_app.py:run_gui",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "class:src/bot/ui/desktop/desktop_app.py:Desktop",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/ui/desktop/desktop_app.py",
+   "target": "class:src/bot/ui/desktop/desktop_app.py:Desktop",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:is_frozen",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:is_frozen",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:app_home",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:app_home",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:done_file",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:done_file",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:needs_migration",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:needs_migration",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:migrate_legacy",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/userdata_paths.py",
+   "target": "function:src/bot/userdata_paths.py:migrate_legacy",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

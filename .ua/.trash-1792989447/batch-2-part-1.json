@@ -1,0 +1,1154 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/bot/agent/tools/assign_events.py",
+   "type": "file",
+   "name": "assign_events.py",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "summary": "Calendar event assignment tools for the agent: resolves people by name, creates/updates/cancels/lists events via the server client, and remembers recent chat participants.",
+   "tags": [
+    "agent-tool",
+    "calendar",
+    "events",
+    "people-resolution"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:match_member",
+   "type": "function",
+   "name": "match_member",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    44,
+    54
+   ],
+   "summary": "Fuzzy-matches a name to a team member.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:resolve_people",
+   "type": "function",
+   "name": "resolve_people",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    57,
+    92
+   ],
+   "summary": "Resolves mentioned names to people records.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_remember",
+   "type": "function",
+   "name": "_remember",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    101,
+    113
+   ],
+   "summary": "Remembers recent chat participants.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_event_id",
+   "type": "function",
+   "name": "_event_id",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    142,
+    153
+   ],
+   "summary": "Derives an event id.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_summary",
+   "type": "function",
+   "name": "_summary",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    173,
+    190
+   ],
+   "summary": "Builds a summary string for an event.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_assign",
+   "type": "function",
+   "name": "_assign",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    195,
+    220
+   ],
+   "summary": "Creates an event assignment.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_update",
+   "type": "function",
+   "name": "_update",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    223,
+    248
+   ],
+   "summary": "Updates an existing event.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_cancel",
+   "type": "function",
+   "name": "_cancel",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    251,
+    262
+   ],
+   "summary": "Cancels an event.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_list",
+   "type": "function",
+   "name": "_list",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    265,
+    279
+   ],
+   "summary": "Lists upcoming events.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_mine",
+   "type": "function",
+   "name": "_mine",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    291,
+    309
+   ],
+   "summary": "Lists events for the caller.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/assign_events.py:_tools",
+   "type": "function",
+   "name": "_tools",
+   "filePath": "src/bot/agent/tools/assign_events.py",
+   "lineRange": [
+    322,
+    384
+   ],
+   "summary": "Builds the list of event tool definitions for the registry.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/bot/agent/tools/read_chat_memory.py",
+   "type": "file",
+   "name": "read_chat_memory.py",
+   "filePath": "src/bot/agent/tools/read_chat_memory.py",
+   "summary": "Agent tool that reads stored chat history/memory for a conversation, filtered by message filter and Vietnam time.",
+   "tags": [
+    "agent-tool",
+    "memory",
+    "chat-history"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/read_chat_memory.py:_read",
+   "type": "function",
+   "name": "_read",
+   "filePath": "src/bot/agent/tools/read_chat_memory.py",
+   "lineRange": [
+    23,
+    45
+   ],
+   "summary": "Reads chat memory entries for the tool call.",
+   "tags": [
+    "function",
+    "agent",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/core/message_filter.py",
+   "type": "file",
+   "name": "message_filter.py",
+   "filePath": "src/bot/core/message_filter.py",
+   "summary": "Decides whether an incoming Zalo message should be handled (mention, chatter detection, group rules) using settings and storage state.",
+   "tags": [
+    "filter",
+    "message-routing",
+    "core",
+    "decision"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/core/message_filter.py:Decision",
+   "type": "class",
+   "name": "Decision",
+   "filePath": "src/bot/core/message_filter.py",
+   "lineRange": [
+    51,
+    59
+   ],
+   "summary": "Result of a message filtering decision.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/core/message_filter.py:MessageFilter",
+   "type": "class",
+   "name": "MessageFilter",
+   "filePath": "src/bot/core/message_filter.py",
+   "lineRange": [
+    67,
+    154
+   ],
+   "summary": "Applies filtering rules to incoming messages.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/core/message_filter.py:is_chatter",
+   "type": "function",
+   "name": "is_chatter",
+   "filePath": "src/bot/core/message_filter.py",
+   "lineRange": [
+    62,
+    64
+   ],
+   "summary": "Detects casual chatter messages.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/core/message_handler.py",
+   "type": "file",
+   "name": "message_handler.py",
+   "filePath": "src/bot/core/message_handler.py",
+   "summary": "Central Bot class that receives Zalo messages, applies filtering, rate limiting and roles, dispatches owner commands, runs the AI agent and sends formatted replies.",
+   "tags": [
+    "message-handler",
+    "orchestration",
+    "core",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/core/message_handler.py:ZaloSender",
+   "type": "class",
+   "name": "ZaloSender",
+   "filePath": "src/bot/core/message_handler.py",
+   "lineRange": [
+    65,
+    67
+   ],
+   "summary": "Protocol for sending Zalo messages.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/core/message_handler.py:Job",
+   "type": "class",
+   "name": "Job",
+   "filePath": "src/bot/core/message_handler.py",
+   "lineRange": [
+    71,
+    72
+   ],
+   "summary": "Queued message job record.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/core/message_handler.py:Bot",
+   "type": "class",
+   "name": "Bot",
+   "filePath": "src/bot/core/message_handler.py",
+   "lineRange": [
+    75,
+    442
+   ],
+   "summary": "Main bot orchestrator handling messages end to end.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/core/message_handler.py:strip_name_prefix",
+   "type": "function",
+   "name": "strip_name_prefix",
+   "filePath": "src/bot/core/message_handler.py",
+   "lineRange": [
+    445,
+    451
+   ],
+   "summary": "Strips bot name prefix from message text.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/core/owner_commands.py",
+   "type": "file",
+   "name": "owner_commands.py",
+   "filePath": "src/bot/core/owner_commands.py",
+   "summary": "Parses and executes owner/admin chat commands (modes, event assignment, help text) with role checks.",
+   "tags": [
+    "commands",
+    "admin",
+    "core",
+    "parsing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/core/owner_commands.py:ParsedCommand",
+   "type": "class",
+   "name": "ParsedCommand",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    44,
+    46
+   ],
+   "summary": "Parsed command structure.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/core/owner_commands.py:CommandHandler",
+   "type": "class",
+   "name": "CommandHandler",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    68,
+    221
+   ],
+   "summary": "Executes owner commands.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/core/owner_commands.py:help_text",
+   "type": "function",
+   "name": "help_text",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    38,
+    40
+   ],
+   "summary": "Returns command help text.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/owner_commands.py:parse_command",
+   "type": "function",
+   "name": "parse_command",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    49,
+    59
+   ],
+   "summary": "Parses a chat message into a command.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/owner_commands.py:describe_mode",
+   "type": "function",
+   "name": "describe_mode",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    62,
+    65
+   ],
+   "summary": "Describes a bot mode.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/owner_commands.py:_pick_people",
+   "type": "function",
+   "name": "_pick_people",
+   "filePath": "src/bot/core/owner_commands.py",
+   "lineRange": [
+    224,
+    241
+   ],
+   "summary": "Selects people matching a query.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/core/rate_limiter.py",
+   "type": "file",
+   "name": "rate_limiter.py",
+   "filePath": "src/bot/core/rate_limiter.py",
+   "summary": "Small RateLimiter class throttling per-key message frequency.",
+   "tags": [
+    "rate-limiting",
+    "utility",
+    "core"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/core/rate_limiter.py:RateLimiter",
+   "type": "class",
+   "name": "RateLimiter",
+   "filePath": "src/bot/core/rate_limiter.py",
+   "lineRange": [
+    10,
+    27
+   ],
+   "summary": "Limits request frequency per key.",
+   "tags": [
+    "class",
+    "core",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/core/reply_formatting.py",
+   "type": "file",
+   "name": "reply_formatting.py",
+   "filePath": "src/bot/core/reply_formatting.py",
+   "summary": "Reply formatting helpers: UTF-16 length counting, splitting long messages to platform limits, and converting markdown to plain text.",
+   "tags": [
+    "formatting",
+    "utility",
+    "text-processing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/reply_formatting.py:utf16_len",
+   "type": "function",
+   "name": "utf16_len",
+   "filePath": "src/bot/core/reply_formatting.py",
+   "lineRange": [
+    12,
+    13
+   ],
+   "summary": "UTF-16 length of text.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/reply_formatting.py:split_message",
+   "type": "function",
+   "name": "split_message",
+   "filePath": "src/bot/core/reply_formatting.py",
+   "lineRange": [
+    25,
+    43
+   ],
+   "summary": "Splits text into chunks within the limit.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/core/reply_formatting.py:to_plain_text",
+   "type": "function",
+   "name": "to_plain_text",
+   "filePath": "src/bot/core/reply_formatting.py",
+   "lineRange": [
+    51,
+    56
+   ],
+   "summary": "Converts markdown to plain text.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/agent/tools/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/core/text_fold.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/storage/text_files.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/system/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/system/server_client.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:match_member",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:match_member",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:resolve_people",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:resolve_people",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_remember",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_event_id",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_summary",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_assign",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_update",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_cancel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_list",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_mine",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/assign_events.py",
+   "target": "function:src/bot/agent/tools/assign_events.py:_tools",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "file:src/bot/agent/tools/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "file:src/bot/core/message_filter.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/read_chat_memory.py",
+   "target": "function:src/bot/agent/tools/read_chat_memory.py:_read",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "file:src/bot/core/text_fold.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "class:src/bot/core/message_filter.py:Decision",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "class:src/bot/core/message_filter.py:Decision",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "class:src/bot/core/message_filter.py:MessageFilter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "class:src/bot/core/message_filter.py:MessageFilter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "function:src/bot/core/message_filter.py:is_chatter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_filter.py",
+   "target": "function:src/bot/core/message_filter.py:is_chatter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/agent/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/mention_tags.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/message_filter.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/owner_commands.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/rate_limiter.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/reply_formatting.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/roles.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:ZaloSender",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:ZaloSender",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:Job",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:Job",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:Bot",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "class:src/bot/core/message_handler.py:Bot",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "function:src/bot/core/message_handler.py:strip_name_prefix",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/message_handler.py",
+   "target": "function:src/bot/core/message_handler.py:strip_name_prefix",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "file:src/bot/agent/tools/assign_events.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "file:src/bot/core/roles.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "file:src/bot/core/text_fold.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "class:src/bot/core/owner_commands.py:ParsedCommand",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "class:src/bot/core/owner_commands.py:ParsedCommand",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "class:src/bot/core/owner_commands.py:CommandHandler",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "class:src/bot/core/owner_commands.py:CommandHandler",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:help_text",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:help_text",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:parse_command",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:parse_command",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:describe_mode",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:describe_mode",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/owner_commands.py",
+   "target": "function:src/bot/core/owner_commands.py:_pick_people",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/rate_limiter.py",
+   "target": "class:src/bot/core/rate_limiter.py:RateLimiter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/rate_limiter.py",
+   "target": "class:src/bot/core/rate_limiter.py:RateLimiter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:utf16_len",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:utf16_len",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:split_message",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:split_message",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:to_plain_text",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/reply_formatting.py",
+   "target": "function:src/bot/core/reply_formatting.py:to_plain_text",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

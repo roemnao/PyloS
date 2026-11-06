@@ -1,0 +1,17 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 0,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Removed 6 tested_by edges from tests/conftest.py",
+    "Removed pyproject configures command_line.py edge; added stale entry point note in pyproject languageNotes",
+    "Added run-forever.ps1 depends_on src/bot/__main__.py (verified python -m bot)",
+    "first_run_setup template edges verified against _FILES",
+    "All 107 files have nodes; all importMap entries have edges; no bad lineRange",
+    "README.md summaries written from headings only (not rewritten)",
+    "2 dropped edges not identified from the merge report; no missing file nodes found"
+  ]
+}

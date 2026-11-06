@@ -1,0 +1,677 @@
+{
+  "scriptCompleted": true,
+  "contentDigest": "04fc029747d7f87702a93bda34e0dd3e9ff44c392231daedbdaff09bb521c688",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "PROJECT_MAP.md",
+      "language": "markdown",
+      "sizeLines": 173,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 480,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "ZaloBot.cmd",
+      "language": "batch",
+      "sizeLines": 27,
+      "fileCategory": "script"
+    },
+    {
+      "path": "docs/PLAN.md",
+      "language": "markdown",
+      "sizeLines": 624,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/lenh-zalo.md",
+      "language": "markdown",
+      "sizeLines": 80,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/vps-dieu-khien.md",
+      "language": "markdown",
+      "sizeLines": 120,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "sizeLines": 51,
+      "fileCategory": "config"
+    },
+    {
+      "path": "scripts/build-exe.ps1",
+      "language": "powershell",
+      "sizeLines": 35,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/install-task.ps1",
+      "language": "powershell",
+      "sizeLines": 40,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/packaging/ZaloBot.spec",
+      "language": "spec",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/packaging/check_secrets.py",
+      "language": "python",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/packaging/version_info.txt",
+      "language": "txt",
+      "sizeLines": 26,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "scripts/packaging/zalobot_entry.py",
+      "language": "python",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "scripts/run-forever.ps1",
+      "language": "powershell",
+      "sizeLines": 38,
+      "fileCategory": "script"
+    },
+    {
+      "path": "scripts/uninstall-task.ps1",
+      "language": "powershell",
+      "sizeLines": 11,
+      "fileCategory": "script"
+    },
+    {
+      "path": "src/bot/__init__.py",
+      "language": "python",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/__main__.py",
+      "language": "python",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/__init__.py",
+      "language": "python",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/gemini_agent.py",
+      "language": "python",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/system_prompt.py",
+      "language": "python",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/tools/__init__.py",
+      "language": "python",
+      "sizeLines": 131,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/tools/_example.py",
+      "language": "python",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/tools/assign_events.py",
+      "language": "python",
+      "sizeLines": 387,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/tools/read_chat_memory.py",
+      "language": "python",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/agent/tools/schedule_web.py",
+      "language": "python",
+      "sizeLines": 157,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/command_line.py",
+      "language": "python",
+      "sizeLines": 615,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/config.py",
+      "language": "python",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/mention_tags.py",
+      "language": "python",
+      "sizeLines": 94,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/message_filter.py",
+      "language": "python",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/message_handler.py",
+      "language": "python",
+      "sizeLines": 451,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/owner_commands.py",
+      "language": "python",
+      "sizeLines": 241,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/rate_limiter.py",
+      "language": "python",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/reply_formatting.py",
+      "language": "python",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/roles.py",
+      "language": "python",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/text_fold.py",
+      "language": "python",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/core/vietnam_time.py",
+      "language": "python",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/storage/__init__.py",
+      "language": "python",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/storage/data_stores.py",
+      "language": "python",
+      "sizeLines": 415,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/storage/process_lock.py",
+      "language": "python",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/storage/text_files.py",
+      "language": "python",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/auto_update.py",
+      "language": "python",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/bot_process.py",
+      "language": "python",
+      "sizeLines": 448,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/first_run_setup.py",
+      "language": "python",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/handover.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/handover_job.py",
+      "language": "python",
+      "sizeLines": 242,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/log_files.py",
+      "language": "python",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/remote_config.py",
+      "language": "python",
+      "sizeLines": 250,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/remote_server.py",
+      "language": "python",
+      "sizeLines": 213,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/server_client.py",
+      "language": "python",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/server_info.py",
+      "language": "python",
+      "sizeLines": 148,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/system/session_upload.py",
+      "language": "python",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/templates/MEMORY.md",
+      "language": "markdown",
+      "sizeLines": 6,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "src/bot/templates/SYSTEM.md",
+      "language": "markdown",
+      "sizeLines": 17,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "src/bot/templates/env.example",
+      "language": "example",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/templates/tool_example.py.tmpl",
+      "language": "tmpl",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/admin_sessions.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/admin_web_server.py",
+      "language": "python",
+      "sizeLines": 813,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/settings_file.py",
+      "language": "python",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/static/admin_page.css",
+      "language": "css",
+      "sizeLines": 270,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/bot/ui/admin/static/admin_page.js",
+      "language": "javascript",
+      "sizeLines": 1176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/admin/static/fonts/OFL.txt",
+      "language": "txt",
+      "sizeLines": 90,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "src/bot/ui/admin/static/index.html",
+      "language": "html",
+      "sizeLines": 61,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/bot/ui/admin/static/theme.css",
+      "language": "css",
+      "sizeLines": 200,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/bot/ui/admin/static/theme.js",
+      "language": "javascript",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/desktop/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/desktop/desktop_app.py",
+      "language": "python",
+      "sizeLines": 471,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/desktop/icon_images.py",
+      "language": "python",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/desktop/tray_icon.py",
+      "language": "python",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/ui/desktop/windows_autostart.py",
+      "language": "python",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/userdata_paths.py",
+      "language": "python",
+      "sizeLines": 261,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/__init__.py",
+      "language": "python",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/bot_platform_api.py",
+      "language": "python",
+      "sizeLines": 78,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/incoming_message.py",
+      "language": "python",
+      "sizeLines": 101,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/personal_account.py",
+      "language": "python",
+      "sizeLines": 356,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/qr_login.py",
+      "language": "python",
+      "sizeLines": 271,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/receive_polling.py",
+      "language": "python",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/bot/zalo/receive_webhook.py",
+      "language": "python",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_admin.py",
+      "language": "python",
+      "sizeLines": 416,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_agent.py",
+      "language": "python",
+      "sizeLines": 164,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_assign_events.py",
+      "language": "python",
+      "sizeLines": 173,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_bot.py",
+      "language": "python",
+      "sizeLines": 482,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_config_client_webhook.py",
+      "language": "python",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_desktop.py",
+      "language": "python",
+      "sizeLines": 288,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_filter.py",
+      "language": "python",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_gmail_connect.py",
+      "language": "python",
+      "sizeLines": 177,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_handover.py",
+      "language": "python",
+      "sizeLines": 261,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_memorydata.py",
+      "language": "python",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_paths.py",
+      "language": "python",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_personal.py",
+      "language": "python",
+      "sizeLines": 258,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_polling.py",
+      "language": "python",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_qrlogin.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_remote_config.py",
+      "language": "python",
+      "sizeLines": 204,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_remote_proxy.py",
+      "language": "python",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_roles.py",
+      "language": "python",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_schedule_tool.py",
+      "language": "python",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_storage.py",
+      "language": "python",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_text_and_models.py",
+      "language": "python",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_updater.py",
+      "language": "python",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_vps_supervisor.py",
+      "language": "python",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tools/_example.py",
+      "language": "python",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "workspace/SYSTEM.md",
+      "language": "markdown",
+      "sizeLines": 17,
+      "fileCategory": "docs"
+    }
+  ],
+  "totalFiles": 107,
+  "filteredByIgnore": 148,
+  "estimatedComplexity": "moderate",
+  "failures": [],
+  "stats": {
+    "filesScanned": 107,
+    "byCategory": {
+      "code": 88,
+      "docs": 10,
+      "script": 5,
+      "config": 1,
+      "markup": 3
+    },
+    "byLanguage": {
+      "unknown": 1,
+      "markdown": 8,
+      "batch": 1,
+      "toml": 1,
+      "powershell": 4,
+      "spec": 1,
+      "python": 82,
+      "txt": 2,
+      "example": 1,
+      "tmpl": 1,
+      "css": 2,
+      "javascript": 2,
+      "html": 1
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{"nodes":[
+{"id":"document:docs/PLAN.md","type":"document","name":"PLAN.md","filePath":"docs/PLAN.md","summary":"Detailed Vietnamese project plan for the Zalo AI agent bot server: decisions, channel choice, architecture, tech stack, directory layout, message flow, security, roadmap, risks, progress, and a web dashboard plan.","tags":["documentation","planning","architecture","roadmap"],"complexity":"complex"},
+{"id":"document:docs/lenh-zalo.md","type":"document","name":"lenh-zalo.md","filePath":"docs/lenh-zalo.md","summary":"User guide for using the bot on Zalo, covering the three roles (basic-user, leader, owner), command table, default vs all mode, scheduling delegation, and token quotas.","tags":["documentation","user-guide","commands","roles"],"complexity":"moderate"},
+{"id":"document:docs/vps-dieu-khien.md","type":"document","name":"vps-dieu-khien.md","filePath":"docs/vps-dieu-khien.md","summary":"Guide to controlling the bot on a VPS from the ZaloBot.exe desktop app: proxying, standby mode, bot transfer packages, systemd services, sudo permissions, and nginx setup.","tags":["documentation","deployment","vps","operations","systemd"],"complexity":"moderate"}
+],"edges":[
+{"source":"document:docs/lenh-zalo.md","target":"document:docs/PLAN.md","type":"related","direction":"forward","weight":0.5},
+{"source":"document:docs/vps-dieu-khien.md","target":"document:docs/PLAN.md","type":"related","direction":"forward","weight":0.5}
+]}

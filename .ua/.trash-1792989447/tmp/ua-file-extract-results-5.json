@@ -1,0 +1,2168 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 6,
+  "filesSkipped": [],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 6,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 6,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/bot/core/mention_tags.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 94,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "_fold_char",
+          "startLine": 21,
+          "endLine": 25,
+          "params": [
+            "c"
+          ]
+        },
+        {
+          "name": "fold_same_length",
+          "startLine": 28,
+          "endLine": 30,
+          "params": [
+            "text"
+          ]
+        },
+        {
+          "name": "utf16_len",
+          "startLine": 33,
+          "endLine": 35,
+          "params": [
+            "text"
+          ]
+        },
+        {
+          "name": "_names",
+          "startLine": 38,
+          "endLine": 41,
+          "params": [
+            "members"
+          ]
+        },
+        {
+          "name": "_is_boundary",
+          "startLine": 44,
+          "endLine": 45,
+          "params": [
+            "folded",
+            "index"
+          ]
+        },
+        {
+          "name": "_find",
+          "startLine": 48,
+          "endLine": 54,
+          "params": [
+            "folded",
+            "name",
+            "start"
+          ]
+        },
+        {
+          "name": "build_mentions",
+          "startLine": 57,
+          "endLine": 70,
+          "params": [
+            "text",
+            "members"
+          ]
+        },
+        {
+          "name": "add_tags",
+          "startLine": 73,
+          "endLine": 94,
+          "params": [
+            "reply",
+            "request",
+            "members"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_fold_char",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "fold_same_length",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "utf16_len",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "_names",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "_is_boundary",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "_find",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "build_mentions",
+          "line": 57,
+          "isDefault": false
+        },
+        {
+          "name": "add_tags",
+          "line": 73,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_fold_char",
+          "callee": "unicodedata.normalize",
+          "lineNumber": 24
+        },
+        {
+          "caller": "_fold_char",
+          "callee": "base.lower",
+          "lineNumber": 25
+        },
+        {
+          "caller": "fold_same_length",
+          "callee": "\"\".join",
+          "lineNumber": 30
+        },
+        {
+          "caller": "fold_same_length",
+          "callee": "_fold_char",
+          "lineNumber": 30
+        },
+        {
+          "caller": "utf16_len",
+          "callee": "len",
+          "lineNumber": 35
+        },
+        {
+          "caller": "utf16_len",
+          "callee": "text.encode",
+          "lineNumber": 35
+        },
+        {
+          "caller": "_names",
+          "callee": "fold_same_length",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_names",
+          "callee": "name.strip",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_names",
+          "callee": "members.items",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_names",
+          "callee": "len",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_names",
+          "callee": "name.strip",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_names",
+          "callee": "sorted",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_names",
+          "callee": "len",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_is_boundary",
+          "callee": "len",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_is_boundary",
+          "callee": "folded[index].isalnum",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_find",
+          "callee": "folded.find",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_find",
+          "callee": "_is_boundary",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_find",
+          "callee": "_is_boundary",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_find",
+          "callee": "len",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_find",
+          "callee": "folded.find",
+          "lineNumber": 53
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "_names",
+          "lineNumber": 58
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "fold_same_length",
+          "lineNumber": 59
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "text.find",
+          "lineNumber": 61
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "len",
+          "lineNumber": 64
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "folded.startswith",
+          "lineNumber": 65
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "_is_boundary",
+          "lineNumber": 65
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "mentions.append",
+          "lineNumber": 66
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "utf16_len",
+          "lineNumber": 66
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "utf16_len",
+          "lineNumber": 66
+        },
+        {
+          "caller": "build_mentions",
+          "callee": "text.find",
+          "lineNumber": 69
+        },
+        {
+          "caller": "add_tags",
+          "callee": "fold_same_length",
+          "lineNumber": 75
+        },
+        {
+          "caller": "add_tags",
+          "callee": "_TAG_INTENT.search",
+          "lineNumber": 76
+        },
+        {
+          "caller": "add_tags",
+          "callee": "fold_same_length",
+          "lineNumber": 78
+        },
+        {
+          "caller": "add_tags",
+          "callee": "_names",
+          "lineNumber": 81
+        },
+        {
+          "caller": "add_tags",
+          "callee": "_find",
+          "lineNumber": 82
+        },
+        {
+          "caller": "add_tags",
+          "callee": "_find",
+          "lineNumber": 84
+        },
+        {
+          "caller": "add_tags",
+          "callee": "any",
+          "lineNumber": 85
+        },
+        {
+          "caller": "add_tags",
+          "callee": "_find",
+          "lineNumber": 86
+        },
+        {
+          "caller": "add_tags",
+          "callee": "taken.append",
+          "lineNumber": 89
+        },
+        {
+          "caller": "add_tags",
+          "callee": "len",
+          "lineNumber": 89
+        },
+        {
+          "caller": "add_tags",
+          "callee": "inserts.append",
+          "lineNumber": 91
+        },
+        {
+          "caller": "add_tags",
+          "callee": "sorted",
+          "lineNumber": 92
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/zalo/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 3,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/zalo/bot_platform_api.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 78,
+      "nonEmptyLines": 58,
+      "classes": [
+        {
+          "name": "ZaloError",
+          "startLine": 15,
+          "endLine": 22,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ZaloClient",
+          "startLine": 25,
+          "endLine": 78,
+          "methods": [
+            "__init__",
+            "aclose",
+            "_redact",
+            "call",
+            "get_me",
+            "get_updates",
+            "send_message",
+            "send_chat_action",
+            "set_webhook",
+            "delete_webhook",
+            "get_webhook_info"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ZaloError",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "ZaloClient",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 19
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 19
+        },
+        {
+          "caller": "__init__",
+          "callee": "base_url.rstrip",
+          "lineNumber": 28
+        },
+        {
+          "caller": "__init__",
+          "callee": "httpx.AsyncClient",
+          "lineNumber": 29
+        },
+        {
+          "caller": "__init__",
+          "callee": "httpx.Timeout",
+          "lineNumber": 29
+        },
+        {
+          "caller": "aclose",
+          "callee": "self._http.aclose",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_redact",
+          "callee": "text.replace",
+          "lineNumber": 37
+        },
+        {
+          "caller": "call",
+          "callee": "self._http.post",
+          "lineNumber": 42
+        },
+        {
+          "caller": "call",
+          "callee": "ZaloError",
+          "lineNumber": 47
+        },
+        {
+          "caller": "call",
+          "callee": "self._redact",
+          "lineNumber": 47
+        },
+        {
+          "caller": "call",
+          "callee": "type",
+          "lineNumber": 47
+        },
+        {
+          "caller": "call",
+          "callee": "response.json",
+          "lineNumber": 49
+        },
+        {
+          "caller": "call",
+          "callee": "ZaloError",
+          "lineNumber": 51
+        },
+        {
+          "caller": "call",
+          "callee": "isinstance",
+          "lineNumber": 52
+        },
+        {
+          "caller": "call",
+          "callee": "data.get",
+          "lineNumber": 52
+        },
+        {
+          "caller": "call",
+          "callee": "str",
+          "lineNumber": 53
+        },
+        {
+          "caller": "call",
+          "callee": "data.get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "call",
+          "callee": "isinstance",
+          "lineNumber": 53
+        },
+        {
+          "caller": "call",
+          "callee": "data.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "call",
+          "callee": "isinstance",
+          "lineNumber": 54
+        },
+        {
+          "caller": "call",
+          "callee": "ZaloError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "call",
+          "callee": "self._redact",
+          "lineNumber": 55
+        },
+        {
+          "caller": "call",
+          "callee": "data.get",
+          "lineNumber": 56
+        },
+        {
+          "caller": "get_me",
+          "callee": "self.call",
+          "lineNumber": 59
+        },
+        {
+          "caller": "get_updates",
+          "callee": "self.call",
+          "lineNumber": 63
+        },
+        {
+          "caller": "get_updates",
+          "callee": "str",
+          "lineNumber": 63
+        },
+        {
+          "caller": "send_message",
+          "callee": "self.call",
+          "lineNumber": 66
+        },
+        {
+          "caller": "send_chat_action",
+          "callee": "self.call",
+          "lineNumber": 69
+        },
+        {
+          "caller": "set_webhook",
+          "callee": "self.call",
+          "lineNumber": 72
+        },
+        {
+          "caller": "delete_webhook",
+          "callee": "self.call",
+          "lineNumber": 75
+        },
+        {
+          "caller": "get_webhook_info",
+          "callee": "self.call",
+          "lineNumber": 78
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "src/bot/zalo/incoming_message.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 101,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "_to_ms",
+          "startLine": 55,
+          "endLine": 61,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "parse_event",
+          "startLine": 64,
+          "endLine": 87,
+          "params": [
+            "event"
+          ]
+        },
+        {
+          "name": "parse_updates",
+          "startLine": 90,
+          "endLine": 101,
+          "params": [
+            "payload"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "IncomingMessage",
+          "startLine": 22,
+          "endLine": 52,
+          "methods": [
+            "is_group",
+            "is_text",
+            "dedupe_key"
+          ],
+          "properties": [
+            "event_name",
+            "chat_id",
+            "chat_type",
+            "from_id",
+            "from_name",
+            "from_is_bot",
+            "text",
+            "message_id",
+            "date_ms",
+            "raw",
+            "mentions"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "IncomingMessage",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "_to_ms",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "parse_event",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "parse_updates",
+          "line": 90,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "is_group",
+          "callee": "self.chat_type.upper",
+          "lineNumber": 38
+        },
+        {
+          "caller": "is_text",
+          "callee": "bool",
+          "lineNumber": 42
+        },
+        {
+          "caller": "is_text",
+          "callee": "self.text.strip",
+          "lineNumber": 42
+        },
+        {
+          "caller": "dedupe_key",
+          "callee": "hashlib.sha1(\r\n            f\"{self.chat_id}|{self.from_id}|{self.date_ms}|{self.text}\".encode(\"utf-8\")\r\n        ).hexdigest",
+          "lineNumber": 49
+        },
+        {
+          "caller": "dedupe_key",
+          "callee": "hashlib.sha1",
+          "lineNumber": 49
+        },
+        {
+          "caller": "dedupe_key",
+          "callee": "f\"{self.chat_id}|{self.from_id}|{self.date_ms}|{self.text}\".encode",
+          "lineNumber": 50
+        },
+        {
+          "caller": "_to_ms",
+          "callee": "int",
+          "lineNumber": 57
+        },
+        {
+          "caller": "parse_event",
+          "callee": "event.get",
+          "lineNumber": 65
+        },
+        {
+          "caller": "parse_event",
+          "callee": "isinstance",
+          "lineNumber": 66
+        },
+        {
+          "caller": "parse_event",
+          "callee": "message.get",
+          "lineNumber": 68
+        },
+        {
+          "caller": "parse_event",
+          "callee": "message.get",
+          "lineNumber": 69
+        },
+        {
+          "caller": "parse_event",
+          "callee": "chat.get",
+          "lineNumber": 70
+        },
+        {
+          "caller": "parse_event",
+          "callee": "sender.get",
+          "lineNumber": 71
+        },
+        {
+          "caller": "parse_event",
+          "callee": "message.get",
+          "lineNumber": 74
+        },
+        {
+          "caller": "parse_event",
+          "callee": "message.get",
+          "lineNumber": 75
+        },
+        {
+          "caller": "parse_event",
+          "callee": "IncomingMessage",
+          "lineNumber": 76
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 77
+        },
+        {
+          "caller": "parse_event",
+          "callee": "event.get",
+          "lineNumber": 77
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 78
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 79
+        },
+        {
+          "caller": "parse_event",
+          "callee": "chat.get",
+          "lineNumber": 79
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 80
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 81
+        },
+        {
+          "caller": "parse_event",
+          "callee": "sender.get",
+          "lineNumber": 81
+        },
+        {
+          "caller": "parse_event",
+          "callee": "bool",
+          "lineNumber": 82
+        },
+        {
+          "caller": "parse_event",
+          "callee": "sender.get",
+          "lineNumber": 82
+        },
+        {
+          "caller": "parse_event",
+          "callee": "isinstance",
+          "lineNumber": 83
+        },
+        {
+          "caller": "parse_event",
+          "callee": "str",
+          "lineNumber": 84
+        },
+        {
+          "caller": "parse_event",
+          "callee": "_to_ms",
+          "lineNumber": 85
+        },
+        {
+          "caller": "parse_event",
+          "callee": "message.get",
+          "lineNumber": 85
+        },
+        {
+          "caller": "parse_updates",
+          "callee": "isinstance",
+          "lineNumber": 92
+        },
+        {
+          "caller": "parse_updates",
+          "callee": "isinstance",
+          "lineNumber": 94
+        },
+        {
+          "caller": "parse_updates",
+          "callee": "isinstance",
+          "lineNumber": 97
+        },
+        {
+          "caller": "parse_updates",
+          "callee": "parse_event",
+          "lineNumber": 98
+        },
+        {
+          "caller": "parse_updates",
+          "callee": "messages.append",
+          "lineNumber": 100
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 3,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/bot/zalo/personal_account.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 356,
+      "nonEmptyLines": 308,
+      "functions": [
+        {
+          "name": "load_session",
+          "startLine": 40,
+          "endLine": 68,
+          "params": [
+            "path",
+            "imei"
+          ]
+        },
+        {
+          "name": "to_incoming",
+          "startLine": 71,
+          "endLine": 98,
+          "params": [
+            "mid",
+            "author_id",
+            "content",
+            "message_object",
+            "thread_id",
+            "is_group",
+            "self_id"
+          ]
+        },
+        {
+          "name": "_mention_list",
+          "startLine": 101,
+          "endLine": 108,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "_mention_ids",
+          "startLine": 111,
+          "endLine": 112,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "mention_names",
+          "startLine": 115,
+          "endLine": 129,
+          "params": [
+            "text",
+            "value"
+          ]
+        },
+        {
+          "name": "_import_zlapi",
+          "startLine": 132,
+          "endLine": 140,
+          "params": []
+        },
+        {
+          "name": "_is_network_error",
+          "startLine": 338,
+          "endLine": 350,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "_log_failure",
+          "startLine": 353,
+          "endLine": 356,
+          "params": [
+            "future"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "PersonalZalo",
+          "startLine": 143,
+          "endLine": 335,
+          "methods": [
+            "__init__",
+            "login",
+            "_on_message",
+            "run",
+            "_listen_forever",
+            "close",
+            "_thread_type",
+            "_fetch_group_members",
+            "chat_name",
+            "members",
+            "send_message",
+            "send_chat_action",
+            "aclose"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "load_session",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "to_incoming",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "_mention_list",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "_mention_ids",
+          "line": 111,
+          "isDefault": false
+        },
+        {
+          "name": "mention_names",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "_import_zlapi",
+          "line": 132,
+          "isDefault": false
+        },
+        {
+          "name": "PersonalZalo",
+          "line": 143,
+          "isDefault": false
+        },
+        {
+          "name": "_is_network_error",
+          "line": 338,
+          "isDefault": false
+        },
+        {
+          "name": "_log_failure",
+          "line": 353,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "load_session",
+          "callee": "json.loads",
+          "lineNumber": 49
+        },
+        {
+          "caller": "load_session",
+          "callee": "path.read_text",
+          "lineNumber": 49
+        },
+        {
+          "caller": "load_session",
+          "callee": "ConfigError",
+          "lineNumber": 51
+        },
+        {
+          "caller": "load_session",
+          "callee": "ConfigError",
+          "lineNumber": 56
+        },
+        {
+          "caller": "load_session",
+          "callee": "isinstance",
+          "lineNumber": 58
+        },
+        {
+          "caller": "load_session",
+          "callee": "isinstance",
+          "lineNumber": 58
+        },
+        {
+          "caller": "load_session",
+          "callee": "raw.get",
+          "lineNumber": 58
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 59
+        },
+        {
+          "caller": "load_session",
+          "callee": "raw.get",
+          "lineNumber": 59
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 60
+        },
+        {
+          "caller": "load_session",
+          "callee": "raw.get",
+          "lineNumber": 60
+        },
+        {
+          "caller": "load_session",
+          "callee": "isinstance",
+          "lineNumber": 62
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "c.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "c.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "isinstance",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "c.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "load_session",
+          "callee": "isinstance",
+          "lineNumber": 64
+        },
+        {
+          "caller": "load_session",
+          "callee": "ConfigError",
+          "lineNumber": 65
+        },
+        {
+          "caller": "load_session",
+          "callee": "ConfigError",
+          "lineNumber": 67
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 68
+        },
+        {
+          "caller": "load_session",
+          "callee": "str",
+          "lineNumber": 68
+        },
+        {
+          "caller": "load_session",
+          "callee": "raw.items",
+          "lineNumber": 68
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "hasattr",
+          "lineNumber": 78
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "isinstance",
+          "lineNumber": 79
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "str",
+          "lineNumber": 80
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "int",
+          "lineNumber": 82
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "get",
+          "lineNumber": 82
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "get",
+          "lineNumber": 82
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "IncomingMessage",
+          "lineNumber": 85
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "str",
+          "lineNumber": 87
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "str",
+          "lineNumber": 90
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "get",
+          "lineNumber": 90
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "bool",
+          "lineNumber": 92
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "str",
+          "lineNumber": 94
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "_mention_ids",
+          "lineNumber": 97
+        },
+        {
+          "caller": "to_incoming",
+          "callee": "get",
+          "lineNumber": 97
+        },
+        {
+          "caller": "_mention_list",
+          "callee": "isinstance",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_mention_list",
+          "callee": "json.loads",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_mention_list",
+          "callee": "hasattr",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_mention_list",
+          "callee": "m.get",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_mention_list",
+          "callee": "isinstance",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_mention_ids",
+          "callee": "tuple",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_mention_ids",
+          "callee": "str",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_mention_ids",
+          "callee": "m.get",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_mention_ids",
+          "callee": "_mention_list",
+          "lineNumber": 112
+        },
+        {
+          "caller": "mention_names",
+          "callee": "text.encode",
+          "lineNumber": 117
+        },
+        {
+          "caller": "mention_names",
+          "callee": "_mention_list",
+          "lineNumber": 119
+        },
+        {
+          "caller": "mention_names",
+          "callee": "int",
+          "lineNumber": 121
+        },
+        {
+          "caller": "mention_names",
+          "callee": "m.get",
+          "lineNumber": 121
+        },
+        {
+          "caller": "mention_names",
+          "callee": "int",
+          "lineNumber": 121
+        },
+        {
+          "caller": "mention_names",
+          "callee": "m.get",
+          "lineNumber": 121
+        },
+        {
+          "caller": "mention_names",
+          "callee": "str",
+          "lineNumber": 124
+        },
+        {
+          "caller": "mention_names",
+          "callee": "m.get",
+          "lineNumber": 124
+        },
+        {
+          "caller": "mention_names",
+          "callee": "encoded[pos * 2:(pos + length) * 2].decode(\"utf-16-le\", errors=\"ignore\").lstrip(\"@\").strip",
+          "lineNumber": 126
+        },
+        {
+          "caller": "mention_names",
+          "callee": "encoded[pos * 2:(pos + length) * 2].decode(\"utf-16-le\", errors=\"ignore\").lstrip",
+          "lineNumber": 126
+        },
+        {
+          "caller": "mention_names",
+          "callee": "encoded[pos * 2:(pos + length) * 2].decode",
+          "lineNumber": 126
+        },
+        {
+          "caller": "mention_names",
+          "callee": "str",
+          "lineNumber": 128
+        },
+        {
+          "caller": "mention_names",
+          "callee": "m.get",
+          "lineNumber": 128
+        },
+        {
+          "caller": "_import_zlapi",
+          "callee": "ConfigError",
+          "lineNumber": 137
+        },
+        {
+          "caller": "__init__",
+          "callee": "ActivityStore",
+          "lineNumber": 152
+        },
+        {
+          "caller": "__init__",
+          "callee": "MemoryDataStore",
+          "lineNumber": 156
+        },
+        {
+          "caller": "login",
+          "callee": "_import_zlapi",
+          "lineNumber": 165
+        },
+        {
+          "caller": "login",
+          "callee": "load_session",
+          "lineNumber": 166
+        },
+        {
+          "caller": "onListening",
+          "callee": "log.info",
+          "lineNumber": 172
+        },
+        {
+          "caller": "onMessage",
+          "callee": "owner._on_message",
+          "lineNumber": 176
+        },
+        {
+          "caller": "onErrorCallBack",
+          "callee": "log.warning",
+          "lineNumber": 179
+        },
+        {
+          "caller": "login",
+          "callee": "_Client",
+          "lineNumber": 182
+        },
+        {
+          "caller": "login",
+          "callee": "_is_network_error",
+          "lineNumber": 184
+        },
+        {
+          "caller": "login",
+          "callee": "ZaloError",
+          "lineNumber": 185
+        },
+        {
+          "caller": "login",
+          "callee": "ZaloError",
+          "lineNumber": 186
+        },
+        {
+          "caller": "login",
+          "callee": "str",
+          "lineNumber": 187
+        },
+        {
+          "caller": "login",
+          "callee": "self._api.uid",
+          "lineNumber": 187
+        },
+        {
+          "caller": "login",
+          "callee": "ZaloError",
+          "lineNumber": 189
+        },
+        {
+          "caller": "login",
+          "callee": "self._api.fetchAccountInfo",
+          "lineNumber": 191
+        },
+        {
+          "caller": "login",
+          "callee": "str",
+          "lineNumber": 192
+        },
+        {
+          "caller": "login",
+          "callee": "profile.get",
+          "lineNumber": 192
+        },
+        {
+          "caller": "login",
+          "callee": "profile.get",
+          "lineNumber": 192
+        },
+        {
+          "caller": "_on_message",
+          "callee": "getattr",
+          "lineNumber": 199
+        },
+        {
+          "caller": "_on_message",
+          "callee": "to_incoming",
+          "lineNumber": 200
+        },
+        {
+          "caller": "_on_message",
+          "callee": "hasattr",
+          "lineNumber": 205
+        },
+        {
+          "caller": "_on_message",
+          "callee": "self._learned.setdefault(msg.chat_id, {}).update",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_on_message",
+          "callee": "self._learned.setdefault",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_on_message",
+          "callee": "mention_names",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_on_message",
+          "callee": "get",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_on_message",
+          "callee": "asyncio.run_coroutine_threadsafe",
+          "lineNumber": 210
+        },
+        {
+          "caller": "_on_message",
+          "callee": "handler",
+          "lineNumber": 210
+        },
+        {
+          "caller": "_on_message",
+          "callee": "future.add_done_callback",
+          "lineNumber": 211
+        },
+        {
+          "caller": "run",
+          "callee": "asyncio.get_running_loop",
+          "lineNumber": 217
+        },
+        {
+          "caller": "run",
+          "callee": "threading.Thread",
+          "lineNumber": 219
+        },
+        {
+          "caller": "run",
+          "callee": "listener.start",
+          "lineNumber": 220
+        },
+        {
+          "caller": "run",
+          "callee": "stop.is_set",
+          "lineNumber": 222
+        },
+        {
+          "caller": "run",
+          "callee": "listener.is_alive",
+          "lineNumber": 222
+        },
+        {
+          "caller": "run",
+          "callee": "state.update",
+          "lineNumber": 224
+        },
+        {
+          "caller": "run",
+          "callee": "now_ms",
+          "lineNumber": 224
+        },
+        {
+          "caller": "run",
+          "callee": "asyncio.wait_for",
+          "lineNumber": 226
+        },
+        {
+          "caller": "run",
+          "callee": "stop.wait",
+          "lineNumber": 226
+        },
+        {
+          "caller": "run",
+          "callee": "listener.is_alive",
+          "lineNumber": 229
+        },
+        {
+          "caller": "run",
+          "callee": "stop.is_set",
+          "lineNumber": 229
+        },
+        {
+          "caller": "run",
+          "callee": "log.error",
+          "lineNumber": 230
+        },
+        {
+          "caller": "run",
+          "callee": "self.close",
+          "lineNumber": 232
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "stop.is_set",
+          "lineNumber": 235
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "self._api.listen",
+          "lineNumber": 238
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "log.exception",
+          "lineNumber": 240
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "stop.is_set",
+          "lineNumber": 242
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "threading.Event().wait",
+          "lineNumber": 244
+        },
+        {
+          "caller": "_listen_forever",
+          "callee": "threading.Event",
+          "lineNumber": 244
+        },
+        {
+          "caller": "close",
+          "callee": "getattr",
+          "lineNumber": 247
+        },
+        {
+          "caller": "close",
+          "callee": "getattr",
+          "lineNumber": 248
+        },
+        {
+          "caller": "close",
+          "callee": "timer.cancel",
+          "lineNumber": 250
+        },
+        {
+          "caller": "close",
+          "callee": "ws.close",
+          "lineNumber": 253
+        },
+        {
+          "caller": "_thread_type",
+          "callee": "str(self._activity.all().get(chat_id, {}).get(\"type\", \"\")).upper",
+          "lineNumber": 261
+        },
+        {
+          "caller": "_thread_type",
+          "callee": "str",
+          "lineNumber": 261
+        },
+        {
+          "caller": "_thread_type",
+          "callee": "self._activity.all().get(chat_id, {}).get",
+          "lineNumber": 261
+        },
+        {
+          "caller": "_thread_type",
+          "callee": "self._activity.all().get",
+          "lineNumber": 261
+        },
+        {
+          "caller": "_thread_type",
+          "callee": "self._activity.all",
+          "lineNumber": 261
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "self._api.fetchGroupInfo",
+          "lineNumber": 267
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "((info.get(\"gridInfoMap\") or {}) if hasattr(info, \"get\") else {}).get",
+          "lineNumber": 268
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "info.get",
+          "lineNumber": 268
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "hasattr",
+          "lineNumber": 268
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 268
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "hasattr",
+          "lineNumber": 269
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "grid.get",
+          "lineNumber": 269
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 270
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 270
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "grid.get",
+          "lineNumber": 270
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "grid.get",
+          "lineNumber": 272
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "hasattr",
+          "lineNumber": 273
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "member.get",
+          "lineNumber": 273
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 274
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 274
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "member.get",
+          "lineNumber": 274
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "member.get",
+          "lineNumber": 274
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str(v).split",
+          "lineNumber": 275
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 275
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "grid.get",
+          "lineNumber": 275
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "names.get",
+          "lineNumber": 276
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "range",
+          "lineNumber": 277
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "len",
+          "lineNumber": 277
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "self._api.fetchUserInfo",
+          "lineNumber": 278
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "profiles.get",
+          "lineNumber": 279
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "hasattr",
+          "lineNumber": 279
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "changed.items",
+          "lineNumber": 280
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "hasattr",
+          "lineNumber": 281
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 282
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "str",
+          "lineNumber": 282
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "profile.get",
+          "lineNumber": 282
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "profile.get",
+          "lineNumber": 282
+        },
+        {
+          "caller": "_fetch_group_members",
+          "callee": "names.items",
+          "lineNumber": 283
+        },
+        {
+          "caller": "chat_name",
+          "callee": "self._group_names.get",
+          "lineNumber": 287
+        },
+        {
+          "caller": "chat_name",
+          "callee": "str",
+          "lineNumber": 287
+        },
+        {
+          "caller": "members",
+          "callee": "self._group_members.get",
+          "lineNumber": 292
+        },
+        {
+          "caller": "members",
+          "callee": "self._thread_type",
+          "lineNumber": 293
+        },
+        {
+          "caller": "members",
+          "callee": "time.monotonic",
+          "lineNumber": 294
+        },
+        {
+          "caller": "members",
+          "callee": "time.monotonic",
+          "lineNumber": 296
+        },
+        {
+          "caller": "members",
+          "callee": "self._fetch_group_members",
+          "lineNumber": 296
+        },
+        {
+          "caller": "members",
+          "callee": "log.info",
+          "lineNumber": 297
+        },
+        {
+          "caller": "members",
+          "callee": "len",
+          "lineNumber": 297
+        },
+        {
+          "caller": "members",
+          "callee": "log.info",
+          "lineNumber": 299
+        },
+        {
+          "caller": "members",
+          "callee": "time.monotonic",
+          "lineNumber": 300
+        },
+        {
+          "caller": "members",
+          "callee": "known.update",
+          "lineNumber": 302
+        },
+        {
+          "caller": "members",
+          "callee": "known.update",
+          "lineNumber": 303
+        },
+        {
+          "caller": "members",
+          "callee": "self._learned.get",
+          "lineNumber": 303
+        },
+        {
+          "caller": "members",
+          "callee": "self._memory.recent",
+          "lineNumber": 304
+        },
+        {
+          "caller": "members",
+          "callee": "record.get",
+          "lineNumber": 305
+        },
+        {
+          "caller": "members",
+          "callee": "record.get",
+          "lineNumber": 305
+        },
+        {
+          "caller": "members",
+          "callee": "record.get",
+          "lineNumber": 305
+        },
+        {
+          "caller": "members",
+          "callee": "str",
+          "lineNumber": 306
+        },
+        {
+          "caller": "members",
+          "callee": "str",
+          "lineNumber": 306
+        },
+        {
+          "caller": "members",
+          "callee": "known.pop",
+          "lineNumber": 307
+        },
+        {
+          "caller": "send",
+          "callee": "self._thread_type",
+          "lineNumber": 312
+        },
+        {
+          "caller": "send",
+          "callee": "build_mentions",
+          "lineNumber": 315
+        },
+        {
+          "caller": "send",
+          "callee": "self.members",
+          "lineNumber": 315
+        },
+        {
+          "caller": "send",
+          "callee": "json.dumps",
+          "lineNumber": 317
+        },
+        {
+          "caller": "send",
+          "callee": "log.info",
+          "lineNumber": 318
+        },
+        {
+          "caller": "send",
+          "callee": "len",
+          "lineNumber": 318
+        },
+        {
+          "caller": "send",
+          "callee": "log.info",
+          "lineNumber": 320
+        },
+        {
+          "caller": "send",
+          "callee": "self._api.send",
+          "lineNumber": 321
+        },
+        {
+          "caller": "send",
+          "callee": "self._message_cls",
+          "lineNumber": 321
+        },
+        {
+          "caller": "send_message",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 324
+        },
+        {
+          "caller": "send_message",
+          "callee": "ZaloError",
+          "lineNumber": 326
+        },
+        {
+          "caller": "send_message",
+          "callee": "isinstance",
+          "lineNumber": 327
+        },
+        {
+          "caller": "send_message",
+          "callee": "result.get",
+          "lineNumber": 327
+        },
+        {
+          "caller": "send_message",
+          "callee": "ZaloError",
+          "lineNumber": 328
+        },
+        {
+          "caller": "send_message",
+          "callee": "str",
+          "lineNumber": 328
+        },
+        {
+          "caller": "send_message",
+          "callee": "result.get",
+          "lineNumber": 328
+        },
+        {
+          "caller": "send_message",
+          "callee": "result.get",
+          "lineNumber": 328
+        },
+        {
+          "caller": "send_chat_action",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 332
+        },
+        {
+          "caller": "send_chat_action",
+          "callee": "self._thread_type",
+          "lineNumber": 332
+        },
+        {
+          "caller": "aclose",
+          "callee": "self.close",
+          "lineNumber": 335
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "set",
+          "lineNumber": 342
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "id",
+          "lineNumber": 344
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "seen.add",
+          "lineNumber": 345
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "id",
+          "lineNumber": 345
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "isinstance",
+          "lineNumber": 346
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "any",
+          "lineNumber": 350
+        },
+        {
+          "caller": "_is_network_error",
+          "callee": "str",
+          "lineNumber": 350
+        },
+        {
+          "caller": "_log_failure",
+          "callee": "future.exception",
+          "lineNumber": 354
+        },
+        {
+          "caller": "_log_failure",
+          "callee": "log.error",
+          "lineNumber": 356
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 9,
+        "functionCount": 8,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/bot/zalo/receive_polling.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 81,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "run_polling",
+          "startLine": 22,
+          "endLine": 74,
+          "params": [
+            "client",
+            "handle",
+            "state",
+            "stop",
+            "poll_timeout"
+          ]
+        },
+        {
+          "name": "_sleep_or_stop",
+          "startLine": 77,
+          "endLine": 81,
+          "params": [
+            "stop",
+            "seconds"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "run_polling",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "_sleep_or_stop",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "run_polling",
+          "callee": "client.delete_webhook",
+          "lineNumber": 30
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.info",
+          "lineNumber": 31
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.log",
+          "lineNumber": 34
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.info",
+          "lineNumber": 39
+        },
+        {
+          "caller": "run_polling",
+          "callee": "stop.is_set",
+          "lineNumber": 40
+        },
+        {
+          "caller": "run_polling",
+          "callee": "client.get_updates",
+          "lineNumber": 42
+        },
+        {
+          "caller": "run_polling",
+          "callee": "state.update",
+          "lineNumber": 46
+        },
+        {
+          "caller": "run_polling",
+          "callee": "now_ms",
+          "lineNumber": 46
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.info",
+          "lineNumber": 53
+        },
+        {
+          "caller": "run_polling",
+          "callee": "_sleep_or_stop",
+          "lineNumber": 54
+        },
+        {
+          "caller": "run_polling",
+          "callee": "str",
+          "lineNumber": 56
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.log",
+          "lineNumber": 58
+        },
+        {
+          "caller": "run_polling",
+          "callee": "_sleep_or_stop",
+          "lineNumber": 60
+        },
+        {
+          "caller": "run_polling",
+          "callee": "min",
+          "lineNumber": 61
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.exception",
+          "lineNumber": 64
+        },
+        {
+          "caller": "run_polling",
+          "callee": "_sleep_or_stop",
+          "lineNumber": 65
+        },
+        {
+          "caller": "run_polling",
+          "callee": "min",
+          "lineNumber": 66
+        },
+        {
+          "caller": "run_polling",
+          "callee": "log.info",
+          "lineNumber": 70
+        },
+        {
+          "caller": "run_polling",
+          "callee": "state.update",
+          "lineNumber": 72
+        },
+        {
+          "caller": "run_polling",
+          "callee": "now_ms",
+          "lineNumber": 72
+        },
+        {
+          "caller": "run_polling",
+          "callee": "handle",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_sleep_or_stop",
+          "callee": "asyncio.wait_for",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_sleep_or_stop",
+          "callee": "stop.wait",
+          "lineNumber": 79
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    }
+  ]
+}

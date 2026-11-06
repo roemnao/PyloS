@@ -1,0 +1,516 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 4,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/bot/ui/desktop/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/ui/desktop/icon_images.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "make_icon",
+          "startLine": 17,
+          "endLine": 31,
+          "params": [
+            "state",
+            "size"
+          ]
+        },
+        {
+          "name": "write_ico",
+          "startLine": 34,
+          "endLine": 38,
+          "params": [
+            "path"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "make_icon",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "write_ico",
+          "line": 34,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "make_icon",
+          "callee": "Image.new",
+          "lineNumber": 21
+        },
+        {
+          "caller": "make_icon",
+          "callee": "ImageDraw.Draw",
+          "lineNumber": 22
+        },
+        {
+          "caller": "make_icon",
+          "callee": "draw.rounded_rectangle",
+          "lineNumber": 23
+        },
+        {
+          "caller": "make_icon",
+          "callee": "ImageFont.load_default",
+          "lineNumber": 24
+        },
+        {
+          "caller": "make_icon",
+          "callee": "int",
+          "lineNumber": 24
+        },
+        {
+          "caller": "make_icon",
+          "callee": "draw.text",
+          "lineNumber": 25
+        },
+        {
+          "caller": "make_icon",
+          "callee": "draw.ellipse",
+          "lineNumber": 29
+        },
+        {
+          "caller": "make_icon",
+          "callee": "draw.ellipse",
+          "lineNumber": 30
+        },
+        {
+          "caller": "make_icon",
+          "callee": "image.resize",
+          "lineNumber": 31
+        },
+        {
+          "caller": "write_ico",
+          "callee": "path.parent.mkdir",
+          "lineNumber": 36
+        },
+        {
+          "caller": "write_ico",
+          "callee": "make_icon(size=256).save",
+          "lineNumber": 37
+        },
+        {
+          "caller": "write_ico",
+          "callee": "make_icon",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/ui/desktop/tray_icon.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 92,
+      "nonEmptyLines": 78,
+      "classes": [
+        {
+          "name": "Tray",
+          "startLine": 26,
+          "endLine": 92,
+          "methods": [
+            "__init__",
+            "run",
+            "stop",
+            "notify",
+            "refresh",
+            "toggle_autostart"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Tray",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "pystray.Icon",
+          "lineNumber": 31
+        },
+        {
+          "caller": "__init__",
+          "callee": "make_icon",
+          "lineNumber": 33
+        },
+        {
+          "caller": "__init__",
+          "callee": "pystray.Menu",
+          "lineNumber": 35
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 36
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 38
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 40
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 43
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 45
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps_label",
+          "lineNumber": 45
+        },
+        {
+          "caller": "__init__",
+          "callee": "bool",
+          "lineNumber": 45
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 46
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "__init__",
+          "callee": "bool",
+          "lineNumber": 48
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 48
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 48
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 50
+        },
+        {
+          "caller": "__init__",
+          "callee": "bool",
+          "lineNumber": 51
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 51
+        },
+        {
+          "caller": "__init__",
+          "callee": "desktop.vps.get",
+          "lineNumber": 51
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 52
+        },
+        {
+          "caller": "__init__",
+          "callee": "windows_autostart.is_enabled",
+          "lineNumber": 52
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 53
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 55
+        },
+        {
+          "caller": "__init__",
+          "callee": "item",
+          "lineNumber": 56
+        },
+        {
+          "caller": "run",
+          "callee": "self.icon.run",
+          "lineNumber": 61
+        },
+        {
+          "caller": "stop",
+          "callee": "self.icon.stop",
+          "lineNumber": 65
+        },
+        {
+          "caller": "notify",
+          "callee": "self.icon.notify",
+          "lineNumber": 71
+        },
+        {
+          "caller": "notify",
+          "callee": "log.debug",
+          "lineNumber": 73
+        },
+        {
+          "caller": "refresh",
+          "callee": "make_icon",
+          "lineNumber": 79
+        },
+        {
+          "caller": "refresh",
+          "callee": "TITLES.get",
+          "lineNumber": 80
+        },
+        {
+          "caller": "refresh",
+          "callee": "self.icon.update_menu",
+          "lineNumber": 81
+        },
+        {
+          "caller": "toggle_autostart",
+          "callee": "windows_autostart.is_enabled",
+          "lineNumber": 84
+        },
+        {
+          "caller": "toggle_autostart",
+          "callee": "windows_autostart.set_enabled",
+          "lineNumber": 86
+        },
+        {
+          "caller": "toggle_autostart",
+          "callee": "self.notify",
+          "lineNumber": 88
+        },
+        {
+          "caller": "toggle_autostart",
+          "callee": "self.notify",
+          "lineNumber": 90
+        },
+        {
+          "caller": "toggle_autostart",
+          "callee": "self.icon.update_menu",
+          "lineNumber": 92
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/bot/ui/desktop/windows_autostart.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 71,
+      "nonEmptyLines": 55,
+      "functions": [
+        {
+          "name": "command",
+          "startLine": 18,
+          "endLine": 24,
+          "params": []
+        },
+        {
+          "name": "is_enabled",
+          "startLine": 27,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "set_enabled",
+          "startLine": 40,
+          "endLine": 52,
+          "params": [
+            "enabled"
+          ]
+        },
+        {
+          "name": "migrate",
+          "startLine": 55,
+          "endLine": 71,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "command",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "is_enabled",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "set_enabled",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "migrate",
+          "line": 55,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "command",
+          "callee": "is_frozen",
+          "lineNumber": 19
+        },
+        {
+          "caller": "command",
+          "callee": "Path(sys.executable).with_name",
+          "lineNumber": 22
+        },
+        {
+          "caller": "command",
+          "callee": "Path",
+          "lineNumber": 22
+        },
+        {
+          "caller": "command",
+          "callee": "pythonw.exists",
+          "lineNumber": 23
+        },
+        {
+          "caller": "command",
+          "callee": "Path",
+          "lineNumber": 23
+        },
+        {
+          "caller": "is_enabled",
+          "callee": "winreg.OpenKey",
+          "lineNumber": 33
+        },
+        {
+          "caller": "is_enabled",
+          "callee": "winreg.QueryValueEx",
+          "lineNumber": 34
+        },
+        {
+          "caller": "is_enabled",
+          "callee": "command",
+          "lineNumber": 37
+        },
+        {
+          "caller": "set_enabled",
+          "callee": "OSError",
+          "lineNumber": 42
+        },
+        {
+          "caller": "set_enabled",
+          "callee": "winreg.OpenKey",
+          "lineNumber": 45
+        },
+        {
+          "caller": "set_enabled",
+          "callee": "winreg.SetValueEx",
+          "lineNumber": 47
+        },
+        {
+          "caller": "set_enabled",
+          "callee": "command",
+          "lineNumber": 47
+        },
+        {
+          "caller": "set_enabled",
+          "callee": "winreg.DeleteValue",
+          "lineNumber": 50
+        },
+        {
+          "caller": "migrate",
+          "callee": "is_frozen",
+          "lineNumber": 58
+        },
+        {
+          "caller": "migrate",
+          "callee": "winreg.OpenKey",
+          "lineNumber": 63
+        },
+        {
+          "caller": "migrate",
+          "callee": "winreg.QueryValueEx",
+          "lineNumber": 64
+        },
+        {
+          "caller": "migrate",
+          "callee": "command",
+          "lineNumber": 67
+        },
+        {
+          "caller": "migrate",
+          "callee": "set_enabled",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    }
+  ]
+}

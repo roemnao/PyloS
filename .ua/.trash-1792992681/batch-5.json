@@ -1,0 +1,812 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/bot/core/mention_tags.py",
+   "type": "file",
+   "name": "mention_tags.py",
+   "filePath": "src/bot/core/mention_tags.py",
+   "summary": "Handles @mention tagging in Zalo groups: inserts missing @ before member names the requester asked to tag, and converts @Name text into Zalo mention objects using accent-insensitive, word-boundary matching with UTF-16 offsets.",
+   "tags": [
+    "mentions",
+    "text-processing",
+    "utility",
+    "unicode"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses fold-to-same-length normalization so positions in folded text map back to the original string."
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:fold_same_length",
+   "type": "function",
+   "name": "fold_same_length",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    28,
+    30
+   ],
+   "summary": "Strips diacritics and lowercases text while keeping each character one character long so match indexes stay valid.",
+   "tags": [
+    "utility",
+    "unicode",
+    "normalization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:utf16_len",
+   "type": "function",
+   "name": "utf16_len",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    33,
+    35
+   ],
+   "summary": "Returns length in UTF-16 code units, matching how Zalo/JavaScript counts mention positions.",
+   "tags": [
+    "utility",
+    "unicode"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:_names",
+   "type": "function",
+   "name": "_names",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    38,
+    41
+   ],
+   "summary": "Builds a list of (folded name, uid) pairs from members, skipping very short names and sorting longest first.",
+   "tags": [
+    "helper",
+    "matching"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:_find",
+   "type": "function",
+   "name": "_find",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    48,
+    54
+   ],
+   "summary": "Finds the first occurrence of a folded name at word boundaries.",
+   "tags": [
+    "helper",
+    "matching"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:build_mentions",
+   "type": "function",
+   "name": "build_mentions",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    57,
+    70
+   ],
+   "summary": "Scans text for @ followed by a known member name and returns Zalo mention dicts with pos, len, uid and type.",
+   "tags": [
+    "mentions",
+    "zalo",
+    "parsing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/core/mention_tags.py:add_tags",
+   "type": "function",
+   "name": "add_tags",
+   "filePath": "src/bot/core/mention_tags.py",
+   "lineRange": [
+    73,
+    94
+   ],
+   "summary": "If the request shows tag/call intent, inserts @ before member names mentioned in both request and reply, avoiding overlaps with longer names.",
+   "tags": [
+    "mentions",
+    "text-processing",
+    "heuristic"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/zalo/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/zalo/__init__.py",
+   "summary": "Package initializer re-exporting the Zalo client, error type, incoming message model and update parser.",
+   "tags": [
+    "barrel",
+    "entry-point",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/zalo/bot_platform_api.py",
+   "type": "file",
+   "name": "bot_platform_api.py",
+   "filePath": "src/bot/zalo/bot_platform_api.py",
+   "summary": "Async httpx client for the Zalo Bot Platform HTTP API, wrapping getMe, getUpdates, sendMessage, webhook methods, and redacting the bot token from errors.",
+   "tags": [
+    "api-client",
+    "zalo",
+    "http",
+    "async"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/zalo/bot_platform_api.py:ZaloError",
+   "type": "class",
+   "name": "ZaloError",
+   "filePath": "src/bot/zalo/bot_platform_api.py",
+   "lineRange": [
+    15,
+    22
+   ],
+   "summary": "Exception for Zalo API failures or network errors carrying description, error code and a network flag.",
+   "tags": [
+    "error",
+    "exception"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/bot_platform_api.py:ZaloClient",
+   "type": "class",
+   "name": "ZaloClient",
+   "filePath": "src/bot/zalo/bot_platform_api.py",
+   "lineRange": [
+    25,
+    78
+   ],
+   "summary": "Posts JSON calls to the Zalo Bot API with token-redacted error handling and convenience methods for polling, sending messages, typing action and webhooks.",
+   "tags": [
+    "api-client",
+    "http",
+    "zalo"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/zalo/incoming_message.py",
+   "type": "file",
+   "name": "incoming_message.py",
+   "filePath": "src/bot/zalo/incoming_message.py",
+   "summary": "Defines the IncomingMessage dataclass and parsers that normalize Zalo webhook/getUpdates payloads into messages, including timestamp normalization and a dedupe key.",
+   "tags": [
+    "data-model",
+    "parsing",
+    "zalo",
+    "webhook"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/zalo/incoming_message.py:IncomingMessage",
+   "type": "class",
+   "name": "IncomingMessage",
+   "filePath": "src/bot/zalo/incoming_message.py",
+   "lineRange": [
+    22,
+    52
+   ],
+   "summary": "Frozen dataclass for a received chat message with group/text helpers and a dedupe key based on message id or content hash.",
+   "tags": [
+    "data-model",
+    "dataclass"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/incoming_message.py:_to_ms",
+   "type": "function",
+   "name": "_to_ms",
+   "filePath": "src/bot/zalo/incoming_message.py",
+   "lineRange": [
+    55,
+    61
+   ],
+   "summary": "Converts a timestamp to milliseconds, treating small values as seconds.",
+   "tags": [
+    "helper",
+    "time"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/incoming_message.py:parse_event",
+   "type": "function",
+   "name": "parse_event",
+   "filePath": "src/bot/zalo/incoming_message.py",
+   "lineRange": [
+    64,
+    87
+   ],
+   "summary": "Converts one Zalo event dict into an IncomingMessage, returning None if chat or sender id is missing.",
+   "tags": [
+    "parsing",
+    "zalo"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/incoming_message.py:parse_updates",
+   "type": "function",
+   "name": "parse_updates",
+   "filePath": "src/bot/zalo/incoming_message.py",
+   "lineRange": [
+    90,
+    101
+   ],
+   "summary": "Accepts a webhook payload or getUpdates result in several shapes and returns a list of valid messages.",
+   "tags": [
+    "parsing",
+    "zalo",
+    "webhook"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/zalo/personal_account.py",
+   "type": "file",
+   "name": "personal_account.py",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "summary": "Runs the bot on a personal Zalo account through the unofficial zlapi library: session loading, websocket listening in a thread, message conversion, group member lookup for tagging, and sending with mentions.",
+   "tags": [
+    "zalo",
+    "personal-account",
+    "websocket",
+    "threading",
+    "integration"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Bridges a synchronous library to asyncio via a listener thread, run_coroutine_threadsafe and asyncio.to_thread."
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:load_session",
+   "type": "function",
+   "name": "load_session",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    40,
+    68
+   ],
+   "summary": "Reads the saved login session file in several formats and returns cookies, IMEI and user agent, raising ConfigError with guidance otherwise.",
+   "tags": [
+    "session",
+    "config",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:to_incoming",
+   "type": "function",
+   "name": "to_incoming",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    71,
+    98
+   ],
+   "summary": "Converts zlapi onMessage arguments into an IncomingMessage, flagging own messages as bot to avoid self-replies.",
+   "tags": [
+    "adapter",
+    "parsing",
+    "zalo"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:_mention_list",
+   "type": "function",
+   "name": "_mention_list",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    101,
+    108
+   ],
+   "summary": "Normalizes a message mentions field (JSON string or list) into valid mention dicts.",
+   "tags": [
+    "helper",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:mention_names",
+   "type": "function",
+   "name": "mention_names",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    115,
+    129
+   ],
+   "summary": "Extracts a uid-to-name map from @tags in a message using UTF-16 offsets, skipping @All.",
+   "tags": [
+    "mentions",
+    "parsing",
+    "unicode"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:_import_zlapi",
+   "type": "function",
+   "name": "_import_zlapi",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    132,
+    140
+   ],
+   "summary": "Lazily imports zlapi, raising ConfigError with install instructions if missing.",
+   "tags": [
+    "helper",
+    "dependency"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/personal_account.py:PersonalZalo",
+   "type": "class",
+   "name": "PersonalZalo",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    143,
+    335
+   ],
+   "summary": "Personal-account Zalo transport with login, threaded websocket listening, group member caching, and send_message/send_chat_action compatible with ZaloClient.",
+   "tags": [
+    "zalo",
+    "transport",
+    "threading",
+    "websocket"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:_is_network_error",
+   "type": "function",
+   "name": "_is_network_error",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    338,
+    350
+   ],
+   "summary": "Walks the exception cause chain to decide whether a failure is a network error.",
+   "tags": [
+    "helper",
+    "error-handling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/personal_account.py:_log_failure",
+   "type": "function",
+   "name": "_log_failure",
+   "filePath": "src/bot/zalo/personal_account.py",
+   "lineRange": [
+    353,
+    356
+   ],
+   "summary": "Done-callback that logs exceptions from handler futures.",
+   "tags": [
+    "helper",
+    "logging"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/zalo/receive_polling.py",
+   "type": "file",
+   "name": "receive_polling.py",
+   "filePath": "src/bot/zalo/receive_polling.py",
+   "summary": "Long-polling receive loop using getUpdates with webhook removal, exponential backoff, log-spam suppression and heartbeat state updates.",
+   "tags": [
+    "polling",
+    "zalo",
+    "resilience",
+    "async"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/receive_polling.py:run_polling",
+   "type": "function",
+   "name": "run_polling",
+   "filePath": "src/bot/zalo/receive_polling.py",
+   "lineRange": [
+    22,
+    74
+   ],
+   "summary": "Deletes any webhook then loops calling getUpdates until stopped, handling timeouts and network errors with backoff and forwarding results to the handler.",
+   "tags": [
+    "polling",
+    "retry",
+    "async"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/zalo/receive_polling.py:_sleep_or_stop",
+   "type": "function",
+   "name": "_sleep_or_stop",
+   "filePath": "src/bot/zalo/receive_polling.py",
+   "lineRange": [
+    77,
+    81
+   ],
+   "summary": "Sleeps for given seconds but wakes early when the stop event is set.",
+   "tags": [
+    "helper",
+    "async"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:fold_same_length",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:utf16_len",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:_names",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:_find",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:build_mentions",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:add_tags",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:fold_same_length",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:utf16_len",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:build_mentions",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/mention_tags.py",
+   "target": "function:src/bot/core/mention_tags.py:add_tags",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/bot_platform_api.py",
+   "target": "class:src/bot/zalo/bot_platform_api.py:ZaloError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/bot_platform_api.py",
+   "target": "class:src/bot/zalo/bot_platform_api.py:ZaloClient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/bot_platform_api.py",
+   "target": "class:src/bot/zalo/bot_platform_api.py:ZaloError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/bot_platform_api.py",
+   "target": "class:src/bot/zalo/bot_platform_api.py:ZaloClient",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "class:src/bot/zalo/incoming_message.py:IncomingMessage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "function:src/bot/zalo/incoming_message.py:_to_ms",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "function:src/bot/zalo/incoming_message.py:parse_event",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "function:src/bot/zalo/incoming_message.py:parse_updates",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "class:src/bot/zalo/incoming_message.py:IncomingMessage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "function:src/bot/zalo/incoming_message.py:parse_event",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/incoming_message.py",
+   "target": "function:src/bot/zalo/incoming_message.py:parse_updates",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:load_session",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:to_incoming",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:_mention_list",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:mention_names",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:_import_zlapi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "class:src/bot/zalo/personal_account.py:PersonalZalo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:_is_network_error",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:_log_failure",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:load_session",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:to_incoming",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "function:src/bot/zalo/personal_account.py:mention_names",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "class:src/bot/zalo/personal_account.py:PersonalZalo",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "function:src/bot/zalo/receive_polling.py:run_polling",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "function:src/bot/zalo/receive_polling.py:_sleep_or_stop",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "function:src/bot/zalo/receive_polling.py:run_polling",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/__init__.py",
+   "target": "file:src/bot/zalo/bot_platform_api.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/__init__.py",
+   "target": "file:src/bot/zalo/incoming_message.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/core/mention_tags.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/zalo/bot_platform_api.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/personal_account.py",
+   "target": "file:src/bot/zalo/incoming_message.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/receive_polling.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/bot/zalo/personal_account.py:to_incoming",
+   "target": "class:src/bot/zalo/incoming_message.py:IncomingMessage",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:src/bot/zalo/personal_account.py:PersonalZalo",
+   "target": "function:src/bot/core/mention_tags.py:build_mentions",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/bot/zalo/receive_polling.py:run_polling",
+   "target": "class:src/bot/zalo/bot_platform_api.py:ZaloClient",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

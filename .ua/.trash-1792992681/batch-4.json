@@ -1,0 +1,410 @@
+{
+ "nodes": [
+  {
+   "id": "file:tests/conftest.py",
+   "type": "file",
+   "name": "conftest.py",
+   "filePath": "tests/conftest.py",
+   "summary": "Shared pytest fixtures and fakes (FakeZalo, FakeAgent, FakeWeb) plus helpers to build Settings, Zalo webhook events and a Bot wired with test doubles.",
+   "tags": [
+    "test",
+    "fixtures",
+    "test-doubles",
+    "pytest"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_bot.py",
+   "type": "file",
+   "name": "test_bot.py",
+   "filePath": "tests/test_bot.py",
+   "summary": "Large behavioral test suite for the Bot message handler covering trigger/mode rules, owner and role commands, allow/deny lists, dedupe, rate limits, budgets, retries, message splitting, history, mentions and leader assignment.",
+   "tags": [
+    "test",
+    "bot",
+    "message-handling",
+    "pytest",
+    "access-control"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:tests/test_desktop.py",
+   "type": "file",
+   "name": "test_desktop.py",
+   "filePath": "tests/test_desktop.py",
+   "summary": "Tests for the desktop packaging layer: app home resolution (source/frozen), hidden subprocess windows, home bootstrap, admin token, gateway shutdown, logging, free-port picking, autostart registry, tray actions, icons and secret scanning.",
+   "tags": [
+    "test",
+    "desktop",
+    "packaging",
+    "windows",
+    "pytest"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:tests/test_filter.py",
+   "type": "file",
+   "name": "test_filter.py",
+   "filePath": "tests/test_filter.py",
+   "summary": "Tests for the message filter that decides whether the bot should reply, using rules first and a Gemini classifier fallback with retries, budget handling and error logging.",
+   "tags": [
+    "test",
+    "filter",
+    "gemini",
+    "classification",
+    "pytest"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_memorydata.py",
+   "type": "file",
+   "name": "test_memorydata.py",
+   "filePath": "tests/test_memorydata.py",
+   "summary": "Tests that every message is logged to per-chat memory data, disallowed chats are skipped, the store trims to its limit and the history tool only reads its own chat.",
+   "tags": [
+    "test",
+    "memory",
+    "storage",
+    "pytest"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:tests/test_personal.py",
+   "type": "file",
+   "name": "test_personal.py",
+   "filePath": "tests/test_personal.py",
+   "summary": "Tests for the personal Zalo account backend using a fake zlapi client: session loading, message mapping, thread types, listener dispatch, network error detection, mention building and tag handling.",
+   "tags": [
+    "test",
+    "zalo",
+    "personal-account",
+    "mentions",
+    "pytest"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:tests/test_remote_config.py",
+   "type": "file",
+   "name": "test_remote_config.py",
+   "filePath": "tests/test_remote_config.py",
+   "summary": "Tests for the web-linked remote features: whitelisted config pulled from the web, live apply and caching, heartbeat tolerance of network errors, batched session upload and link-code handling.",
+   "tags": [
+    "test",
+    "remote-config",
+    "web-sync",
+    "heartbeat",
+    "pytest"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:tests/conftest.py:FakeZalo",
+   "type": "class",
+   "name": "FakeZalo",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    20,
+    36
+   ],
+   "summary": "In-memory Zalo client double that records sent messages and can fail a configurable number of sends with a ZaloError to exercise retry logic.",
+   "tags": [
+    "test-doubles",
+    "zalo",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:tests/conftest.py:FakeAgent",
+   "type": "class",
+   "name": "FakeAgent",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    39,
+    58
+   ],
+   "summary": "Agent double returning a canned reply and token count, recording reply and classify calls, with configurable filter verdict or error.",
+   "tags": [
+    "test-doubles",
+    "agent",
+    "mock"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:tests/conftest.py:FakeWeb",
+   "type": "class",
+   "name": "FakeWeb",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    127,
+    156
+   ],
+   "summary": "Fake web backend for /api/agent/* implemented as an httpx handler with route table, Bearer key check, offline mode and call recording.",
+   "tags": [
+    "test-doubles",
+    "http",
+    "mock"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:tests/conftest.py:make_settings",
+   "type": "function",
+   "name": "make_settings",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    61,
+    74
+   ],
+   "summary": "Builds a Settings object from a minimal env pointing data, workspace and log dirs into tmp_path, with rate limits and budget disabled and optional overrides.",
+   "tags": [
+    "test-helper",
+    "settings",
+    "config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:tests/conftest.py:event",
+   "type": "function",
+   "name": "event",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    77,
+    98
+   ],
+   "summary": "Creates a Zalo webhook event payload for a text message with sender, chat, unique message id and timestamp defaults.",
+   "tags": [
+    "test-helper",
+    "payload",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:tests/conftest.py:make_bot",
+   "type": "function",
+   "name": "make_bot",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    115,
+    124
+   ],
+   "summary": "Pytest fixture returning a factory that builds a Bot with test settings, fake Zalo and agent, and a PromptBuilder.",
+   "tags": [
+    "fixture",
+    "bot",
+    "test-helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:tests/conftest.py:web",
+   "type": "function",
+   "name": "web",
+   "filePath": "tests/conftest.py",
+   "lineRange": [
+    160,
+    169
+   ],
+   "summary": "Pytest fixture that patches httpx.AsyncClient with a MockTransport to FakeWeb and sets schedule API env vars and APP_HOME.",
+   "tags": [
+    "fixture",
+    "http",
+    "monkeypatch"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeZalo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeAgent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeWeb",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:make_settings",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:event",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:make_bot",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:web",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeZalo",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeAgent",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "class:tests/conftest.py:FakeWeb",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:make_settings",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:event",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:make_bot",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "function:tests/conftest.py:web",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_bot.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_bot.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_desktop.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_desktop.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_filter.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_filter.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_memorydata.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_memorydata.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_personal.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_personal.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:tests/conftest.py",
+   "target": "file:tests/test_remote_config.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:tests/test_remote_config.py",
+   "target": "file:tests/conftest.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

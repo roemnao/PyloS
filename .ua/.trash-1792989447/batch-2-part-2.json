@@ -1,0 +1,732 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/bot/core/roles.py",
+   "type": "file",
+   "name": "roles.py",
+   "filePath": "src/bot/core/roles.py",
+   "summary": "Role-based permission helpers mapping users to roles and checking whether a role allows an action.",
+   "tags": [
+    "roles",
+    "permissions",
+    "core"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/roles.py:role_of",
+   "type": "function",
+   "name": "role_of",
+   "filePath": "src/bot/core/roles.py",
+   "lineRange": [
+    24,
+    30
+   ],
+   "summary": "Returns the role of a user.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/roles.py:required_role",
+   "type": "function",
+   "name": "required_role",
+   "filePath": "src/bot/core/roles.py",
+   "lineRange": [
+    33,
+    49
+   ],
+   "summary": "Returns the role required for an action.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/core/roles.py:allows",
+   "type": "function",
+   "name": "allows",
+   "filePath": "src/bot/core/roles.py",
+   "lineRange": [
+    52,
+    53
+   ],
+   "summary": "Checks role permits action.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/core/text_fold.py",
+   "type": "file",
+   "name": "text_fold.py",
+   "filePath": "src/bot/core/text_fold.py",
+   "summary": "Tiny helper that folds text (case and diacritics) for accent-insensitive matching.",
+   "tags": [
+    "utility",
+    "text-processing",
+    "normalization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/text_fold.py:fold",
+   "type": "function",
+   "name": "fold",
+   "filePath": "src/bot/core/text_fold.py",
+   "lineRange": [
+    8,
+    11
+   ],
+   "summary": "Folds text for comparison.",
+   "tags": [
+    "function",
+    "core",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/storage/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/storage/__init__.py",
+   "summary": "Package barrel re-exporting the data stores and text file helpers.",
+   "tags": [
+    "barrel",
+    "storage",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/storage/data_stores.py",
+   "type": "file",
+   "name": "data_stores.py",
+   "filePath": "src/bot/storage/data_stores.py",
+   "summary": "Collection of persistent stores (groups, seen messages, history, memory, state, usage, stats, activity, failures) backed by JSON files.",
+   "tags": [
+    "storage",
+    "persistence",
+    "data-model",
+    "json"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:GroupState",
+   "type": "class",
+   "name": "GroupState",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    28,
+    37
+   ],
+   "summary": "Per-group state record.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:GroupStore",
+   "type": "class",
+   "name": "GroupStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    60,
+    194
+   ],
+   "summary": "Stores group configuration and state.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:SeenStore",
+   "type": "class",
+   "name": "SeenStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    197,
+    222
+   ],
+   "summary": "Tracks seen message ids.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:HistoryStore",
+   "type": "class",
+   "name": "HistoryStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    233,
+    253
+   ],
+   "summary": "Stores chat history.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:MemoryDataStore",
+   "type": "class",
+   "name": "MemoryDataStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    256,
+    289
+   ],
+   "summary": "Stores agent memory.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:StateStore",
+   "type": "class",
+   "name": "StateStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    292,
+    301
+   ],
+   "summary": "Stores general bot state.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:UsageStore",
+   "type": "class",
+   "name": "UsageStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    304,
+    336
+   ],
+   "summary": "Tracks usage counters.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:StatsStore",
+   "type": "class",
+   "name": "StatsStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    339,
+    368
+   ],
+   "summary": "Stores statistics.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:ActivityStore",
+   "type": "class",
+   "name": "ActivityStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    371,
+    387
+   ],
+   "summary": "Stores activity logs.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/data_stores.py:FailedStore",
+   "type": "class",
+   "name": "FailedStore",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    390,
+    415
+   ],
+   "summary": "Stores failed message records.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/storage/data_stores.py:safe_name",
+   "type": "function",
+   "name": "safe_name",
+   "filePath": "src/bot/storage/data_stores.py",
+   "lineRange": [
+    228,
+    230
+   ],
+   "summary": "Sanitizes names for file paths.",
+   "tags": [
+    "function",
+    "storage",
+    "python"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/storage/text_files.py",
+   "type": "file",
+   "name": "text_files.py",
+   "filePath": "src/bot/storage/text_files.py",
+   "summary": "Atomic text writing plus JSON-lines and JSON-object file wrappers used by the stores.",
+   "tags": [
+    "storage",
+    "file-io",
+    "utility",
+    "json"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/text_files.py:JsonLinesFile",
+   "type": "class",
+   "name": "JsonLinesFile",
+   "filePath": "src/bot/storage/text_files.py",
+   "lineRange": [
+    40,
+    90
+   ],
+   "summary": "Append/read wrapper for JSON-lines files.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/storage/text_files.py:JsonObjectFile",
+   "type": "class",
+   "name": "JsonObjectFile",
+   "filePath": "src/bot/storage/text_files.py",
+   "lineRange": [
+    93,
+    112
+   ],
+   "summary": "Read/write wrapper for a JSON object file.",
+   "tags": [
+    "class",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/storage/text_files.py:atomic_write_text",
+   "type": "function",
+   "name": "atomic_write_text",
+   "filePath": "src/bot/storage/text_files.py",
+   "lineRange": [
+    21,
+    37
+   ],
+   "summary": "Writes text atomically via temp file and rename.",
+   "tags": [
+    "function",
+    "storage",
+    "python"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/zalo/receive_webhook.py",
+   "type": "file",
+   "name": "receive_webhook.py",
+   "filePath": "src/bot/zalo/receive_webhook.py",
+   "summary": "FastAPI app factory exposing the webhook endpoint that receives Zalo events and records them in storage.",
+   "tags": [
+    "webhook",
+    "fastapi",
+    "api-handler",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/receive_webhook.py:create_app",
+   "type": "function",
+   "name": "create_app",
+   "filePath": "src/bot/zalo/receive_webhook.py",
+   "lineRange": [
+    24,
+    44
+   ],
+   "summary": "Creates the FastAPI webhook app.",
+   "tags": [
+    "function",
+    "zalo",
+    "python"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:role_of",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:role_of",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:required_role",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:required_role",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:allows",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/roles.py",
+   "target": "function:src/bot/core/roles.py:allows",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/core/text_fold.py",
+   "target": "function:src/bot/core/text_fold.py:fold",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/text_fold.py",
+   "target": "function:src/bot/core/text_fold.py:fold",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/__init__.py",
+   "target": "file:src/bot/storage/data_stores.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/__init__.py",
+   "target": "file:src/bot/storage/text_files.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "file:src/bot/core/text_fold.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "file:src/bot/storage/text_files.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:GroupState",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:GroupState",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:GroupStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:GroupStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:SeenStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:SeenStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:HistoryStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:HistoryStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:MemoryDataStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:MemoryDataStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:StateStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:StateStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:UsageStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:UsageStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:StatsStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:StatsStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:ActivityStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:ActivityStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:FailedStore",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "class:src/bot/storage/data_stores.py:FailedStore",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "function:src/bot/storage/data_stores.py:safe_name",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/data_stores.py",
+   "target": "function:src/bot/storage/data_stores.py:safe_name",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "class:src/bot/storage/text_files.py:JsonLinesFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "class:src/bot/storage/text_files.py:JsonLinesFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "class:src/bot/storage/text_files.py:JsonObjectFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "class:src/bot/storage/text_files.py:JsonObjectFile",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "function:src/bot/storage/text_files.py:atomic_write_text",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/storage/text_files.py",
+   "target": "function:src/bot/storage/text_files.py:atomic_write_text",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/zalo/receive_webhook.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/receive_webhook.py",
+   "target": "function:src/bot/zalo/receive_webhook.py:create_app",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/receive_webhook.py",
+   "target": "function:src/bot/zalo/receive_webhook.py:create_app",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

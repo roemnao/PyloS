@@ -1,0 +1,179 @@
+[
+ {
+  "id": "layer:entry-config",
+  "name": "Entry Points & Configuration",
+  "description": "Package entry points, CLI, runtime settings and userdata path resolution that bootstrap the bot.",
+  "nodeIds": [
+   "file:src/bot/config.py",
+   "file:src/bot/userdata_paths.py",
+   "file:src/bot/__main__.py",
+   "file:src/bot/command_line.py",
+   "file:scripts/packaging/zalobot_entry.py",
+   "file:src/bot/__init__.py"
+  ]
+ },
+ {
+  "id": "layer:zalo-integration",
+  "name": "Zalo Integration",
+  "description": "Zalo Bot Platform API client, personal-account access, QR login, webhook receiving and polling of incoming messages.",
+  "nodeIds": [
+   "file:src/bot/zalo/receive_webhook.py",
+   "file:src/bot/zalo/qr_login.py",
+   "file:src/bot/zalo/__init__.py",
+   "file:src/bot/zalo/bot_platform_api.py",
+   "file:src/bot/zalo/incoming_message.py",
+   "file:src/bot/zalo/personal_account.py",
+   "file:src/bot/zalo/receive_polling.py"
+  ]
+ },
+ {
+  "id": "layer:core",
+  "name": "Message Handling Core",
+  "description": "Message filtering, owner commands, roles, rate limiting, reply formatting and time/text helpers.",
+  "nodeIds": [
+   "file:src/bot/core/message_filter.py",
+   "file:src/bot/core/message_handler.py",
+   "file:src/bot/core/owner_commands.py",
+   "file:src/bot/core/rate_limiter.py",
+   "file:src/bot/core/reply_formatting.py",
+   "file:src/bot/core/roles.py",
+   "file:src/bot/core/text_fold.py",
+   "file:src/bot/core/vietnam_time.py",
+   "file:src/bot/core/mention_tags.py",
+   "file:src/bot/core/__init__.py"
+  ]
+ },
+ {
+  "id": "layer:agent",
+  "name": "Gemini Agent",
+  "description": "Gemini-driven agent, system prompt, agent tools and prompt/tool templates.",
+  "nodeIds": [
+   "file:src/bot/agent/tools/assign_events.py",
+   "file:src/bot/agent/tools/read_chat_memory.py",
+   "file:src/bot/agent/__init__.py",
+   "file:src/bot/agent/gemini_agent.py",
+   "file:src/bot/agent/system_prompt.py",
+   "file:src/bot/agent/tools/__init__.py",
+   "file:src/bot/agent/tools/_example.py",
+   "file:src/bot/agent/tools/schedule_web.py",
+   "document:src/bot/templates/MEMORY.md",
+   "document:src/bot/templates/SYSTEM.md",
+   "file:src/bot/templates/tool_example.py.tmpl",
+   "file:tools/_example.py",
+   "document:workspace/SYSTEM.md"
+  ]
+ },
+ {
+  "id": "layer:storage",
+  "name": "Storage",
+  "description": "Persistent data stores, text files and process locking.",
+  "nodeIds": [
+   "file:src/bot/storage/process_lock.py",
+   "file:src/bot/storage/__init__.py",
+   "file:src/bot/storage/data_stores.py",
+   "file:src/bot/storage/text_files.py"
+  ]
+ },
+ {
+  "id": "layer:system",
+  "name": "System & Remote Operations",
+  "description": "Bot process supervision, auto-update, handover, remote config/server, logging and first-run setup.",
+  "nodeIds": [
+   "file:src/bot/system/__init__.py",
+   "file:src/bot/system/auto_update.py",
+   "file:src/bot/system/bot_process.py",
+   "file:src/bot/system/first_run_setup.py",
+   "file:src/bot/system/handover.py",
+   "file:src/bot/system/handover_job.py",
+   "file:src/bot/system/remote_config.py",
+   "file:src/bot/system/remote_server.py",
+   "file:src/bot/system/server_info.py",
+   "file:src/bot/system/log_files.py",
+   "file:src/bot/system/server_client.py",
+   "file:src/bot/system/session_upload.py"
+  ]
+ },
+ {
+  "id": "layer:ui",
+  "name": "User Interfaces",
+  "description": "Admin web UI (server, static assets) and desktop tray application.",
+  "nodeIds": [
+   "file:src/bot/ui/admin/__init__.py",
+   "file:src/bot/ui/admin/admin_sessions.py",
+   "file:src/bot/ui/admin/admin_web_server.py",
+   "file:src/bot/ui/admin/settings_file.py",
+   "file:src/bot/ui/desktop/desktop_app.py",
+   "file:src/bot/ui/desktop/__init__.py",
+   "file:src/bot/ui/desktop/icon_images.py",
+   "file:src/bot/ui/desktop/tray_icon.py",
+   "file:src/bot/ui/desktop/windows_autostart.py",
+   "file:src/bot/ui/admin/static/admin_page.css",
+   "file:src/bot/ui/admin/static/index.html",
+   "file:src/bot/ui/admin/static/theme.css",
+   "file:src/bot/ui/__init__.py",
+   "file:src/bot/ui/admin/static/admin_page.js",
+   "document:src/bot/ui/admin/static/fonts/OFL.txt",
+   "file:src/bot/ui/admin/static/theme.js"
+  ]
+ },
+ {
+  "id": "layer:tests",
+  "name": "Tests",
+  "description": "Pytest suite covering bot, agent, storage, handover, admin and related modules.",
+  "nodeIds": [
+   "file:tests/conftest.py",
+   "file:tests/test_bot.py",
+   "file:tests/test_desktop.py",
+   "file:tests/test_filter.py",
+   "file:tests/test_memorydata.py",
+   "file:tests/test_personal.py",
+   "file:tests/test_remote_config.py",
+   "file:tests/test_admin.py",
+   "file:tests/test_agent.py",
+   "file:tests/test_assign_events.py",
+   "file:tests/test_config_client_webhook.py",
+   "file:tests/test_gmail_connect.py",
+   "file:tests/test_handover.py",
+   "file:tests/test_paths.py",
+   "file:tests/test_polling.py",
+   "file:tests/test_qrlogin.py",
+   "file:tests/test_remote_proxy.py",
+   "file:tests/test_roles.py",
+   "file:tests/test_schedule_tool.py",
+   "file:tests/test_storage.py",
+   "file:tests/test_text_and_models.py",
+   "file:tests/test_updater.py",
+   "file:tests/test_vps_supervisor.py"
+  ]
+ },
+ {
+  "id": "layer:build-deploy",
+  "name": "Build & Deployment",
+  "description": "PowerShell scripts, launcher and PyInstaller packaging for building and running the bot on Windows.",
+  "nodeIds": [
+   "file:ZaloBot.cmd",
+   "file:scripts/build-exe.ps1",
+   "file:scripts/install-task.ps1",
+   "file:scripts/run-forever.ps1",
+   "file:scripts/uninstall-task.ps1",
+   "file:scripts/packaging/ZaloBot.spec",
+   "file:scripts/packaging/check_secrets.py",
+   "document:scripts/packaging/version_info.txt"
+  ]
+ },
+ {
+  "id": "layer:docs-project",
+  "name": "Documentation & Project Config",
+  "description": "READMEs, plans, project metadata, git attributes and env example.",
+  "nodeIds": [
+   "document:PROJECT_MAP.md",
+   "document:README.md",
+   "config:pyproject.toml",
+   "document:docs/PLAN.md",
+   "document:docs/lenh-zalo.md",
+   "document:docs/vps-dieu-khien.md",
+   "config:.gitattributes",
+   "config:src/bot/templates/env.example"
+  ]
+ }
+]

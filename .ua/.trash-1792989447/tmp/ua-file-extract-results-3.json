@@ -1,0 +1,3464 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 10,
+  "filesSkipped": [],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 10,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 10,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/bot/__main__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 3,
+      "nonEmptyLines": 2,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/agent/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 17,
+      "nonEmptyLines": 16,
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/agent/gemini_agent.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 226,
+      "nonEmptyLines": 189,
+      "functions": [
+        {
+          "name": "_usage_tokens",
+          "startLine": 50,
+          "endLine": 52,
+          "params": [
+            "response"
+          ]
+        },
+        {
+          "name": "_rejects_thinking",
+          "startLine": 55,
+          "endLine": 57,
+          "params": [
+            "exc"
+          ]
+        },
+        {
+          "name": "_is_transient",
+          "startLine": 60,
+          "endLine": 67,
+          "params": [
+            "exc"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "Turn",
+          "startLine": 22,
+          "endLine": 25,
+          "methods": [],
+          "properties": [
+            "role",
+            "text",
+            "name"
+          ]
+        },
+        {
+          "name": "ToolStep",
+          "startLine": 29,
+          "endLine": 34,
+          "methods": [],
+          "properties": [
+            "name",
+            "args",
+            "result",
+            "ms"
+          ]
+        },
+        {
+          "name": "AgentReply",
+          "startLine": 38,
+          "endLine": 43,
+          "methods": [],
+          "properties": [
+            "text",
+            "tokens",
+            "steps",
+            "model",
+            "ms"
+          ]
+        },
+        {
+          "name": "Agent",
+          "startLine": 46,
+          "endLine": 47,
+          "methods": [
+            "reply"
+          ],
+          "properties": []
+        },
+        {
+          "name": "GeminiAgent",
+          "startLine": 70,
+          "endLine": 215,
+          "methods": [
+            "__init__",
+            "configure",
+            "_contents",
+            "_generate",
+            "reply",
+            "classify"
+          ],
+          "properties": []
+        },
+        {
+          "name": "EchoAgent",
+          "startLine": 218,
+          "endLine": 226,
+          "methods": [
+            "classify",
+            "reply"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Turn",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "ToolStep",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "AgentReply",
+          "line": 37,
+          "isDefault": false
+        },
+        {
+          "name": "Agent",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "_usage_tokens",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "_rejects_thinking",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "_is_transient",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "GeminiAgent",
+          "line": 70,
+          "isDefault": false
+        },
+        {
+          "name": "EchoAgent",
+          "line": 218,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_usage_tokens",
+          "callee": "getattr",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_usage_tokens",
+          "callee": "int",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_usage_tokens",
+          "callee": "getattr",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_rejects_thinking",
+          "callee": "getattr",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_rejects_thinking",
+          "callee": "str(exc).lower",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_rejects_thinking",
+          "callee": "str",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_is_transient",
+          "callee": "isinstance",
+          "lineNumber": 64
+        },
+        {
+          "caller": "_is_transient",
+          "callee": "getattr",
+          "lineNumber": 66
+        },
+        {
+          "caller": "_is_transient",
+          "callee": "isinstance",
+          "lineNumber": 67
+        },
+        {
+          "caller": "__init__",
+          "callee": "genai.Client",
+          "lineNumber": 89
+        },
+        {
+          "caller": "configure",
+          "callee": "log.info",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_contents",
+          "callee": "contents.append",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_contents",
+          "callee": "types.Content",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_contents",
+          "callee": "types.Part.from_text",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_contents",
+          "callee": "contents.append",
+          "lineNumber": 115
+        },
+        {
+          "caller": "_contents",
+          "callee": "types.Content",
+          "lineNumber": 115
+        },
+        {
+          "caller": "_contents",
+          "callee": "types.Part.from_text",
+          "lineNumber": 115
+        },
+        {
+          "caller": "_generate",
+          "callee": "range",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_generate",
+          "callee": "asyncio.wait_for",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_generate",
+          "callee": "self._client.aio.models.generate_content",
+          "lineNumber": 123
+        },
+        {
+          "caller": "_generate",
+          "callee": "_is_transient",
+          "lineNumber": 127
+        },
+        {
+          "caller": "_generate",
+          "callee": "log.warning",
+          "lineNumber": 129
+        },
+        {
+          "caller": "_generate",
+          "callee": "type",
+          "lineNumber": 129
+        },
+        {
+          "caller": "_generate",
+          "callee": "asyncio.sleep",
+          "lineNumber": 130
+        },
+        {
+          "caller": "_generate",
+          "callee": "AssertionError",
+          "lineNumber": 131
+        },
+        {
+          "caller": "reply",
+          "callee": "self._tools.declarations",
+          "lineNumber": 135
+        },
+        {
+          "caller": "reply",
+          "callee": "types.GenerateContentConfig",
+          "lineNumber": 136
+        },
+        {
+          "caller": "reply",
+          "callee": "types.Tool",
+          "lineNumber": 139
+        },
+        {
+          "caller": "reply",
+          "callee": "types.AutomaticFunctionCallingConfig",
+          "lineNumber": 141
+        },
+        {
+          "caller": "reply",
+          "callee": "self._contents",
+          "lineNumber": 143
+        },
+        {
+          "caller": "reply",
+          "callee": "time.monotonic",
+          "lineNumber": 146
+        },
+        {
+          "caller": "done",
+          "callee": "AgentReply",
+          "lineNumber": 150
+        },
+        {
+          "caller": "done",
+          "callee": "tuple",
+          "lineNumber": 150
+        },
+        {
+          "caller": "done",
+          "callee": "int",
+          "lineNumber": 150
+        },
+        {
+          "caller": "done",
+          "callee": "time.monotonic",
+          "lineNumber": 150
+        },
+        {
+          "caller": "reply",
+          "callee": "range",
+          "lineNumber": 152
+        },
+        {
+          "caller": "reply",
+          "callee": "self._generate",
+          "lineNumber": 153
+        },
+        {
+          "caller": "reply",
+          "callee": "_usage_tokens",
+          "lineNumber": 154
+        },
+        {
+          "caller": "reply",
+          "callee": "done",
+          "lineNumber": 157
+        },
+        {
+          "caller": "reply",
+          "callee": "(response.text or \"\").strip",
+          "lineNumber": 157
+        },
+        {
+          "caller": "reply",
+          "callee": "log.warning",
+          "lineNumber": 159
+        },
+        {
+          "caller": "reply",
+          "callee": "done",
+          "lineNumber": 160
+        },
+        {
+          "caller": "reply",
+          "callee": "contents.append",
+          "lineNumber": 162
+        },
+        {
+          "caller": "reply",
+          "callee": "dict",
+          "lineNumber": 165
+        },
+        {
+          "caller": "reply",
+          "callee": "log.info",
+          "lineNumber": 166
+        },
+        {
+          "caller": "reply",
+          "callee": "time.monotonic",
+          "lineNumber": 167
+        },
+        {
+          "caller": "reply",
+          "callee": "self._tools.call",
+          "lineNumber": 168
+        },
+        {
+          "caller": "reply",
+          "callee": "steps.append",
+          "lineNumber": 169
+        },
+        {
+          "caller": "reply",
+          "callee": "ToolStep",
+          "lineNumber": 169
+        },
+        {
+          "caller": "reply",
+          "callee": "int",
+          "lineNumber": 169
+        },
+        {
+          "caller": "reply",
+          "callee": "time.monotonic",
+          "lineNumber": 169
+        },
+        {
+          "caller": "reply",
+          "callee": "parts.append",
+          "lineNumber": 170
+        },
+        {
+          "caller": "reply",
+          "callee": "types.Part.from_function_response",
+          "lineNumber": 170
+        },
+        {
+          "caller": "reply",
+          "callee": "contents.append",
+          "lineNumber": 171
+        },
+        {
+          "caller": "reply",
+          "callee": "types.Content",
+          "lineNumber": 171
+        },
+        {
+          "caller": "reply",
+          "callee": "done",
+          "lineNumber": 172
+        },
+        {
+          "caller": "classify",
+          "callee": "self._types.GenerateContentConfig",
+          "lineNumber": 186
+        },
+        {
+          "caller": "classify",
+          "callee": "self._types.ThinkingConfig",
+          "lineNumber": 191
+        },
+        {
+          "caller": "classify",
+          "callee": "self._generate",
+          "lineNumber": 194
+        },
+        {
+          "caller": "classify",
+          "callee": "TimeoutError",
+          "lineNumber": 198
+        },
+        {
+          "caller": "classify",
+          "callee": "log.warning",
+          "lineNumber": 199
+        },
+        {
+          "caller": "classify",
+          "callee": "_rejects_thinking",
+          "lineNumber": 201
+        },
+        {
+          "caller": "classify",
+          "callee": "log.info",
+          "lineNumber": 202
+        },
+        {
+          "caller": "classify",
+          "callee": "(response.text or \"\").strip",
+          "lineNumber": 206
+        },
+        {
+          "caller": "classify",
+          "callee": "ValueError",
+          "lineNumber": 208
+        },
+        {
+          "caller": "classify",
+          "callee": "json.loads",
+          "lineNumber": 210
+        },
+        {
+          "caller": "classify",
+          "callee": "ValueError",
+          "lineNumber": 212
+        },
+        {
+          "caller": "classify",
+          "callee": "isinstance",
+          "lineNumber": 213
+        },
+        {
+          "caller": "classify",
+          "callee": "ValueError",
+          "lineNumber": 214
+        },
+        {
+          "caller": "classify",
+          "callee": "_usage_tokens",
+          "lineNumber": 215
+        },
+        {
+          "caller": "reply",
+          "callee": "AgentReply",
+          "lineNumber": 226
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 9,
+        "functionCount": 3,
+        "classCount": 6
+      }
+    },
+    {
+      "path": "src/bot/agent/system_prompt.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 75,
+      "classes": [
+        {
+          "name": "_CachedFile",
+          "startLine": 23,
+          "endLine": 39,
+          "methods": [
+            "__init__",
+            "read"
+          ],
+          "properties": []
+        },
+        {
+          "name": "PromptBuilder",
+          "startLine": 42,
+          "endLine": 89,
+          "methods": [
+            "__init__",
+            "build"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_CachedFile",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "PromptBuilder",
+          "line": 42,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "read",
+          "callee": "self.path.stat",
+          "lineNumber": 31
+        },
+        {
+          "caller": "read",
+          "callee": "_HTML_COMMENT.sub(\"\", self.path.read_text(encoding=\"utf-8\")).strip",
+          "lineNumber": 36
+        },
+        {
+          "caller": "read",
+          "callee": "_HTML_COMMENT.sub",
+          "lineNumber": 36
+        },
+        {
+          "caller": "read",
+          "callee": "self.path.read_text",
+          "lineNumber": 36
+        },
+        {
+          "caller": "read",
+          "callee": "log.info",
+          "lineNumber": 38
+        },
+        {
+          "caller": "__init__",
+          "callee": "_CachedFile",
+          "lineNumber": 44
+        },
+        {
+          "caller": "__init__",
+          "callee": "_CachedFile",
+          "lineNumber": 45
+        },
+        {
+          "caller": "build",
+          "callee": "now_vn",
+          "lineNumber": 49
+        },
+        {
+          "caller": "build",
+          "callee": "self._system.read",
+          "lineNumber": 50
+        },
+        {
+          "caller": "build",
+          "callee": "parts.append",
+          "lineNumber": 51
+        },
+        {
+          "caller": "build",
+          "callee": "now.weekday",
+          "lineNumber": 53
+        },
+        {
+          "caller": "build",
+          "callee": "', '.join",
+          "lineNumber": 57
+        },
+        {
+          "caller": "build",
+          "callee": "sorted",
+          "lineNumber": 60
+        },
+        {
+          "caller": "build",
+          "callee": "\", \".join",
+          "lineNumber": 64
+        },
+        {
+          "caller": "build",
+          "callee": "\", \".join",
+          "lineNumber": 76
+        },
+        {
+          "caller": "build",
+          "callee": "self._memory.read",
+          "lineNumber": 82
+        },
+        {
+          "caller": "build",
+          "callee": "parts.append",
+          "lineNumber": 84
+        },
+        {
+          "caller": "build",
+          "callee": "\"\\n\\n\".join",
+          "lineNumber": 89
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "src/bot/agent/tools/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 131,
+      "nonEmptyLines": 109,
+      "functions": [
+        {
+          "name": "_load_external",
+          "startLine": 96,
+          "endLine": 110,
+          "params": [
+            "directory",
+            "registry"
+          ]
+        },
+        {
+          "name": "discover",
+          "startLine": 113,
+          "endLine": 131,
+          "params": [
+            "external_dir"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ToolContext",
+          "startLine": 24,
+          "endLine": 39,
+          "methods": [],
+          "properties": [
+            "chat_id",
+            "user_id",
+            "user_name",
+            "is_owner",
+            "data_dir",
+            "is_group",
+            "chat_name",
+            "message_id",
+            "mentions",
+            "members",
+            "self_id",
+            "can_assign",
+            "role",
+            "teams"
+          ]
+        },
+        {
+          "name": "Tool",
+          "startLine": 46,
+          "endLine": 53,
+          "methods": [],
+          "properties": [
+            "name",
+            "description",
+            "handler",
+            "parameters",
+            "owner_only"
+          ]
+        },
+        {
+          "name": "ToolRegistry",
+          "startLine": 56,
+          "endLine": 93,
+          "methods": [
+            "__init__",
+            "register",
+            "__len__",
+            "names",
+            "declarations",
+            "call"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ToolContext",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "Tool",
+          "line": 45,
+          "isDefault": false
+        },
+        {
+          "name": "ToolRegistry",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "_load_external",
+          "line": 96,
+          "isDefault": false
+        },
+        {
+          "name": "discover",
+          "line": 113,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "self.register",
+          "lineNumber": 60
+        },
+        {
+          "caller": "register",
+          "callee": "ValueError",
+          "lineNumber": 64
+        },
+        {
+          "caller": "__len__",
+          "callee": "len",
+          "lineNumber": 68
+        },
+        {
+          "caller": "names",
+          "callee": "list",
+          "lineNumber": 71
+        },
+        {
+          "caller": "declarations",
+          "callee": "self._tools.values",
+          "lineNumber": 76
+        },
+        {
+          "caller": "call",
+          "callee": "self._tools.get",
+          "lineNumber": 81
+        },
+        {
+          "caller": "call",
+          "callee": "tool.handler",
+          "lineNumber": 87
+        },
+        {
+          "caller": "call",
+          "callee": "inspect.isawaitable",
+          "lineNumber": 88
+        },
+        {
+          "caller": "call",
+          "callee": "log.exception",
+          "lineNumber": 91
+        },
+        {
+          "caller": "call",
+          "callee": "type",
+          "lineNumber": 92
+        },
+        {
+          "caller": "call",
+          "callee": "isinstance",
+          "lineNumber": 93
+        },
+        {
+          "caller": "_load_external",
+          "callee": "sorted",
+          "lineNumber": 98
+        },
+        {
+          "caller": "_load_external",
+          "callee": "directory.glob",
+          "lineNumber": 98
+        },
+        {
+          "caller": "_load_external",
+          "callee": "path.name.startswith",
+          "lineNumber": 99
+        },
+        {
+          "caller": "_load_external",
+          "callee": "importlib.util.spec_from_file_location",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_load_external",
+          "callee": "importlib.util.module_from_spec",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_load_external",
+          "callee": "spec.loader.exec_module",
+          "lineNumber": 106
+        },
+        {
+          "caller": "_load_external",
+          "callee": "getattr",
+          "lineNumber": 107
+        },
+        {
+          "caller": "_load_external",
+          "callee": "registry.register",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_load_external",
+          "callee": "log.exception",
+          "lineNumber": 110
+        },
+        {
+          "caller": "discover",
+          "callee": "ToolRegistry",
+          "lineNumber": 115
+        },
+        {
+          "caller": "discover",
+          "callee": "pkgutil.iter_modules",
+          "lineNumber": 116
+        },
+        {
+          "caller": "discover",
+          "callee": "module_info.name.startswith",
+          "lineNumber": 117
+        },
+        {
+          "caller": "discover",
+          "callee": "importlib.import_module",
+          "lineNumber": 119
+        },
+        {
+          "caller": "discover",
+          "callee": "getattr",
+          "lineNumber": 120
+        },
+        {
+          "caller": "discover",
+          "callee": "registry.register",
+          "lineNumber": 121
+        },
+        {
+          "caller": "discover",
+          "callee": "external_dir.is_dir",
+          "lineNumber": 127
+        },
+        {
+          "caller": "discover",
+          "callee": "_load_external",
+          "lineNumber": 128
+        },
+        {
+          "caller": "discover",
+          "callee": "len",
+          "lineNumber": 129
+        },
+        {
+          "caller": "discover",
+          "callee": "log.info",
+          "lineNumber": 130
+        },
+        {
+          "caller": "discover",
+          "callee": "\", \".join",
+          "lineNumber": 130
+        },
+        {
+          "caller": "discover",
+          "callee": "registry.names",
+          "lineNumber": 130
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 2,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "src/bot/agent/tools/_example.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 21,
+      "nonEmptyLines": 15,
+      "functions": [
+        {
+          "name": "_current_time",
+          "startLine": 11,
+          "endLine": 12,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_current_time",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_current_time",
+          "callee": "now_vn().strftime",
+          "lineNumber": 12
+        },
+        {
+          "caller": "_current_time",
+          "callee": "now_vn",
+          "lineNumber": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/command_line.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 615,
+      "nonEmptyLines": 527,
+      "functions": [
+        {
+          "name": "_build_agent",
+          "startLine": 50,
+          "endLine": 62,
+          "params": [
+            "settings",
+            "allow_echo"
+          ]
+        },
+        {
+          "name": "_run",
+          "startLine": 65,
+          "endLine": 170,
+          "params": [
+            "settings"
+          ]
+        },
+        {
+          "name": "_start_server_sync",
+          "startLine": 173,
+          "endLine": 191,
+          "params": [
+            "settings",
+            "bot",
+            "stop"
+          ]
+        },
+        {
+          "name": "_bot_status",
+          "startLine": 194,
+          "endLine": 209,
+          "params": [
+            "bot",
+            "last_error"
+          ]
+        },
+        {
+          "name": "_console",
+          "startLine": 223,
+          "endLine": 256,
+          "params": [
+            "settings",
+            "chat_id",
+            "user_id",
+            "name",
+            "group"
+          ]
+        },
+        {
+          "name": "_zalo_call",
+          "startLine": 259,
+          "endLine": 264,
+          "params": [
+            "settings",
+            "method"
+          ]
+        },
+        {
+          "name": "_health",
+          "startLine": 267,
+          "endLine": 278,
+          "params": [
+            "settings",
+            "max_age_seconds"
+          ]
+        },
+        {
+          "name": "_zalo_login",
+          "startLine": 281,
+          "endLine": 332,
+          "params": [
+            "settings",
+            "open_image"
+          ]
+        },
+        {
+          "name": "_update",
+          "startLine": 335,
+          "endLine": 350,
+          "params": [
+            "settings"
+          ]
+        },
+        {
+          "name": "_admin",
+          "startLine": 353,
+          "endLine": 407,
+          "params": [
+            "settings",
+            "action",
+            "open_browser"
+          ]
+        },
+        {
+          "name": "_prepare_home",
+          "startLine": 410,
+          "endLine": 427,
+          "params": [
+            "command"
+          ]
+        },
+        {
+          "name": "_utf8_console",
+          "startLine": 430,
+          "endLine": 437,
+          "params": []
+        },
+        {
+          "name": "_attach_parent_console",
+          "startLine": 440,
+          "endLine": 451,
+          "params": []
+        },
+        {
+          "name": "main",
+          "startLine": 454,
+          "endLine": 615,
+          "params": [
+            "argv"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ConsoleZalo",
+          "startLine": 212,
+          "endLine": 220,
+          "methods": [
+            "send_message",
+            "send_chat_action"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_build_agent",
+          "line": 50,
+          "isDefault": false
+        },
+        {
+          "name": "_run",
+          "line": 65,
+          "isDefault": false
+        },
+        {
+          "name": "_start_server_sync",
+          "line": 173,
+          "isDefault": false
+        },
+        {
+          "name": "_bot_status",
+          "line": 194,
+          "isDefault": false
+        },
+        {
+          "name": "ConsoleZalo",
+          "line": 212,
+          "isDefault": false
+        },
+        {
+          "name": "_console",
+          "line": 223,
+          "isDefault": false
+        },
+        {
+          "name": "_zalo_call",
+          "line": 259,
+          "isDefault": false
+        },
+        {
+          "name": "_health",
+          "line": 267,
+          "isDefault": false
+        },
+        {
+          "name": "_zalo_login",
+          "line": 281,
+          "isDefault": false
+        },
+        {
+          "name": "_update",
+          "line": 335,
+          "isDefault": false
+        },
+        {
+          "name": "_admin",
+          "line": 353,
+          "isDefault": false
+        },
+        {
+          "name": "_prepare_home",
+          "line": 410,
+          "isDefault": false
+        },
+        {
+          "name": "_utf8_console",
+          "line": 430,
+          "isDefault": false
+        },
+        {
+          "name": "_attach_parent_console",
+          "line": 440,
+          "isDefault": false
+        },
+        {
+          "name": "main",
+          "line": 454,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_build_agent",
+          "callee": "discover",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_build_agent",
+          "callee": "EchoAgent",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_build_agent",
+          "callee": "GeminiAgent",
+          "lineNumber": 54
+        },
+        {
+          "caller": "_run",
+          "callee": "PersonalZalo",
+          "lineNumber": 69
+        },
+        {
+          "caller": "_run",
+          "callee": "ZaloClient",
+          "lineNumber": 71
+        },
+        {
+          "caller": "_run",
+          "callee": "_build_agent",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_run",
+          "callee": "Bot",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_run",
+          "callee": "PromptBuilder",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_run",
+          "callee": "tools.names",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.Event",
+          "lineNumber": 74
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.get_running_loop",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_run",
+          "callee": "loop.add_signal_handler",
+          "lineNumber": 78
+        },
+        {
+          "caller": "_run",
+          "callee": "log.warning",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 85
+        },
+        {
+          "caller": "_run",
+          "callee": "log.error",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_run",
+          "callee": "bot.stop",
+          "lineNumber": 88
+        },
+        {
+          "caller": "_run",
+          "callee": "isinstance",
+          "lineNumber": 90
+        },
+        {
+          "caller": "_run",
+          "callee": "log.info",
+          "lineNumber": 91
+        },
+        {
+          "caller": "_run",
+          "callee": "log.warning",
+          "lineNumber": 93
+        },
+        {
+          "caller": "_run",
+          "callee": "zalo.get_me",
+          "lineNumber": 96
+        },
+        {
+          "caller": "_run",
+          "callee": "log.info",
+          "lineNumber": 97
+        },
+        {
+          "caller": "_run",
+          "callee": "me.get",
+          "lineNumber": 97
+        },
+        {
+          "caller": "_run",
+          "callee": "me.get",
+          "lineNumber": 97
+        },
+        {
+          "caller": "_run",
+          "callee": "me.get",
+          "lineNumber": 97
+        },
+        {
+          "caller": "_run",
+          "callee": "log.error",
+          "lineNumber": 100
+        },
+        {
+          "caller": "_run",
+          "callee": "bot.stop",
+          "lineNumber": 101
+        },
+        {
+          "caller": "_run",
+          "callee": "zalo.aclose",
+          "lineNumber": 102
+        },
+        {
+          "caller": "_run",
+          "callee": "log.warning",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_run",
+          "callee": "bot.state.update",
+          "lineNumber": 107
+        },
+        {
+          "caller": "_run",
+          "callee": "now_ms",
+          "lineNumber": 107
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.Event",
+          "lineNumber": 108
+        },
+        {
+          "caller": "_run",
+          "callee": "_start_server_sync",
+          "lineNumber": 109
+        },
+        {
+          "caller": "_run",
+          "callee": "bot_process.stop_flag",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_run",
+          "callee": "flag.unlink",
+          "lineNumber": 114
+        },
+        {
+          "caller": "_run",
+          "callee": "create_app",
+          "lineNumber": 123
+        },
+        {
+          "caller": "_run",
+          "callee": "log.info",
+          "lineNumber": 124
+        },
+        {
+          "caller": "_run",
+          "callee": "uvicorn.Server",
+          "lineNumber": 125
+        },
+        {
+          "caller": "_run",
+          "callee": "uvicorn.Config",
+          "lineNumber": 125
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.create_task",
+          "lineNumber": 126
+        },
+        {
+          "caller": "_run",
+          "callee": "server.serve",
+          "lineNumber": 126
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.create_task",
+          "lineNumber": 131
+        },
+        {
+          "caller": "_run",
+          "callee": "zalo.run",
+          "lineNumber": 131
+        },
+        {
+          "caller": "request_stop",
+          "callee": "stop.set",
+          "lineNumber": 134
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.create_task",
+          "lineNumber": 138
+        },
+        {
+          "caller": "_run",
+          "callee": "run_polling",
+          "lineNumber": 138
+        },
+        {
+          "caller": "request_stop",
+          "callee": "stop.set",
+          "lineNumber": 141
+        },
+        {
+          "caller": "request_stop",
+          "callee": "main_task.cancel",
+          "lineNumber": 142
+        },
+        {
+          "caller": "watch_stop_flag",
+          "callee": "flag.exists",
+          "lineNumber": 146
+        },
+        {
+          "caller": "watch_stop_flag",
+          "callee": "asyncio.sleep",
+          "lineNumber": 147
+        },
+        {
+          "caller": "watch_stop_flag",
+          "callee": "log.info",
+          "lineNumber": 148
+        },
+        {
+          "caller": "watch_stop_flag",
+          "callee": "request_stop",
+          "lineNumber": 150
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.create_task",
+          "lineNumber": 152
+        },
+        {
+          "caller": "_run",
+          "callee": "watch_stop_flag",
+          "lineNumber": 152
+        },
+        {
+          "caller": "_run",
+          "callee": "watcher.cancel",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_run",
+          "callee": "background_stop.set",
+          "lineNumber": 161
+        },
+        {
+          "caller": "_run",
+          "callee": "asyncio.wait",
+          "lineNumber": 163
+        },
+        {
+          "caller": "_run",
+          "callee": "task.cancel",
+          "lineNumber": 165
+        },
+        {
+          "caller": "_run",
+          "callee": "bot.stop",
+          "lineNumber": 166
+        },
+        {
+          "caller": "_run",
+          "callee": "zalo.aclose",
+          "lineNumber": 167
+        },
+        {
+          "caller": "_run",
+          "callee": "log.info",
+          "lineNumber": 169
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "server_client.configured",
+          "lineNumber": 177
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "RemoteConfig",
+          "lineNumber": 182
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "remote.apply",
+          "lineNumber": 184
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "LastError",
+          "lineNumber": 185
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "logging.getLogger(\"bot\").addHandler",
+          "lineNumber": 186
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "logging.getLogger",
+          "lineNumber": 186
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "SessionUploader",
+          "lineNumber": 187
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "RemoteSync",
+          "lineNumber": 188
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "_bot_status",
+          "lineNumber": 188
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "log.info",
+          "lineNumber": 189
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "server_client.server_config",
+          "lineNumber": 190
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "asyncio.create_task",
+          "lineNumber": 191
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "sync.run",
+          "lineNumber": 191
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "asyncio.create_task",
+          "lineNumber": 191
+        },
+        {
+          "caller": "_start_server_sync",
+          "callee": "bot.sessions.run",
+          "lineNumber": 191
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "datetime.fromtimestamp(ms / 1000, timezone.utc).isoformat",
+          "lineNumber": 200
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "datetime.fromtimestamp",
+          "lineNumber": 200
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "bot.stats.today",
+          "lineNumber": 202
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "iso",
+          "lineNumber": 204
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "bot.usage.used_today",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "int",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "today.get",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "int",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "today.get",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "len",
+          "lineNumber": 208
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "bot.failed.pending",
+          "lineNumber": 208
+        },
+        {
+          "caller": "_bot_status",
+          "callee": "iso",
+          "lineNumber": 208
+        },
+        {
+          "caller": "send_message",
+          "callee": "print",
+          "lineNumber": 216
+        },
+        {
+          "caller": "send_message",
+          "callee": "str",
+          "lineNumber": 217
+        },
+        {
+          "caller": "send_message",
+          "callee": "now_ms",
+          "lineNumber": 217
+        },
+        {
+          "caller": "_console",
+          "callee": "_build_agent",
+          "lineNumber": 224
+        },
+        {
+          "caller": "_console",
+          "callee": "Bot",
+          "lineNumber": 225
+        },
+        {
+          "caller": "_console",
+          "callee": "ConsoleZalo",
+          "lineNumber": 225
+        },
+        {
+          "caller": "_console",
+          "callee": "PromptBuilder",
+          "lineNumber": 225
+        },
+        {
+          "caller": "_console",
+          "callee": "tools.names",
+          "lineNumber": 225
+        },
+        {
+          "caller": "_console",
+          "callee": "print",
+          "lineNumber": 227
+        },
+        {
+          "caller": "_console",
+          "callee": "asyncio.to_thread",
+          "lineNumber": 237
+        },
+        {
+          "caller": "_console",
+          "callee": "line.strip().lower",
+          "lineNumber": 238
+        },
+        {
+          "caller": "_console",
+          "callee": "line.strip",
+          "lineNumber": 238
+        },
+        {
+          "caller": "_console",
+          "callee": "now_ms",
+          "lineNumber": 247
+        },
+        {
+          "caller": "_console",
+          "callee": "now_ms",
+          "lineNumber": 248
+        },
+        {
+          "caller": "_console",
+          "callee": "bot.handle_payload",
+          "lineNumber": 251
+        },
+        {
+          "caller": "_console",
+          "callee": "bot.drain",
+          "lineNumber": 252
+        },
+        {
+          "caller": "_console",
+          "callee": "bot.stop",
+          "lineNumber": 256
+        },
+        {
+          "caller": "_zalo_call",
+          "callee": "ZaloClient",
+          "lineNumber": 260
+        },
+        {
+          "caller": "_zalo_call",
+          "callee": "zalo.call",
+          "lineNumber": 262
+        },
+        {
+          "caller": "_zalo_call",
+          "callee": "zalo.aclose",
+          "lineNumber": 264
+        },
+        {
+          "caller": "_health",
+          "callee": "StateStore",
+          "lineNumber": 268
+        },
+        {
+          "caller": "_health",
+          "callee": "int",
+          "lineNumber": 269
+        },
+        {
+          "caller": "_health",
+          "callee": "state.get",
+          "lineNumber": 269
+        },
+        {
+          "caller": "_health",
+          "callee": "print",
+          "lineNumber": 271
+        },
+        {
+          "caller": "_health",
+          "callee": "print",
+          "lineNumber": 274
+        },
+        {
+          "caller": "_health",
+          "callee": "now_ms",
+          "lineNumber": 276
+        },
+        {
+          "caller": "_health",
+          "callee": "print",
+          "lineNumber": 277
+        },
+        {
+          "caller": "on_update",
+          "callee": "save_qr_png",
+          "lineNumber": 291
+        },
+        {
+          "caller": "on_update",
+          "callee": "print",
+          "lineNumber": 292
+        },
+        {
+          "caller": "on_update",
+          "callee": "webbrowser.open",
+          "lineNumber": 294
+        },
+        {
+          "caller": "on_update",
+          "callee": "qr_path.resolve().as_uri",
+          "lineNumber": 294
+        },
+        {
+          "caller": "on_update",
+          "callee": "qr_path.resolve",
+          "lineNumber": 294
+        },
+        {
+          "caller": "on_update",
+          "callee": "print",
+          "lineNumber": 296
+        },
+        {
+          "caller": "on_update",
+          "callee": "print",
+          "lineNumber": 298
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 300
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "range",
+          "lineNumber": 302
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "QrLogin",
+          "lineNumber": 303
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "login.run",
+          "lineNumber": 305
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 309
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 311
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 313
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "qr_path.unlink",
+          "lineNumber": 316
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "apply_session",
+          "lineNumber": 318
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 319
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 321
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "bot_process.is_running",
+          "lineNumber": 322
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "Settings.from_env",
+          "lineNumber": 326
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "settings_file.read_values",
+          "lineNumber": 326
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 327
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "bot_process.restart",
+          "lineNumber": 327
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 329
+        },
+        {
+          "caller": "_zalo_login",
+          "callee": "print",
+          "lineNumber": 331
+        },
+        {
+          "caller": "_update",
+          "callee": "auto_update.update",
+          "lineNumber": 339
+        },
+        {
+          "caller": "_update",
+          "callee": "print",
+          "lineNumber": 341
+        },
+        {
+          "caller": "_update",
+          "callee": "print",
+          "lineNumber": 343
+        },
+        {
+          "caller": "_update",
+          "callee": "bot_process.is_running",
+          "lineNumber": 346
+        },
+        {
+          "caller": "_update",
+          "callee": "print",
+          "lineNumber": 347
+        },
+        {
+          "caller": "_update",
+          "callee": "bot_process.restart",
+          "lineNumber": 347
+        },
+        {
+          "caller": "_update",
+          "callee": "bot_process.gui_running",
+          "lineNumber": 348
+        },
+        {
+          "caller": "_update",
+          "callee": "print",
+          "lineNumber": 349
+        },
+        {
+          "caller": "_admin",
+          "callee": "ensure_admin_token",
+          "lineNumber": 361
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 363
+        },
+        {
+          "caller": "_admin",
+          "callee": "bot_process.is_running",
+          "lineNumber": 368
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 369
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 373
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 375
+        },
+        {
+          "caller": "_admin",
+          "callee": "webbrowser.open",
+          "lineNumber": 377
+        },
+        {
+          "caller": "_admin",
+          "callee": "bot_process.lock_for",
+          "lineNumber": 380
+        },
+        {
+          "caller": "_admin",
+          "callee": "lock.acquire",
+          "lineNumber": 382
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 384
+        },
+        {
+          "caller": "_admin",
+          "callee": "webbrowser.open",
+          "lineNumber": 386
+        },
+        {
+          "caller": "_admin",
+          "callee": "bot_process.write_pid",
+          "lineNumber": 388
+        },
+        {
+          "caller": "_admin",
+          "callee": "setup_logging",
+          "lineNumber": 389
+        },
+        {
+          "caller": "_admin",
+          "callee": "create_app",
+          "lineNumber": 397
+        },
+        {
+          "caller": "_admin",
+          "callee": "AdminContext",
+          "lineNumber": 397
+        },
+        {
+          "caller": "_admin",
+          "callee": "print",
+          "lineNumber": 398
+        },
+        {
+          "caller": "_admin",
+          "callee": "threading.Timer(1.5, webbrowser.open, [login_url]).start",
+          "lineNumber": 400
+        },
+        {
+          "caller": "_admin",
+          "callee": "threading.Timer",
+          "lineNumber": 400
+        },
+        {
+          "caller": "_admin",
+          "callee": "uvicorn.run",
+          "lineNumber": 401
+        },
+        {
+          "caller": "_admin",
+          "callee": "bot_process.clear_pid",
+          "lineNumber": 405
+        },
+        {
+          "caller": "_admin",
+          "callee": "lock.release",
+          "lineNumber": 406
+        },
+        {
+          "caller": "_prepare_home",
+          "callee": "userdata_paths.migrate_legacy",
+          "lineNumber": 420
+        },
+        {
+          "caller": "_prepare_home",
+          "callee": "userdata_paths.needs_migration",
+          "lineNumber": 421
+        },
+        {
+          "caller": "_prepare_home",
+          "callee": "ensure_home",
+          "lineNumber": 426
+        },
+        {
+          "caller": "_utf8_console",
+          "callee": "hasattr",
+          "lineNumber": 433
+        },
+        {
+          "caller": "_utf8_console",
+          "callee": "stream.reconfigure",
+          "lineNumber": 435
+        },
+        {
+          "caller": "_attach_parent_console",
+          "callee": "ctypes.windll.kernel32.AttachConsole",
+          "lineNumber": 447
+        },
+        {
+          "caller": "_attach_parent_console",
+          "callee": "open",
+          "lineNumber": 449
+        },
+        {
+          "caller": "_attach_parent_console",
+          "callee": "open",
+          "lineNumber": 450
+        },
+        {
+          "caller": "_attach_parent_console",
+          "callee": "print",
+          "lineNumber": 451
+        },
+        {
+          "caller": "main",
+          "callee": "is_frozen",
+          "lineNumber": 456
+        },
+        {
+          "caller": "main",
+          "callee": "_attach_parent_console",
+          "lineNumber": 457
+        },
+        {
+          "caller": "main",
+          "callee": "_utf8_console",
+          "lineNumber": 458
+        },
+        {
+          "caller": "main",
+          "callee": "argparse.ArgumentParser",
+          "lineNumber": 459
+        },
+        {
+          "caller": "main",
+          "callee": "is_frozen",
+          "lineNumber": 459
+        },
+        {
+          "caller": "main",
+          "callee": "parser.add_subparsers",
+          "lineNumber": 461
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 462
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 463
+        },
+        {
+          "caller": "main",
+          "callee": "gui.add_argument",
+          "lineNumber": 464
+        },
+        {
+          "caller": "main",
+          "callee": "gui.add_argument",
+          "lineNumber": 465
+        },
+        {
+          "caller": "main",
+          "callee": "gui.add_argument",
+          "lineNumber": 466
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 467
+        },
+        {
+          "caller": "main",
+          "callee": "console.add_argument",
+          "lineNumber": 468
+        },
+        {
+          "caller": "main",
+          "callee": "console.add_argument",
+          "lineNumber": 469
+        },
+        {
+          "caller": "main",
+          "callee": "console.add_argument",
+          "lineNumber": 470
+        },
+        {
+          "caller": "main",
+          "callee": "console.add_argument",
+          "lineNumber": 471
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 472
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 473
+        },
+        {
+          "caller": "main",
+          "callee": "set_wh.add_argument",
+          "lineNumber": 474
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 475
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 476
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 477
+        },
+        {
+          "caller": "main",
+          "callee": "gw.add_argument",
+          "lineNumber": 478
+        },
+        {
+          "caller": "main",
+          "callee": "gw.add_argument",
+          "lineNumber": 479
+        },
+        {
+          "caller": "main",
+          "callee": "gw.add_argument",
+          "lineNumber": 480
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 481
+        },
+        {
+          "caller": "main",
+          "callee": "adm.add_argument",
+          "lineNumber": 482
+        },
+        {
+          "caller": "main",
+          "callee": "adm.add_argument",
+          "lineNumber": 484
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 485
+        },
+        {
+          "caller": "main",
+          "callee": "health.add_argument",
+          "lineNumber": 486
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 487
+        },
+        {
+          "caller": "main",
+          "callee": "sub.add_parser",
+          "lineNumber": 488
+        },
+        {
+          "caller": "main",
+          "callee": "zlogin.add_argument",
+          "lineNumber": 489
+        },
+        {
+          "caller": "main",
+          "callee": "parser.parse_args",
+          "lineNumber": 490
+        },
+        {
+          "caller": "main",
+          "callee": "is_frozen",
+          "lineNumber": 492
+        },
+        {
+          "caller": "main",
+          "callee": "_prepare_home",
+          "lineNumber": 493
+        },
+        {
+          "caller": "main",
+          "callee": "_message_box",
+          "lineNumber": 498
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 500
+        },
+        {
+          "caller": "main",
+          "callee": "run_gui",
+          "lineNumber": 505
+        },
+        {
+          "caller": "main",
+          "callee": "getattr",
+          "lineNumber": 505
+        },
+        {
+          "caller": "main",
+          "callee": "getattr",
+          "lineNumber": 505
+        },
+        {
+          "caller": "main",
+          "callee": "getattr",
+          "lineNumber": 506
+        },
+        {
+          "caller": "main",
+          "callee": "Settings.from_env",
+          "lineNumber": 509
+        },
+        {
+          "caller": "main",
+          "callee": "settings.require",
+          "lineNumber": 511
+        },
+        {
+          "caller": "main",
+          "callee": "settings.require",
+          "lineNumber": 513
+        },
+        {
+          "caller": "main",
+          "callee": "ConfigError",
+          "lineNumber": 515
+        },
+        {
+          "caller": "main",
+          "callee": "len",
+          "lineNumber": 516
+        },
+        {
+          "caller": "main",
+          "callee": "ConfigError",
+          "lineNumber": 517
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 519
+        },
+        {
+          "caller": "main",
+          "callee": "setup_logging",
+          "lineNumber": 523
+        },
+        {
+          "caller": "main",
+          "callee": "_health",
+          "lineNumber": 526
+        },
+        {
+          "caller": "main",
+          "callee": "_zalo_login",
+          "lineNumber": 529
+        },
+        {
+          "caller": "main",
+          "callee": "_update",
+          "lineNumber": 532
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.status_info",
+          "lineNumber": 539
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 540
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.format_status",
+          "lineNumber": 540
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.follow_log",
+          "lineNumber": 544
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 545
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.tail_log",
+          "lineNumber": 545
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 548
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 551
+        },
+        {
+          "caller": "main",
+          "callee": "_admin",
+          "lineNumber": 555
+        },
+        {
+          "caller": "main",
+          "callee": "getattr",
+          "lineNumber": 560
+        },
+        {
+          "caller": "main",
+          "callee": "asyncio.run",
+          "lineNumber": 565
+        },
+        {
+          "caller": "main",
+          "callee": "_zalo_call",
+          "lineNumber": 565
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 567
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 569
+        },
+        {
+          "caller": "main",
+          "callee": "json.dumps",
+          "lineNumber": 569
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.standby_info",
+          "lineNumber": 575
+        },
+        {
+          "caller": "main",
+          "callee": "log.warning",
+          "lineNumber": 577
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 578
+        },
+        {
+          "caller": "main",
+          "callee": "InstanceLock",
+          "lineNumber": 582
+        },
+        {
+          "caller": "main",
+          "callee": "Path",
+          "lineNumber": 582
+        },
+        {
+          "caller": "main",
+          "callee": "lock.acquire",
+          "lineNumber": 584
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 586
+        },
+        {
+          "caller": "main",
+          "callee": "str",
+          "lineNumber": 586
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.write_pid",
+          "lineNumber": 592
+        },
+        {
+          "caller": "main",
+          "callee": "dataclasses.replace",
+          "lineNumber": 597
+        },
+        {
+          "caller": "main",
+          "callee": "asyncio.run",
+          "lineNumber": 603
+        },
+        {
+          "caller": "main",
+          "callee": "_console",
+          "lineNumber": 603
+        },
+        {
+          "caller": "main",
+          "callee": "log.info",
+          "lineNumber": 605
+        },
+        {
+          "caller": "main",
+          "callee": "asyncio.run",
+          "lineNumber": 606
+        },
+        {
+          "caller": "main",
+          "callee": "_run",
+          "lineNumber": 606
+        },
+        {
+          "caller": "main",
+          "callee": "log.info",
+          "lineNumber": 608
+        },
+        {
+          "caller": "main",
+          "callee": "bot_process.clear_pid",
+          "lineNumber": 613
+        },
+        {
+          "caller": "main",
+          "callee": "lock.release",
+          "lineNumber": 614
+        }
+      ],
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 15,
+        "functionCount": 14,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/bot/core/vietnam_time.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 20,
+      "nonEmptyLines": 11,
+      "functions": [
+        {
+          "name": "now_ms",
+          "startLine": 11,
+          "endLine": 12,
+          "params": []
+        },
+        {
+          "name": "now_vn",
+          "startLine": 15,
+          "endLine": 16,
+          "params": []
+        },
+        {
+          "name": "today_vn",
+          "startLine": 19,
+          "endLine": 20,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "now_ms",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "now_vn",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "today_vn",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "now_ms",
+          "callee": "int",
+          "lineNumber": 12
+        },
+        {
+          "caller": "now_ms",
+          "callee": "time.time",
+          "lineNumber": 12
+        },
+        {
+          "caller": "now_vn",
+          "callee": "datetime.now",
+          "lineNumber": 16
+        },
+        {
+          "caller": "today_vn",
+          "callee": "now_vn().date().isoformat",
+          "lineNumber": 20
+        },
+        {
+          "caller": "today_vn",
+          "callee": "now_vn().date",
+          "lineNumber": 20
+        },
+        {
+          "caller": "today_vn",
+          "callee": "now_vn",
+          "lineNumber": 20
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/system/log_files.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 58,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "setup_logging",
+          "startLine": 35,
+          "endLine": 58,
+          "params": [
+            "level",
+            "log_dir",
+            "secrets",
+            "filename"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "RedactFilter",
+          "startLine": 11,
+          "endLine": 32,
+          "methods": [
+            "__init__",
+            "filter"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "RedactFilter",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "setup_logging",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 15
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 15
+        },
+        {
+          "caller": "filter",
+          "callee": "record.getMessage",
+          "lineNumber": 21
+        },
+        {
+          "caller": "filter",
+          "callee": "redacted.replace",
+          "lineNumber": 24
+        },
+        {
+          "caller": "filter",
+          "callee": "logging.Formatter().formatException",
+          "lineNumber": 28
+        },
+        {
+          "caller": "filter",
+          "callee": "logging.Formatter",
+          "lineNumber": 28
+        },
+        {
+          "caller": "filter",
+          "callee": "record.exc_text.replace",
+          "lineNumber": 31
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 36
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "root.handlers.clear",
+          "lineNumber": 37
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "root.setLevel",
+          "lineNumber": 38
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "logging.Formatter",
+          "lineNumber": 39
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "RedactFilter",
+          "lineNumber": 40
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "handlers.append",
+          "lineNumber": 45
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "logging.StreamHandler",
+          "lineNumber": 45
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "log_dir.mkdir",
+          "lineNumber": 47
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "handlers.append",
+          "lineNumber": 48
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "RotatingFileHandler",
+          "lineNumber": 49
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "handler.setFormatter",
+          "lineNumber": 52
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "handler.addFilter",
+          "lineNumber": 53
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "root.addHandler",
+          "lineNumber": 54
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "logging.getLogger(noisy).setLevel",
+          "lineNumber": 58
+        },
+        {
+          "caller": "setup_logging",
+          "callee": "logging.getLogger",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "src/bot/zalo/qr_login.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 271,
+      "nonEmptyLines": 227,
+      "functions": [
+        {
+          "name": "make_imei",
+          "startLine": 91,
+          "endLine": 92,
+          "params": [
+            "user_agent"
+          ]
+        },
+        {
+          "name": "cookies_for",
+          "startLine": 95,
+          "endLine": 110,
+          "params": [
+            "jar",
+            "host"
+          ]
+        },
+        {
+          "name": "save_qr_png",
+          "startLine": 260,
+          "endLine": 262,
+          "params": [
+            "image_b64",
+            "path"
+          ]
+        },
+        {
+          "name": "apply_session",
+          "startLine": 265,
+          "endLine": 271,
+          "params": [
+            "session",
+            "session_path",
+            "env_path"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "QrLoginError",
+          "startLine": 54,
+          "endLine": 55,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "Cancelled",
+          "startLine": 58,
+          "endLine": 59,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "ZaloSession",
+          "startLine": 63,
+          "endLine": 79,
+          "methods": [
+            "save"
+          ],
+          "properties": [
+            "cookies",
+            "imei",
+            "user_agent",
+            "display_name",
+            "user_id"
+          ]
+        },
+        {
+          "name": "QrStatus",
+          "startLine": 83,
+          "endLine": 88,
+          "methods": [],
+          "properties": [
+            "state",
+            "image",
+            "display_name",
+            "message",
+            "updated_at"
+          ]
+        },
+        {
+          "name": "QrLogin",
+          "startLine": 113,
+          "endLine": 257,
+          "methods": [
+            "__init__",
+            "cancel",
+            "report",
+            "_check_cancel",
+            "_post",
+            "_wait",
+            "run",
+            "_run"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "QrLoginError",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "Cancelled",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "ZaloSession",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "QrStatus",
+          "line": 82,
+          "isDefault": false
+        },
+        {
+          "name": "make_imei",
+          "line": 91,
+          "isDefault": false
+        },
+        {
+          "name": "cookies_for",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "QrLogin",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "save_qr_png",
+          "line": 260,
+          "isDefault": false
+        },
+        {
+          "name": "apply_session",
+          "line": 265,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "save",
+          "callee": "now_ms",
+          "lineNumber": 73
+        },
+        {
+          "caller": "save",
+          "callee": "atomic_write_text",
+          "lineNumber": 75
+        },
+        {
+          "caller": "save",
+          "callee": "json.dumps",
+          "lineNumber": 75
+        },
+        {
+          "caller": "save",
+          "callee": "os.chmod",
+          "lineNumber": 77
+        },
+        {
+          "caller": "make_imei",
+          "callee": "uuid.uuid4",
+          "lineNumber": 92
+        },
+        {
+          "caller": "make_imei",
+          "callee": "hashlib.md5(user_agent.encode()).hexdigest",
+          "lineNumber": 92
+        },
+        {
+          "caller": "make_imei",
+          "callee": "hashlib.md5",
+          "lineNumber": 92
+        },
+        {
+          "caller": "make_imei",
+          "callee": "user_agent.encode",
+          "lineNumber": 92
+        },
+        {
+          "caller": "cookies_for",
+          "callee": "(cookie.domain or \"\").lstrip",
+          "lineNumber": 102
+        },
+        {
+          "caller": "cookies_for",
+          "callee": "host.endswith",
+          "lineNumber": 103
+        },
+        {
+          "caller": "cookies_for",
+          "callee": "len",
+          "lineNumber": 107
+        },
+        {
+          "caller": "cookies_for",
+          "callee": "chosen.items",
+          "lineNumber": 110
+        },
+        {
+          "caller": "__init__",
+          "callee": "QrStatus",
+          "lineNumber": 118
+        },
+        {
+          "caller": "__init__",
+          "callee": "threading.Event",
+          "lineNumber": 120
+        },
+        {
+          "caller": "__init__",
+          "callee": "requests.Session",
+          "lineNumber": 121
+        },
+        {
+          "caller": "__init__",
+          "callee": "self._http.headers.update",
+          "lineNumber": 122
+        },
+        {
+          "caller": "cancel",
+          "callee": "self._cancel.set",
+          "lineNumber": 131
+        },
+        {
+          "caller": "report",
+          "callee": "QrStatus",
+          "lineNumber": 134
+        },
+        {
+          "caller": "report",
+          "callee": "extra.get",
+          "lineNumber": 134
+        },
+        {
+          "caller": "report",
+          "callee": "extra.get",
+          "lineNumber": 135
+        },
+        {
+          "caller": "report",
+          "callee": "self._on_update",
+          "lineNumber": 138
+        },
+        {
+          "caller": "report",
+          "callee": "log.exception",
+          "lineNumber": 140
+        },
+        {
+          "caller": "_check_cancel",
+          "callee": "self._cancel.is_set",
+          "lineNumber": 145
+        },
+        {
+          "caller": "_check_cancel",
+          "callee": "Cancelled",
+          "lineNumber": 146
+        },
+        {
+          "caller": "_post",
+          "callee": "self._check_cancel",
+          "lineNumber": 149
+        },
+        {
+          "caller": "_post",
+          "callee": "self._http.post",
+          "lineNumber": 150
+        },
+        {
+          "caller": "_post",
+          "callee": "response.json",
+          "lineNumber": 155
+        },
+        {
+          "caller": "_post",
+          "callee": "QrLoginError",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_post",
+          "callee": "url.rsplit",
+          "lineNumber": 157
+        },
+        {
+          "caller": "_post",
+          "callee": "isinstance",
+          "lineNumber": 158
+        },
+        {
+          "caller": "_post",
+          "callee": "QrLoginError",
+          "lineNumber": 159
+        },
+        {
+          "caller": "_wait",
+          "callee": "time.monotonic",
+          "lineNumber": 166
+        },
+        {
+          "caller": "_wait",
+          "callee": "self._post",
+          "lineNumber": 169
+        },
+        {
+          "caller": "_wait",
+          "callee": "data.get",
+          "lineNumber": 172
+        },
+        {
+          "caller": "run",
+          "callee": "self._run",
+          "lineNumber": 179
+        },
+        {
+          "caller": "run",
+          "callee": "self.report",
+          "lineNumber": 181
+        },
+        {
+          "caller": "run",
+          "callee": "self.report",
+          "lineNumber": 184
+        },
+        {
+          "caller": "run",
+          "callee": "QrLoginError",
+          "lineNumber": 185
+        },
+        {
+          "caller": "run",
+          "callee": "self.report",
+          "lineNumber": 187
+        },
+        {
+          "caller": "run",
+          "callee": "type",
+          "lineNumber": 187
+        },
+        {
+          "caller": "run",
+          "callee": "QrLoginError",
+          "lineNumber": 188
+        },
+        {
+          "caller": "run",
+          "callee": "self.report",
+          "lineNumber": 191
+        },
+        {
+          "caller": "run",
+          "callee": "str",
+          "lineNumber": 191
+        },
+        {
+          "caller": "_run",
+          "callee": "self.report",
+          "lineNumber": 195
+        },
+        {
+          "caller": "_run",
+          "callee": "self._http.get",
+          "lineNumber": 196
+        },
+        {
+          "caller": "_run",
+          "callee": "_VERSION.search",
+          "lineNumber": 200
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 202
+        },
+        {
+          "caller": "_run",
+          "callee": "match.group",
+          "lineNumber": 203
+        },
+        {
+          "caller": "_run",
+          "callee": "self._post",
+          "lineNumber": 205
+        },
+        {
+          "caller": "_run",
+          "callee": "self._post",
+          "lineNumber": 206
+        },
+        {
+          "caller": "_run",
+          "callee": "self._post",
+          "lineNumber": 207
+        },
+        {
+          "caller": "_run",
+          "callee": "generated.get",
+          "lineNumber": 208
+        },
+        {
+          "caller": "_run",
+          "callee": "qr.get",
+          "lineNumber": 209
+        },
+        {
+          "caller": "_run",
+          "callee": "str",
+          "lineNumber": 209
+        },
+        {
+          "caller": "_run",
+          "callee": "qr.get",
+          "lineNumber": 209
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 211
+        },
+        {
+          "caller": "_run",
+          "callee": "generated.get",
+          "lineNumber": 211
+        },
+        {
+          "caller": "_run",
+          "callee": "re.sub",
+          "lineNumber": 212
+        },
+        {
+          "caller": "_run",
+          "callee": "self.report",
+          "lineNumber": 213
+        },
+        {
+          "caller": "_run",
+          "callee": "time.monotonic",
+          "lineNumber": 216
+        },
+        {
+          "caller": "_run",
+          "callee": "self._wait",
+          "lineNumber": 218
+        },
+        {
+          "caller": "_run",
+          "callee": "scanned.get",
+          "lineNumber": 219
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 220
+        },
+        {
+          "caller": "_run",
+          "callee": "scanned.get",
+          "lineNumber": 220
+        },
+        {
+          "caller": "_run",
+          "callee": "str",
+          "lineNumber": 221
+        },
+        {
+          "caller": "_run",
+          "callee": "scanned[\"data\"].get",
+          "lineNumber": 221
+        },
+        {
+          "caller": "_run",
+          "callee": "self.report",
+          "lineNumber": 222
+        },
+        {
+          "caller": "_run",
+          "callee": "self._wait",
+          "lineNumber": 225
+        },
+        {
+          "caller": "_run",
+          "callee": "confirmed.get",
+          "lineNumber": 227
+        },
+        {
+          "caller": "_run",
+          "callee": "self.report",
+          "lineNumber": 228
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 229
+        },
+        {
+          "caller": "_run",
+          "callee": "confirmed.get",
+          "lineNumber": 230
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 231
+        },
+        {
+          "caller": "_run",
+          "callee": "confirmed.get",
+          "lineNumber": 231
+        },
+        {
+          "caller": "_run",
+          "callee": "self._check_cancel",
+          "lineNumber": 233
+        },
+        {
+          "caller": "_run",
+          "callee": "self._http.get",
+          "lineNumber": 234
+        },
+        {
+          "caller": "_run",
+          "callee": "self._http.get",
+          "lineNumber": 239
+        },
+        {
+          "caller": "_run",
+          "callee": "info.json().get",
+          "lineNumber": 242
+        },
+        {
+          "caller": "_run",
+          "callee": "info.json",
+          "lineNumber": 242
+        },
+        {
+          "caller": "_run",
+          "callee": "user.get",
+          "lineNumber": 245
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 246
+        },
+        {
+          "caller": "_run",
+          "callee": "user.get",
+          "lineNumber": 247
+        },
+        {
+          "caller": "_run",
+          "callee": "cookies_for",
+          "lineNumber": 248
+        },
+        {
+          "caller": "_run",
+          "callee": "QrLoginError",
+          "lineNumber": 250
+        },
+        {
+          "caller": "_run",
+          "callee": "ZaloSession",
+          "lineNumber": 251
+        },
+        {
+          "caller": "_run",
+          "callee": "make_imei",
+          "lineNumber": 252
+        },
+        {
+          "caller": "_run",
+          "callee": "str",
+          "lineNumber": 253
+        },
+        {
+          "caller": "_run",
+          "callee": "profile.get",
+          "lineNumber": 253
+        },
+        {
+          "caller": "_run",
+          "callee": "profile.get",
+          "lineNumber": 253
+        },
+        {
+          "caller": "_run",
+          "callee": "str",
+          "lineNumber": 254
+        },
+        {
+          "caller": "_run",
+          "callee": "profile.get",
+          "lineNumber": 254
+        },
+        {
+          "caller": "_run",
+          "callee": "profile.get",
+          "lineNumber": 254
+        },
+        {
+          "caller": "_run",
+          "callee": "self.report",
+          "lineNumber": 256
+        },
+        {
+          "caller": "_run",
+          "callee": "f\"Đã kết nối acc {session.display_name or ''}\".strip",
+          "lineNumber": 256
+        },
+        {
+          "caller": "save_qr_png",
+          "callee": "path.parent.mkdir",
+          "lineNumber": 261
+        },
+        {
+          "caller": "save_qr_png",
+          "callee": "path.write_bytes",
+          "lineNumber": 262
+        },
+        {
+          "caller": "save_qr_png",
+          "callee": "base64.b64decode",
+          "lineNumber": 262
+        },
+        {
+          "caller": "apply_session",
+          "callee": "session.save",
+          "lineNumber": 269
+        },
+        {
+          "caller": "apply_session",
+          "callee": "settings_file.read_values(env_path).get",
+          "lineNumber": 270
+        },
+        {
+          "caller": "apply_session",
+          "callee": "settings_file.read_values",
+          "lineNumber": 270
+        },
+        {
+          "caller": "apply_session",
+          "callee": "settings_file.update",
+          "lineNumber": 271
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 9,
+        "functionCount": 4,
+        "classCount": 5
+      }
+    }
+  ]
+}

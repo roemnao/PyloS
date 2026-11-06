@@ -1,0 +1,710 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 3,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "src/bot/agent/tools/schedule_web.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 157,
+      "nonEmptyLines": 127,
+      "functions": [
+        {
+          "name": "_config",
+          "startLine": 27,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "_request",
+          "startLine": 31,
+          "endLine": 35,
+          "params": [
+            "method",
+            "path",
+            "json",
+            "params"
+          ]
+        },
+        {
+          "name": "_note",
+          "startLine": 38,
+          "endLine": 41,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_create_event",
+          "startLine": 44,
+          "endLine": 50,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_create_task",
+          "startLine": 53,
+          "endLine": 59,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_agenda",
+          "startLine": 62,
+          "endLine": 63,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_list_tasks",
+          "startLine": 66,
+          "endLine": 68,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_complete_task",
+          "startLine": 71,
+          "endLine": 76,
+          "params": [
+            "args",
+            "ctx"
+          ]
+        },
+        {
+          "name": "_owner_only",
+          "startLine": 79,
+          "endLine": 80,
+          "params": []
+        },
+        {
+          "name": "_tools",
+          "startLine": 86,
+          "endLine": 154,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_config",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "_request",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "_note",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "_create_event",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "_create_task",
+          "line": 53,
+          "isDefault": false
+        },
+        {
+          "name": "_agenda",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "_list_tasks",
+          "line": 66,
+          "isDefault": false
+        },
+        {
+          "name": "_complete_task",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "_owner_only",
+          "line": 79,
+          "isDefault": false
+        },
+        {
+          "name": "_tools",
+          "line": 86,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_config",
+          "callee": "server_config",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_request",
+          "callee": "request",
+          "lineNumber": 32
+        },
+        {
+          "caller": "_request",
+          "callee": "isinstance",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_note",
+          "callee": "str(args.get(\"note\") or \"\").strip",
+          "lineNumber": 39
+        },
+        {
+          "caller": "_note",
+          "callee": "str",
+          "lineNumber": 39
+        },
+        {
+          "caller": "_note",
+          "callee": "args.get",
+          "lineNumber": 39
+        },
+        {
+          "caller": "_create_event",
+          "callee": "args.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_create_event",
+          "callee": "args.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_create_event",
+          "callee": "_note",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_create_event",
+          "callee": "args.get",
+          "lineNumber": 47
+        },
+        {
+          "caller": "_create_event",
+          "callee": "_request",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_create_task",
+          "callee": "args.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "_create_task",
+          "callee": "_note",
+          "lineNumber": 54
+        },
+        {
+          "caller": "_create_task",
+          "callee": "args.get",
+          "lineNumber": 56
+        },
+        {
+          "caller": "_create_task",
+          "callee": "_request",
+          "lineNumber": 58
+        },
+        {
+          "caller": "_agenda",
+          "callee": "_request",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_agenda",
+          "callee": "str",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_agenda",
+          "callee": "args.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_list_tasks",
+          "callee": "_request",
+          "lineNumber": 67
+        },
+        {
+          "caller": "_list_tasks",
+          "callee": "isinstance",
+          "lineNumber": 68
+        },
+        {
+          "caller": "_complete_task",
+          "callee": "str(args.get(\"id\") or \"\").strip",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_complete_task",
+          "callee": "str",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_complete_task",
+          "callee": "args.get",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_complete_task",
+          "callee": "_request",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_complete_task",
+          "callee": "quote",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_owner_only",
+          "callee": "env_values().get(\"SCHEDULE_OWNER_ONLY\", \"true\").strip().lower",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_owner_only",
+          "callee": "env_values().get(\"SCHEDULE_OWNER_ONLY\", \"true\").strip",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_owner_only",
+          "callee": "env_values().get",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_owner_only",
+          "callee": "env_values",
+          "lineNumber": 80
+        },
+        {
+          "caller": "_tools",
+          "callee": "_config",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_tools",
+          "callee": "_owner_only",
+          "lineNumber": 89
+        },
+        {
+          "caller": "_tools",
+          "callee": "Tool",
+          "lineNumber": 91
+        },
+        {
+          "caller": "_tools",
+          "callee": "Tool",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_tools",
+          "callee": "Tool",
+          "lineNumber": 131
+        },
+        {
+          "caller": "_tools",
+          "callee": "Tool",
+          "lineNumber": 141
+        },
+        {
+          "caller": "_tools",
+          "callee": "Tool",
+          "lineNumber": 147
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 10,
+        "functionCount": 10,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/system/server_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "env_values",
+          "startLine": 22,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "base_url",
+          "startLine": 31,
+          "endLine": 36,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "server_config",
+          "startLine": 39,
+          "endLine": 41,
+          "params": []
+        },
+        {
+          "name": "configured",
+          "startLine": 44,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "request",
+          "startLine": 48,
+          "endLine": 68,
+          "params": [
+            "method",
+            "path",
+            "json",
+            "params",
+            "timeout"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "env_values",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "base_url",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "server_config",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "configured",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "request",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "env_values",
+          "callee": "dotenv_values(APP_HOME / ENV_REL).items",
+          "lineNumber": 27
+        },
+        {
+          "caller": "env_values",
+          "callee": "dotenv_values",
+          "lineNumber": 27
+        },
+        {
+          "caller": "base_url",
+          "callee": "(raw or \"\").strip().rstrip",
+          "lineNumber": 33
+        },
+        {
+          "caller": "base_url",
+          "callee": "(raw or \"\").strip",
+          "lineNumber": 33
+        },
+        {
+          "caller": "base_url",
+          "callee": "url.endswith",
+          "lineNumber": 34
+        },
+        {
+          "caller": "server_config",
+          "callee": "env_values",
+          "lineNumber": 40
+        },
+        {
+          "caller": "server_config",
+          "callee": "base_url",
+          "lineNumber": 41
+        },
+        {
+          "caller": "server_config",
+          "callee": "env.get",
+          "lineNumber": 41
+        },
+        {
+          "caller": "server_config",
+          "callee": "env.get(\"SCHEDULE_API_KEY\", \"\").strip",
+          "lineNumber": 41
+        },
+        {
+          "caller": "server_config",
+          "callee": "env.get",
+          "lineNumber": 41
+        },
+        {
+          "caller": "configured",
+          "callee": "bool",
+          "lineNumber": 45
+        },
+        {
+          "caller": "configured",
+          "callee": "server_config",
+          "lineNumber": 45
+        },
+        {
+          "caller": "request",
+          "callee": "server_config",
+          "lineNumber": 51
+        },
+        {
+          "caller": "request",
+          "callee": "httpx.AsyncClient",
+          "lineNumber": 54
+        },
+        {
+          "caller": "request",
+          "callee": "client.request",
+          "lineNumber": 56
+        },
+        {
+          "caller": "request",
+          "callee": "type",
+          "lineNumber": 59
+        },
+        {
+          "caller": "request",
+          "callee": "response.json",
+          "lineNumber": 61
+        },
+        {
+          "caller": "request",
+          "callee": "data.get",
+          "lineNumber": 65
+        },
+        {
+          "caller": "request",
+          "callee": "isinstance",
+          "lineNumber": 65
+        },
+        {
+          "caller": "request",
+          "callee": "str",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/bot/system/session_upload.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 65,
+      "classes": [
+        {
+          "name": "SessionUploader",
+          "startLine": 21,
+          "endLine": 76,
+          "methods": [
+            "__init__",
+            "__len__",
+            "record",
+            "flush",
+            "run"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SessionUploader",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "deque",
+          "lineNumber": 27
+        },
+        {
+          "caller": "__len__",
+          "callee": "len",
+          "lineNumber": 31
+        },
+        {
+          "caller": "record",
+          "callee": "self.enabled",
+          "lineNumber": 36
+        },
+        {
+          "caller": "record",
+          "callee": "datetime.now(timezone.utc).isoformat",
+          "lineNumber": 38
+        },
+        {
+          "caller": "record",
+          "callee": "datetime.now",
+          "lineNumber": 38
+        },
+        {
+          "caller": "record",
+          "callee": "str",
+          "lineNumber": 38
+        },
+        {
+          "caller": "record",
+          "callee": "event.update",
+          "lineNumber": 39
+        },
+        {
+          "caller": "record",
+          "callee": "fields.items",
+          "lineNumber": 39
+        },
+        {
+          "caller": "record",
+          "callee": "self._queue.append",
+          "lineNumber": 40
+        },
+        {
+          "caller": "record",
+          "callee": "log.debug",
+          "lineNumber": 42
+        },
+        {
+          "caller": "flush",
+          "callee": "self.enabled",
+          "lineNumber": 48
+        },
+        {
+          "caller": "flush",
+          "callee": "self._queue.clear",
+          "lineNumber": 49
+        },
+        {
+          "caller": "flush",
+          "callee": "self._queue.popleft",
+          "lineNumber": 51
+        },
+        {
+          "caller": "flush",
+          "callee": "range",
+          "lineNumber": 51
+        },
+        {
+          "caller": "flush",
+          "callee": "min",
+          "lineNumber": 51
+        },
+        {
+          "caller": "flush",
+          "callee": "len",
+          "lineNumber": 51
+        },
+        {
+          "caller": "flush",
+          "callee": "server_client.request",
+          "lineNumber": 52
+        },
+        {
+          "caller": "flush",
+          "callee": "isinstance",
+          "lineNumber": 53
+        },
+        {
+          "caller": "flush",
+          "callee": "log.warning",
+          "lineNumber": 55
+        },
+        {
+          "caller": "flush",
+          "callee": "reversed",
+          "lineNumber": 58
+        },
+        {
+          "caller": "flush",
+          "callee": "len",
+          "lineNumber": 59
+        },
+        {
+          "caller": "flush",
+          "callee": "self._queue.appendleft",
+          "lineNumber": 60
+        },
+        {
+          "caller": "run",
+          "callee": "stop.is_set",
+          "lineNumber": 66
+        },
+        {
+          "caller": "run",
+          "callee": "asyncio.wait_for",
+          "lineNumber": 68
+        },
+        {
+          "caller": "run",
+          "callee": "stop.wait",
+          "lineNumber": 68
+        },
+        {
+          "caller": "run",
+          "callee": "self.flush",
+          "lineNumber": 72
+        },
+        {
+          "caller": "run",
+          "callee": "len",
+          "lineNumber": 73
+        },
+        {
+          "caller": "run",
+          "callee": "log.exception",
+          "lineNumber": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    }
+  ]
+}

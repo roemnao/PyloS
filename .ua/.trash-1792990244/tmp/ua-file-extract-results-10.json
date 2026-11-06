@@ -1,0 +1,23 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 0,
+  "filesSkipped": [
+    "scripts/build-exe.ps1",
+    "scripts/install-task.ps1",
+    "scripts/run-forever.ps1",
+    "scripts/uninstall-task.ps1"
+  ],
+  "filesUnreadable": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 0,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": []
+}

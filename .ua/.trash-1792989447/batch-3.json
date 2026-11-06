@@ -1,0 +1,1324 @@
+{
+ "nodes": [
+  {
+   "id": "file:src/bot/__main__.py",
+   "type": "file",
+   "name": "__main__.py",
+   "filePath": "src/bot/__main__.py",
+   "summary": "Module entry point enabling python -m bot that delegates to the command-line main.",
+   "tags": [
+    "entry-point",
+    "cli",
+    "bootstrap"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/agent/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/agent/__init__.py",
+   "summary": "Package barrel re-exporting the agent classes, system prompt builder and tool registry.",
+   "tags": [
+    "barrel",
+    "agent",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/agent/gemini_agent.py",
+   "type": "file",
+   "name": "gemini_agent.py",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "summary": "Gemini-backed conversational agent with tool-calling loop, token usage tracking, transient-error retry, and an echo fallback agent.",
+   "tags": [
+    "agent",
+    "gemini",
+    "llm",
+    "tool-calling"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/bot/agent/system_prompt.py",
+   "type": "file",
+   "name": "system_prompt.py",
+   "filePath": "src/bot/agent/system_prompt.py",
+   "summary": "Builds the agent system prompt from mtime-cached prompt files plus the current Vietnam time.",
+   "tags": [
+    "prompt",
+    "agent",
+    "caching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/agent/tools/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "summary": "Defines the tool abstraction (ToolContext, Tool, ToolRegistry) and auto-discovers built-in and external tool modules.",
+   "tags": [
+    "tool-registry",
+    "plugin-discovery",
+    "agent"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/agent/tools/_example.py",
+   "type": "file",
+   "name": "_example.py",
+   "filePath": "src/bot/agent/tools/_example.py",
+   "summary": "Example tool module demonstrating how to register a current-time tool.",
+   "tags": [
+    "example",
+    "tool",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/command_line.py",
+   "type": "file",
+   "name": "command_line.py",
+   "filePath": "src/bot/command_line.py",
+   "summary": "Main CLI wiring the bot: run loop, console mode, Zalo QR login, health, update, admin UI, home preparation and argument parsing.",
+   "tags": [
+    "cli",
+    "entry-point",
+    "orchestration",
+    "bootstrap"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:src/bot/core/vietnam_time.py",
+   "type": "file",
+   "name": "vietnam_time.py",
+   "filePath": "src/bot/core/vietnam_time.py",
+   "summary": "Small helpers returning current time in milliseconds, Vietnam-timezone datetime and date.",
+   "tags": [
+    "utility",
+    "time",
+    "timezone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:src/bot/system/log_files.py",
+   "type": "file",
+   "name": "log_files.py",
+   "filePath": "src/bot/system/log_files.py",
+   "summary": "Configures logging to rotating files with a filter that redacts sensitive values.",
+   "tags": [
+    "logging",
+    "security",
+    "redaction"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:src/bot/zalo/qr_login.py",
+   "type": "file",
+   "name": "qr_login.py",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "summary": "Implements Zalo QR-code login flow with polling, cancellation, session cookies and persistence helpers.",
+   "tags": [
+    "zalo",
+    "authentication",
+    "qr-login",
+    "session"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:GeminiAgent",
+   "type": "class",
+   "name": "GeminiAgent",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    70,
+    215
+   ],
+   "summary": "Agent that calls Gemini with tool declarations, loops over tool calls, and classifies messages.",
+   "tags": [
+    "agent",
+    "gemini",
+    "llm"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:EchoAgent",
+   "type": "class",
+   "name": "EchoAgent",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    218,
+    226
+   ],
+   "summary": "Fallback agent that echoes input without calling an LLM.",
+   "tags": [
+    "agent",
+    "fallback",
+    "testing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:AgentReply",
+   "type": "class",
+   "name": "AgentReply",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    38,
+    43
+   ],
+   "summary": "Data container for an agent reply including tool steps and usage.",
+   "tags": [
+    "data-model",
+    "agent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:Turn",
+   "type": "class",
+   "name": "Turn",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    22,
+    25
+   ],
+   "summary": "Data container for one conversation turn.",
+   "tags": [
+    "data-model",
+    "agent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:ToolStep",
+   "type": "class",
+   "name": "ToolStep",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    29,
+    34
+   ],
+   "summary": "Data container describing one executed tool step.",
+   "tags": [
+    "data-model",
+    "agent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/gemini_agent.py:Agent",
+   "type": "class",
+   "name": "Agent",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    46,
+    47
+   ],
+   "summary": "Protocol defining the agent reply interface.",
+   "tags": [
+    "interface",
+    "agent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/gemini_agent.py:_is_transient",
+   "type": "function",
+   "name": "_is_transient",
+   "filePath": "src/bot/agent/gemini_agent.py",
+   "lineRange": [
+    60,
+    67
+   ],
+   "summary": "Decides whether an LLM error is transient and worth retrying.",
+   "tags": [
+    "error-handling",
+    "retry"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/system_prompt.py:PromptBuilder",
+   "type": "class",
+   "name": "PromptBuilder",
+   "filePath": "src/bot/agent/system_prompt.py",
+   "lineRange": [
+    42,
+    89
+   ],
+   "summary": "Assembles the system prompt from cached files and runtime context.",
+   "tags": [
+    "prompt",
+    "builder"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/agent/system_prompt.py:_CachedFile",
+   "type": "class",
+   "name": "_CachedFile",
+   "filePath": "src/bot/agent/system_prompt.py",
+   "lineRange": [
+    23,
+    39
+   ],
+   "summary": "Reads a file and caches content until its modification time changes.",
+   "tags": [
+    "caching",
+    "io"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/tools/__init__.py:ToolRegistry",
+   "type": "class",
+   "name": "ToolRegistry",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "lineRange": [
+    56,
+    93
+   ],
+   "summary": "Registers tools, exposes their declarations and dispatches calls by name.",
+   "tags": [
+    "registry",
+    "tool",
+    "dispatch"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/agent/tools/__init__.py:ToolContext",
+   "type": "class",
+   "name": "ToolContext",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "lineRange": [
+    24,
+    39
+   ],
+   "summary": "Context object passed to tools carrying shared services.",
+   "tags": [
+    "data-model",
+    "tool"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/agent/tools/__init__.py:Tool",
+   "type": "class",
+   "name": "Tool",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "lineRange": [
+    46,
+    53
+   ],
+   "summary": "Descriptor of a tool with declaration and handler.",
+   "tags": [
+    "data-model",
+    "tool"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/__init__.py:discover",
+   "type": "function",
+   "name": "discover",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "lineRange": [
+    113,
+    131
+   ],
+   "summary": "Discovers and loads tool modules from the package and external locations into a registry.",
+   "tags": [
+    "plugin-discovery",
+    "tool"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/agent/tools/__init__.py:_load_external",
+   "type": "function",
+   "name": "_load_external",
+   "filePath": "src/bot/agent/tools/__init__.py",
+   "lineRange": [
+    96,
+    110
+   ],
+   "summary": "Loads tool modules from an external file path.",
+   "tags": [
+    "plugin-discovery",
+    "dynamic-import"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/agent/tools/_example.py:_current_time",
+   "type": "function",
+   "name": "_current_time",
+   "filePath": "src/bot/agent/tools/_example.py",
+   "lineRange": [
+    11,
+    12
+   ],
+   "summary": "Example tool handler returning the current time.",
+   "tags": [
+    "example",
+    "tool"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    454,
+    615
+   ],
+   "summary": "Parses CLI arguments and dispatches subcommands.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_run",
+   "type": "function",
+   "name": "_run",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    65,
+    170
+   ],
+   "summary": "Runs the bot: builds agent, starts Zalo polling, server and message handler.",
+   "tags": [
+    "orchestration",
+    "runtime"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_zalo_login",
+   "type": "function",
+   "name": "_zalo_login",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    281,
+    332
+   ],
+   "summary": "Performs interactive Zalo QR login and saves the session.",
+   "tags": [
+    "zalo",
+    "authentication",
+    "cli"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_admin",
+   "type": "function",
+   "name": "_admin",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    353,
+    407
+   ],
+   "summary": "Launches the admin web UI.",
+   "tags": [
+    "admin",
+    "cli"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_console",
+   "type": "function",
+   "name": "_console",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    223,
+    256
+   ],
+   "summary": "Runs an interactive console chat mode with a fake Zalo sender.",
+   "tags": [
+    "cli",
+    "debug"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_build_agent",
+   "type": "function",
+   "name": "_build_agent",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    50,
+    62
+   ],
+   "summary": "Builds the Gemini or echo agent based on settings.",
+   "tags": [
+    "factory",
+    "agent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_start_server_sync",
+   "type": "function",
+   "name": "_start_server_sync",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    173,
+    191
+   ],
+   "summary": "Starts the server synchronously.",
+   "tags": [
+    "server",
+    "runtime"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_bot_status",
+   "type": "function",
+   "name": "_bot_status",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    194,
+    209
+   ],
+   "summary": "Reports bot status.",
+   "tags": [
+    "status",
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/command_line.py:ConsoleZalo",
+   "type": "class",
+   "name": "ConsoleZalo",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    212,
+    220
+   ],
+   "summary": "Console stand-in for the Zalo sender printing messages.",
+   "tags": [
+    "adapter",
+    "debug"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_zalo_call",
+   "type": "function",
+   "name": "_zalo_call",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    259,
+    264
+   ],
+   "summary": "Helper to invoke Zalo operations.",
+   "tags": [
+    "zalo",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_health",
+   "type": "function",
+   "name": "_health",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    267,
+    278
+   ],
+   "summary": "Health check command.",
+   "tags": [
+    "health",
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_update",
+   "type": "function",
+   "name": "_update",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    335,
+    350
+   ],
+   "summary": "Update command.",
+   "tags": [
+    "update",
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_prepare_home",
+   "type": "function",
+   "name": "_prepare_home",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    410,
+    427
+   ],
+   "summary": "Prepares the application home directory and legacy migration.",
+   "tags": [
+    "bootstrap",
+    "filesystem"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_utf8_console",
+   "type": "function",
+   "name": "_utf8_console",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    430,
+    437
+   ],
+   "summary": "Forces UTF-8 console encoding.",
+   "tags": [
+    "console",
+    "encoding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/command_line.py:_attach_parent_console",
+   "type": "function",
+   "name": "_attach_parent_console",
+   "filePath": "src/bot/command_line.py",
+   "lineRange": [
+    440,
+    451
+   ],
+   "summary": "Attaches to the parent console on Windows.",
+   "tags": [
+    "windows",
+    "console"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/vietnam_time.py:now_ms",
+   "type": "function",
+   "name": "now_ms",
+   "filePath": "src/bot/core/vietnam_time.py",
+   "lineRange": [
+    11,
+    12
+   ],
+   "summary": "Returns current epoch time in milliseconds.",
+   "tags": [
+    "time",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/vietnam_time.py:now_vn",
+   "type": "function",
+   "name": "now_vn",
+   "filePath": "src/bot/core/vietnam_time.py",
+   "lineRange": [
+    15,
+    16
+   ],
+   "summary": "Returns the current datetime in Vietnam timezone.",
+   "tags": [
+    "time",
+    "timezone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/core/vietnam_time.py:today_vn",
+   "type": "function",
+   "name": "today_vn",
+   "filePath": "src/bot/core/vietnam_time.py",
+   "lineRange": [
+    19,
+    20
+   ],
+   "summary": "Returns the current date in Vietnam timezone.",
+   "tags": [
+    "time",
+    "timezone"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/system/log_files.py:setup_logging",
+   "type": "function",
+   "name": "setup_logging",
+   "filePath": "src/bot/system/log_files.py",
+   "lineRange": [
+    35,
+    58
+   ],
+   "summary": "Configures file and console logging with redaction.",
+   "tags": [
+    "logging",
+    "setup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:src/bot/system/log_files.py:RedactFilter",
+   "type": "class",
+   "name": "RedactFilter",
+   "filePath": "src/bot/system/log_files.py",
+   "lineRange": [
+    11,
+    32
+   ],
+   "summary": "Logging filter that masks secrets in log records.",
+   "tags": [
+    "logging",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/qr_login.py:QrLogin",
+   "type": "class",
+   "name": "QrLogin",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    113,
+    257
+   ],
+   "summary": "Drives the Zalo QR login: fetch QR, poll status, handle cancel and obtain session.",
+   "tags": [
+    "zalo",
+    "authentication",
+    "qr-login"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:src/bot/zalo/qr_login.py:ZaloSession",
+   "type": "class",
+   "name": "ZaloSession",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    63,
+    79
+   ],
+   "summary": "Stores session cookies, imei and user agent with save support.",
+   "tags": [
+    "data-model",
+    "session"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/qr_login.py:QrStatus",
+   "type": "class",
+   "name": "QrStatus",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    83,
+    88
+   ],
+   "summary": "Status object reported during QR login.",
+   "tags": [
+    "data-model",
+    "status"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/qr_login.py:QrLoginError",
+   "type": "class",
+   "name": "QrLoginError",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    54,
+    55
+   ],
+   "summary": "Exception for QR login failures.",
+   "tags": [
+    "exception",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:src/bot/zalo/qr_login.py:Cancelled",
+   "type": "class",
+   "name": "Cancelled",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    58,
+    59
+   ],
+   "summary": "Exception signaling login cancellation.",
+   "tags": [
+    "exception",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/qr_login.py:make_imei",
+   "type": "function",
+   "name": "make_imei",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    91,
+    92
+   ],
+   "summary": "Generates a device IMEI string.",
+   "tags": [
+    "utility",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/qr_login.py:cookies_for",
+   "type": "function",
+   "name": "cookies_for",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    95,
+    110
+   ],
+   "summary": "Builds cookie jar for a session.",
+   "tags": [
+    "cookies",
+    "zalo"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/qr_login.py:save_qr_png",
+   "type": "function",
+   "name": "save_qr_png",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    260,
+    262
+   ],
+   "summary": "Saves QR image bytes to PNG.",
+   "tags": [
+    "io",
+    "qr-login"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:src/bot/zalo/qr_login.py:apply_session",
+   "type": "function",
+   "name": "apply_session",
+   "filePath": "src/bot/zalo/qr_login.py",
+   "lineRange": [
+    265,
+    271
+   ],
+   "summary": "Applies session data to a Zalo client.",
+   "tags": [
+    "session",
+    "zalo"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:GeminiAgent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:EchoAgent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:AgentReply",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:Turn",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:ToolStep",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "class:src/bot/agent/gemini_agent.py:Agent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "function:src/bot/agent/gemini_agent.py:_is_transient",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/system_prompt.py",
+   "target": "class:src/bot/agent/system_prompt.py:PromptBuilder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/system_prompt.py",
+   "target": "class:src/bot/agent/system_prompt.py:_CachedFile",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/__init__.py",
+   "target": "class:src/bot/agent/tools/__init__.py:ToolRegistry",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/__init__.py",
+   "target": "class:src/bot/agent/tools/__init__.py:ToolContext",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/__init__.py",
+   "target": "class:src/bot/agent/tools/__init__.py:Tool",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/__init__.py",
+   "target": "function:src/bot/agent/tools/__init__.py:discover",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/__init__.py",
+   "target": "function:src/bot/agent/tools/__init__.py:_load_external",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/agent/tools/_example.py",
+   "target": "function:src/bot/agent/tools/_example.py:_current_time",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:main",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_run",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_zalo_login",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_admin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_console",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_build_agent",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_start_server_sync",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_bot_status",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "class:src/bot/command_line.py:ConsoleZalo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_zalo_call",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_health",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_update",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_prepare_home",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_utf8_console",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "function:src/bot/command_line.py:_attach_parent_console",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/vietnam_time.py",
+   "target": "function:src/bot/core/vietnam_time.py:now_ms",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/vietnam_time.py",
+   "target": "function:src/bot/core/vietnam_time.py:now_vn",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/core/vietnam_time.py",
+   "target": "function:src/bot/core/vietnam_time.py:today_vn",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/log_files.py",
+   "target": "function:src/bot/system/log_files.py:setup_logging",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/system/log_files.py",
+   "target": "class:src/bot/system/log_files.py:RedactFilter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "class:src/bot/zalo/qr_login.py:QrLogin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "class:src/bot/zalo/qr_login.py:ZaloSession",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "class:src/bot/zalo/qr_login.py:QrStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "class:src/bot/zalo/qr_login.py:QrLoginError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "class:src/bot/zalo/qr_login.py:Cancelled",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "function:src/bot/zalo/qr_login.py:make_imei",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "function:src/bot/zalo/qr_login.py:cookies_for",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "function:src/bot/zalo/qr_login.py:save_qr_png",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "function:src/bot/zalo/qr_login.py:apply_session",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:src/bot/__main__.py",
+   "target": "file:src/bot/command_line.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/__init__.py",
+   "target": "file:src/bot/agent/gemini_agent.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/__init__.py",
+   "target": "file:src/bot/agent/system_prompt.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/__init__.py",
+   "target": "file:src/bot/agent/tools/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/gemini_agent.py",
+   "target": "file:src/bot/agent/tools/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/system_prompt.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/_example.py",
+   "target": "file:src/bot/agent/tools/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/agent/tools/_example.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/agent/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/core/message_handler.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/storage/process_lock.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/system/log_files.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/userdata_paths.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "file:src/bot/zalo/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "file:src/bot/core/vietnam_time.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:src/bot/zalo/qr_login.py",
+   "target": "file:src/bot/storage/__init__.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "function:src/bot/command_line.py:main",
+   "target": "function:src/bot/command_line.py:_run",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:src/bot/command_line.py:_run",
+   "target": "function:src/bot/command_line.py:_build_agent",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "class:src/bot/core/message_handler.py:Bot",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "class:src/bot/storage/process_lock.py:InstanceLock",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:src/bot/command_line.py",
+   "target": "class:src/bot/config.py:Settings",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

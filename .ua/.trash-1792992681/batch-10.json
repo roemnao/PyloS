@@ -1,0 +1,91 @@
+{
+ "nodes": [
+  {
+   "id": "file:scripts/build-exe.ps1",
+   "type": "file",
+   "name": "build-exe.ps1",
+   "filePath": "scripts/build-exe.ps1",
+   "summary": "Builds the one-file windowed ZaloBot.exe with PyInstaller from the project venv, scans the build output for leaked secrets, and optionally copies the exe to the project root.",
+   "tags": [
+    "build-system",
+    "powershell",
+    "packaging",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:scripts/install-task.ps1",
+   "type": "file",
+   "name": "install-task.ps1",
+   "filePath": "scripts/install-task.ps1",
+   "summary": "Registers Windows Task Scheduler tasks that launch the bot and the admin UI at logon via run-forever.ps1, with auto-restart settings.",
+   "tags": [
+    "deployment",
+    "powershell",
+    "task-scheduler",
+    "infrastructure"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:scripts/run-forever.ps1",
+   "type": "file",
+   "name": "run-forever.ps1",
+   "filePath": "scripts/run-forever.ps1",
+   "summary": "Supervisor loop that runs the bot or admin UI via python -m bot, logs exits, and restarts after 10 seconds unless the exit code means config error, lock held, or standby.",
+   "tags": [
+    "supervisor",
+    "powershell",
+    "process-management",
+    "entry-point"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Exit codes 2, 3 and 5 are treated as terminal; any other exit triggers a restart."
+  },
+  {
+   "id": "file:scripts/uninstall-task.ps1",
+   "type": "file",
+   "name": "uninstall-task.ps1",
+   "filePath": "scripts/uninstall-task.ps1",
+   "summary": "Stops and unregisters the bot and admin scheduled tasks and kills leftover python bot processes.",
+   "tags": [
+    "deployment",
+    "powershell",
+    "cleanup",
+    "task-scheduler"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:scripts/install-task.ps1",
+   "target": "file:scripts/run-forever.ps1",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:scripts/uninstall-task.ps1",
+   "target": "file:scripts/install-task.ps1",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:scripts/build-exe.ps1",
+   "target": "file:scripts/packaging/ZaloBot.spec",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:scripts/build-exe.ps1",
+   "target": "file:scripts/packaging/check_secrets.py",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  }
+ ]
+}

@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -84,6 +85,39 @@ def python_for_pip() -> str:
     return exe
 
 
+def _find_uv() -> str | None:
+    """uv của máy (VPS dùng uv để tạo venv, venv đó không có pip)."""
+    found = shutil.which("uv")
+    if found:
+        return found
+    for candidate in (Path.home() / ".local" / "bin" / "uv", Path("/usr/local/bin/uv"), Path("/usr/bin/uv")):
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
+def install_libs() -> None:
+    """Cài lại thư viện theo pyproject.toml. Ưu tiên pip; venv do uv tạo (VPS) không có pip thì dùng `uv pip`, rồi ensurepip."""
+    py = python_for_pip()
+    spec = f".[{EXTRAS}]"
+    try:
+        _run(py, "-m", "pip", "install", "--quiet", "-e", spec, timeout=900)
+        return
+    except UpdateError as exc:
+        if "No module named pip" not in str(exc):
+            raise
+    uv = _find_uv()
+    if uv:
+        log.info("venv không có pip: cài thư viện bằng uv")
+        _run(uv, "pip", "install", "--quiet", "--python", py, "-e", spec, timeout=900)
+        return
+    try:
+        _run(py, "-m", "ensurepip", "--upgrade", timeout=300)
+        _run(py, "-m", "pip", "install", "--quiet", "-e", spec, timeout=900)
+    except UpdateError as exc:
+        raise UpdateError(f"venv không có pip và không tìm thấy uv, ensurepip cũng lỗi ({exc}). Cài lại bằng `uv pip install -e .[{EXTRAS}]`.") from None
+
+
 def update() -> UpdateResult:
     reason = unavailable_reason()
     if reason:
@@ -99,7 +133,7 @@ def update() -> UpdateResult:
     changed_files = _git("diff", "--name-only", old, new).splitlines()
     if "pyproject.toml" in changed_files:
         log.info("pyproject.toml thay đổi: cài lại thư viện")
-        _run(python_for_pip(), "-m", "pip", "install", "--quiet", "-e", f".[{EXTRAS}]", timeout=900)
+        install_libs()
     summary = _git("log", "--format=• %s", f"{old}..{new}").splitlines()
     log.info("Đã cập nhật %s -> %s (%d commit)", old[:7], new[:7], len(summary))
     head = "\n".join(summary[:5]) + (f"\n… và {len(summary) - 5} thay đổi khác" if len(summary) > 5 else "")
@@ -157,7 +191,7 @@ def rollback(system_dir: Path) -> UpdateResult:
     _git("checkout", "-q", "-B", HOLD_BRANCH, good)
     if "pyproject.toml" in _git("diff", "--name-only", old, good).splitlines():
         try:
-            _run(python_for_pip(), "-m", "pip", "install", "--quiet", "-e", f".[{EXTRAS}]", timeout=900)
+            install_libs()
         except UpdateError as exc:  # VPS dùng uv, venv có thể không có pip: giữ code đã quay về, báo để người dùng biết
             log.warning("Quay về xong nhưng cài lại thư viện lỗi: %s", exc)
     state = {"from": old, "to": good, "branch": branch if branch != HOLD_BRANCH else (hold_state(system_dir) or {}).get("branch", "main"),

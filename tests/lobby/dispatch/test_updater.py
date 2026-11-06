@@ -122,3 +122,33 @@ def test_rollback_without_good_marker_or_when_already_good(repos, tmp_path):
     auto_update.mark_good(system)
     assert not auto_update.rollback(system).changed
     assert not auto_update.resume(system).changed
+
+
+def test_install_libs_falls_back_to_uv_when_the_venv_has_no_pip(monkeypatch):
+    calls = []
+
+    def fake_run(*args, **kwargs):
+        calls.append(args)
+        if "pip" in args[1:3] and args[1] == "-m":
+            raise auto_update.UpdateError("/opt/pylos/.venv/bin/python: No module named pip")
+        return ""
+
+    monkeypatch.setattr(auto_update, "_run", fake_run)
+    monkeypatch.setattr(auto_update, "_find_uv", lambda: "/usr/local/bin/uv")
+    auto_update.install_libs()
+    assert calls[0][1:4] == ("-m", "pip", "install")
+    assert calls[1][:3] == ("/usr/local/bin/uv", "pip", "install") and "--python" in calls[1]
+
+
+def test_install_libs_explains_when_nothing_can_install(monkeypatch):
+    def fake_run(*args, **kwargs):
+        raise auto_update.UpdateError("No module named pip" if "pip" in args else "ensurepip lỗi")
+
+    monkeypatch.setattr(auto_update, "_run", fake_run)
+    monkeypatch.setattr(auto_update, "_find_uv", lambda: None)
+    try:
+        auto_update.install_libs()
+    except auto_update.UpdateError as exc:
+        assert "uv pip install" in str(exc)
+    else:
+        raise AssertionError("phải báo lỗi")
