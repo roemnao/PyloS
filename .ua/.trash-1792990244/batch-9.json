@@ -1,8 +1,0 @@
-{"nodes":[
-{"id":"document:docs/PLAN.md","type":"document","name":"PLAN.md","filePath":"docs/PLAN.md","summary":"Vietnamese master plan for the Zalo AI agent bot server, covering decisions, Zalo channel choice, architecture, directory layout, message flow, security, roadmap and risks. Also holds plans and progress for the web management dashboard, the Windows .exe wrapper, and VPS remote control.","tags":["documentation","architecture","planning","roadmap"],"complexity":"complex"},
-{"id":"document:docs/lenh-zalo.md","type":"document","name":"lenh-zalo.md","filePath":"docs/lenh-zalo.md","summary":"User guide for the bot's Zalo commands, describing the three roles (basic-user, leader, owner) and a table of slash commands with minimum role and effect.","tags":["documentation","user-guide","commands","permissions"],"complexity":"simple"},
-{"id":"document:docs/vps-dieu-khien.md","type":"document","name":"vps-dieu-khien.md","filePath":"docs/vps-dieu-khien.md","summary":"Explains controlling the bot on a VPS from the Windows ZaloBot.exe app: remote API proxying, standby mode, handover package between machines, and Gmail-based VPS connection.","tags":["documentation","deployment","vps","operations"],"complexity":"moderate"}
-],"edges":[
-{"source":"document:docs/PLAN.md","target":"document:docs/vps-dieu-khien.md","type":"related","direction":"forward","weight":0.5},
-{"source":"document:docs/lenh-zalo.md","target":"document:docs/PLAN.md","type":"related","direction":"forward","weight":0.5}
-]}

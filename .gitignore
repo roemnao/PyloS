@@ -34,3 +34,6 @@ graphify-out
 src/pylos/lobby/atlas/cache/
 src/pylos/lobby/atlas/.graphify_python
 src/pylos/lobby/atlas/.graphify_root
+
+# Thư mục tạm của công cụ phân tích (rác, không commit)
+.ua/

@@ -1,9 +1,0 @@
-{"nodes":[
-{"id":"file:src/bot/ui/admin/static/index.html","type":"file","name":"index.html","filePath":"src/bot/ui/admin/static/index.html","summary":"Single-page HTML shell for the admin dashboard with an SVG icon sprite, a token login form (with optional Gmail login), and the app layout with topbar, target switch (local/VPS), nav and main area populated by admin_page.js.","tags":["markup","admin-ui","html","login","spa-shell"],"complexity":"simple","languageNotes":"Vietnamese-language UI; loads theme.js, theme.css, admin_page.css and a deferred admin_page.js."},
-{"id":"file:src/bot/ui/admin/static/admin_page.css","type":"file","name":"admin_page.css","filePath":"src/bot/ui/admin/static/admin_page.css","summary":"Admin page layout and component styles (grid layout, topbar, headings, chat bubbles, status colors) built on top of the theme.css design tokens.","tags":["css","admin-ui","layout","styling"],"complexity":"moderate"},
-{"id":"file:src/bot/ui/admin/static/theme.css","type":"file","name":"theme.css","filePath":"src/bot/ui/admin/static/theme.css","summary":"Shared 'iforgotmywayhome' ancient-architecture theme: self-hosted font-face declarations, dark default and light color tokens, and base styles for buttons, inputs and stone-like cards.","tags":["css","theme","design-tokens","dark-mode","fonts"],"complexity":"moderate","languageNotes":"Copied from the quanlythoigian repo; light mode via html[data-theme=light]."}
-],"edges":[
-{"source":"file:src/bot/ui/admin/static/index.html","target":"file:src/bot/ui/admin/static/theme.css","type":"related","direction":"forward","weight":0.5},
-{"source":"file:src/bot/ui/admin/static/index.html","target":"file:src/bot/ui/admin/static/admin_page.css","type":"related","direction":"forward","weight":0.5},
-{"source":"file:src/bot/ui/admin/static/admin_page.css","target":"file:src/bot/ui/admin/static/theme.css","type":"depends_on","direction":"forward","weight":0.6}
-]}
