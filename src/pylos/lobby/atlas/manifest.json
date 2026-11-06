@@ -462,9 +462,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/updater/auto_update.py": {
-    "mtime": 1793885161.3459034,
-    "seen": 1793885308.64541,
-    "ast_hash": "429cd7a593e5649f8f420fe6ea3a31a5",
+    "mtime": 1793941435.457393,
+    "seen": 1793941487.99145,
+    "ast_hash": "2a8388558a40948f6c1275688e591759",
     "semantic_hash": ""
   },
   "src/pylos/lobby/office/agent_tools/_example.py": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "tests/lobby/dispatch/test_updater.py": {
-    "mtime": 1793885162.159878,
-    "seen": 1793886192.8659391,
-    "ast_hash": "9dd708eb34b5ce3a14ac0df4d1d43906",
+    "mtime": 1793941435.457393,
+    "seen": 1793941487.99145,
+    "ast_hash": "65967d08cf517f91665cd256d39d61d5",
     "semantic_hash": ""
   },
   "tests/lobby/office/test_assign_events.py": {
