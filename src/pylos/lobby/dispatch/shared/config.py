@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from pylos.lobby.dispatch.shared.userdata_paths import APP_HOME, APP_NAME, DATA_REL, ENV_FILE, ENV_REL, LOGS_REL, SESSION_REL, SYSTEM_REL, WORKSPACE_REL, app_home, is_frozen
+from pylos.lobby.dispatch.shared.userdata_paths import APP_HOME, APP_NAME, DATA_REL, ENV_FILE, ENV_REL, LOGS_REL, SESSION_REL, SYSTEM_FILE_REL, SYSTEM_REL, WORKSPACE_REL, app_home, is_frozen
 
 # Giữ tên PROJECT_ROOT cho code cũ; khi chạy từ exe nó là thư mục chứa exe.
 PROJECT_ROOT = APP_HOME
@@ -98,6 +98,8 @@ class Settings:
     zalo_session_file: Path = Path(SESSION_REL)
     # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
+    # Quy tắc chung của bot (SYSTEM.md) nằm ở hàng rào, không trong căn hộ: bot không tự sửa được
+    system_file: Path = Path(SYSTEM_FILE_REL)
     # Ai bật/tắt bot: "process" (giao diện tự bật tiến trình nền) hoặc "systemd" (VPS: service pylos-bot)
     bot_supervisor: str = "process"
     # Trang quản lý trên VPS mà ứng dụng ở máy này điều khiển (xem gate/side_gate/vps/remote_server.py)
@@ -166,6 +168,7 @@ class Settings:
             workspace_dir=path("WORKSPACE_DIR", WORKSPACE_REL),
             log_dir=path("LOG_DIR", LOGS_REL),
             system_dir=path("SYSTEM_DIR", SYSTEM_REL),
+            system_file=path("SYSTEM_FILE", SYSTEM_FILE_REL),
             log_level=env.get("LOG_LEVEL", "").strip().upper() or "INFO",
             history_turns=_int(env, "HISTORY_TURNS", 20, minimum=1),
             max_tool_rounds=_int(env, "MAX_TOOL_ROUNDS", 4),

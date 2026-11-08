@@ -24,6 +24,7 @@ DAILY_TOKEN_BUDGET=1000
 ADMIN_TOKEN={ADMIN_TOKEN}
 DATA_DIR=data
 WORKSPACE_DIR=workspace
+SYSTEM_FILE=fence/SYSTEM.md
 LOG_DIR=logs
 OWNER_ZALO_ID=owner
 """
@@ -37,7 +38,8 @@ def env_path(tmp_path, monkeypatch):
     path = tmp_path / ".env"
     path.write_text(ENV_TEXT, encoding="utf-8")
     (tmp_path / "workspace").mkdir()
-    (tmp_path / "workspace" / "SYSTEM.md").write_text("Bạn là trợ lý.", encoding="utf-8")
+    (tmp_path / "fence").mkdir()
+    (tmp_path / "fence" / "SYSTEM.md").write_text("Bạn là trợ lý.", encoding="utf-8")
     return path
 
 
@@ -218,7 +220,7 @@ def test_workspace_edit_with_backup(client, tmp_path):
     assert client.get("/api/workspace/SYSTEM", headers=AUTH).json()["content"] == "Bạn là trợ lý."
     res = client.put("/api/workspace/SYSTEM", json={"content": "Trợ lý mới\r\n"}, headers=AUTH)
     assert res.status_code == 200
-    assert (tmp_path / "workspace" / "SYSTEM.md").read_text(encoding="utf-8") == "Trợ lý mới\n"
+    assert (tmp_path / "fence" / "SYSTEM.md").read_text(encoding="utf-8") == "Trợ lý mới\n"  # SYSTEM.md ở hàng rào, sao lưu ở workspace
     backups = list((tmp_path / "workspace" / ".backup").glob("SYSTEM-*.md"))
     assert len(backups) == 1 and backups[0].read_text(encoding="utf-8") == "Bạn là trợ lý."
     assert client.get("/api/workspace/MEMORY", headers=AUTH).json()["content"] == ""

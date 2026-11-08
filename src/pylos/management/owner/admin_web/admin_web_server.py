@@ -529,7 +529,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     def _workspace_path(settings: Settings, name: str) -> Path:
         if name not in WORKSPACE_FILES:
             raise HTTPException(404, "Chỉ sửa được SYSTEM hoặc MEMORY")
-        return settings.workspace_dir / WORKSPACE_FILES[name]
+        return settings.system_file if name == "SYSTEM" else settings.workspace_dir / WORKSPACE_FILES[name]
 
     @app.get("/api/workspace/{name}")
     def read_workspace(name: str) -> dict[str, Any]:
@@ -542,12 +542,13 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.put("/api/workspace/{name}")
     def write_workspace(name: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
-        path = _workspace_path(ctx.settings(), name)
+        settings = ctx.settings()
+        path = _workspace_path(settings, name)
         content = body.get("content")
         if not isinstance(content, str) or len(content) > MAX_WORKSPACE_CHARS:
             raise HTTPException(400, "Nội dung không hợp lệ hoặc quá dài")
         if path.is_file():
-            backup_dir = path.parent / ".backup"
+            backup_dir = settings.workspace_dir / ".backup"  # sao lưu luôn ở workspace, kể cả khi sửa SYSTEM.md ở hàng rào
             atomic_write_text(backup_dir / f"{name}-{now_vn():%Y%m%d-%H%M%S}.md", path.read_text(encoding="utf-8"))
             for old in sorted(backup_dir.glob(f"{name}-*.md"))[:-20]:
                 old.unlink(missing_ok=True)
@@ -841,7 +842,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             )
         else:
             agent = EchoAgent()
-        system = PromptBuilder(settings.workspace_dir).build(is_group=bool(body.get("is_group")), tool_names=tools.names())
+        system = PromptBuilder(settings.workspace_dir, settings.system_file).build(is_group=bool(body.get("is_group")), tool_names=tools.names())
         ctx_tool = ToolContext("admin-playground", settings.owner_zalo_id or "admin", "Chủ bot", is_owner=True, can_assign=True)
         try:
             reply = await agent.reply(system, turns, ctx_tool)

@@ -3,10 +3,11 @@
     management/owner/secrets/   khoá & thông số người dùng nhập: settings.env, zalo_login_session.json
     management/owner/runtime/   bot tự quản lý: logs/, *.lock, *.pid, bot_status.txt, standby, handover_backups/...
     gate/guest_house/data/      dữ liệu theo người / nhóm chat: memorydata/, session_history/, *.txt
-    residential/residents/pylos/workspace/   SYSTEM.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), tạo từ file mẫu
+    residential/residents/pylos/workspace/   tài liệu riêng của bot (SOUL.md...), bot đọc hết; MEMORY.md (ghi nhớ). Git theo dõi (trừ .backup/)
+    gate/fence/SYSTEM.md                     quy tắc chung của bot (nằm ở hàng rào, bot không tự sửa), git theo dõi
     lobby/office/agent_tools/custom/         tool người dùng tự viết (.py)
 
-Git bỏ qua mọi nội dung các thư mục này (.gitignore). Tên từng file và ý nghĩa: xem các hằng số bên dưới.
+Git bỏ qua nội dung secrets, runtime, guest_house/data, custom (.gitignore); workspace và fence/SYSTEM.md thì git theo dõi. Tên từng file và ý nghĩa: xem các hằng số bên dưới.
 
 Chuyển máy chỉ cần chép các thư mục đó (hoặc dùng gói chuyển máy). Hai lần chuyển bố cục, đều tự chạy ở lần khởi động đầu:
   migrate_legacy():   bản cũ nhất (.env, data/, logs/, workspace/, tools/ ngay ở APP_HOME) -> userdata/
@@ -33,11 +34,12 @@ CONFIG_REL = SECRETS_REL
 ENV_REL = f"{SECRETS_REL}/settings.env"                      # khoá API và mọi cài đặt (trang Cài đặt ghi vào đây)
 SESSION_REL = f"{SECRETS_REL}/zalo_login_session.json"       # phiên đăng nhập acc Zalo cá nhân (quét QR)
 DATA_REL = f"{CITY}/gate/guest_house/data"
-WORKSPACE_REL = f"{CITY}/residential/residents/pylos/workspace"   # SYSTEM.md (bot là ai), MEMORY.md (ghi nhớ)
+WORKSPACE_REL = f"{CITY}/residential/residents/pylos/workspace"   # tài liệu riêng của bot (SOUL.md...), MEMORY.md (ghi nhớ)
+SYSTEM_FILE_REL = f"{CITY}/gate/fence/SYSTEM.md"             # quy tắc chung của bot, ở hàng rào
 TOOLS_REL = f"{CITY}/lobby/office/agent_tools/custom"        # tool người dùng tự viết (.py)
 SYSTEM_REL = f"{CITY}/management/owner/runtime"
 LOGS_REL = f"{SYSTEM_REL}/logs"
-# Thư mục dữ liệu chạy máy nằm trong cây mã nguồn (không phải gói Python, git bỏ qua): test khung Thành bỏ qua chúng.
+# Thư mục dữ liệu nằm trong cây mã nguồn (không phải gói Python; git bỏ qua trừ workspace): test khung Thành bỏ qua chúng.
 RUNTIME_DIRS = (SECRETS_REL, DATA_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
 
 # Bố cục trung gian (userdata/), chỉ còn dùng để chuyển sang Thành.
