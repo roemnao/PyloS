@@ -26,7 +26,7 @@ from pylos.lobby.dispatch.shared.storage import ActivityStore, MemoryDataStore, 
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo.bot_platform_api import ZaloError
 from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, IncomingMessage
-from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE, MEMORYDATA_DIR
+from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE
 
 log = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class PersonalZalo:
         self._connected = False
         self._handler: Callable[[IncomingMessage], Awaitable[None]] | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        self._memory = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR)
+        self._memory = MemoryDataStore(settings.huts_dir)
         self._group_members: dict[str, tuple[float, dict[str, str]]] = {}  # chat_id -> (lúc lấy, {uid: tên})
         self._group_names: dict[str, str] = {}  # tên nhóm (lấy kèm danh sách thành viên)
         self._learned: dict[str, dict[str, str]] = {}  # chat_id -> {uid: tên} đọc từ các @tag người khác gửi

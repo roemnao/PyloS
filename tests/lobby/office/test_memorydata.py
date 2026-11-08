@@ -58,14 +58,14 @@ def test_store_trims_when_over_keep(tmp_path):
 
 
 def test_tool_reads_only_own_chat_and_filters_keyword(tmp_path):
-    store = MemoryDataStore(tmp_path / "memorydata")
+    store = MemoryDataStore(tmp_path / "huts")
     decision = {"passed": False, "stage": "ai", "reason": ""}
     store.add_user("g1", msg_id="1", uid="u", name="Bình", text="7h tối hẹn ở quán Lẩu", is_text=True, decision=decision)
     store.add_user("g1", msg_id="2", uid="u", name="An", text="ok", is_text=True, decision=decision)
     store.add_user("g2", msg_id="3", uid="u", name="Lan", text="nhóm khác", is_text=True, decision=decision)
 
-    res = _read({}, ToolContext("g1", "u", "An", False, tmp_path))
+    res = _read({}, ToolContext("g1", "u", "An", False, huts_dir=tmp_path / "huts"))
     assert res["count"] == 2 and all("nhóm khác" not in m for m in res["messages"])
-    res = _read({"tu_khoa": "lau"}, ToolContext("g1", "u", "An", False, tmp_path))
+    res = _read({"tu_khoa": "lau"}, ToolContext("g1", "u", "An", False, huts_dir=tmp_path / "huts"))
     assert res["count"] == 1 and "Bình: 7h tối hẹn ở quán Lẩu" in res["messages"][0]
-    assert "error" in _read({}, ToolContext("g1", "u", "An", False, None))
+    assert "error" in _read({}, ToolContext("g1", "u", "An", False, None, None))

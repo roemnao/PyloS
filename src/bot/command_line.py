@@ -602,6 +602,7 @@ def main(argv: list[str] | None = None) -> int:
             console_settings = dataclasses.replace(
                 settings,
                 data_dir=settings.data_dir / CONSOLE_TEST_DIR,
+                huts_dir=settings.data_dir / CONSOLE_TEST_DIR / "huts",
                 system_dir=settings.data_dir / CONSOLE_TEST_DIR / "system",  # không lẫn state/seen với bot thật
                 owner_zalo_id=settings.owner_zalo_id or user_id,
             )

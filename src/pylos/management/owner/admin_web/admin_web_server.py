@@ -40,7 +40,7 @@ from pylos.lobby.dispatch.shared.storage import MODES, ActivityStore, FailedStor
 from pylos.gate.main_gate.zalo.reply_formatting import split_message
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms, now_vn
 from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
-from pylos.lobby.dispatch.shared.userdata_paths import ADMIN_DEVICES_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, MEMORYDATA_DIR, PENDING_UPDATES_FILE, SESSION_HISTORY_DIR, TOKEN_USAGE_FILE, UPDATE_REQUEST
+from pylos.lobby.dispatch.shared.userdata_paths import ADMIN_DEVICES_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PENDING_UPDATES_FILE, TOKEN_USAGE_FILE, UPDATE_REQUEST
 
 log = logging.getLogger(__name__)
 
@@ -497,7 +497,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.delete("/api/groups/{chat_id}/history")
     def clear_history(chat_id: str) -> dict[str, Any]:
-        HistoryStore(ctx.settings().data_dir / SESSION_HISTORY_DIR).clear(chat_id)
+        HistoryStore(ctx.settings().huts_dir).clear(chat_id)
         return {"ok": True}
 
     @app.get("/api/history/{chat_id}")
@@ -505,7 +505,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = HistoryStore(settings.data_dir / SESSION_HISTORY_DIR).recent(chat_id, max(1, min(n, 500)))
+        records = HistoryStore(settings.huts_dir).recent(chat_id, max(1, min(n, 500)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t")}
             for r in records
@@ -517,7 +517,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR).recent(chat_id, max(1, min(n, 2000)))
+        records = MemoryDataStore(settings.huts_dir).recent(chat_id, max(1, min(n, 2000)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t"),
              "type": r.get("type", "text"), "filter": r.get("filter")}

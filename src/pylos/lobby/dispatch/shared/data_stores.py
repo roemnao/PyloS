@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from pylos.lobby.dispatch.shared.userdata_paths import done_file
+from pylos.lobby.dispatch.shared.userdata_paths import MEMORYDATA_FILE, SESSION_HISTORY_FILE, done_file
 from pylos.lobby.dispatch.shared.text_files import JsonLinesFile, JsonObjectFile
 from pylos.gate.fence.speech_limit.text_fold import fold
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms, today_vn
@@ -230,15 +230,20 @@ def safe_name(chat_id: str) -> str:
     return _SAFE_NAME.sub("_", chat_id)[:120] or "_"
 
 
-class HistoryStore:
-    """session_history/<chat_id>.txt: mỗi lượt một dòng {role, uid, name, text, t}."""
+def hut_file(huts_dir: Path, chat_id: str, name: str) -> Path:
+    """Túp lều của một người / nhóm: huts/<chat_id>/<name>. Mỗi người, mỗi nhóm một thư mục riêng."""
+    return huts_dir / safe_name(chat_id) / name
 
-    def __init__(self, directory: Path, keep: int = 200) -> None:
-        self._dir = directory
+
+class HistoryStore:
+    """huts/<chat_id>/session_history.txt: mỗi lượt một dòng {role, uid, name, text, t}."""
+
+    def __init__(self, huts_dir: Path, keep: int = 200) -> None:
+        self._dir = huts_dir
         self.keep = keep
 
     def _file(self, chat_id: str) -> JsonLinesFile:
-        return JsonLinesFile(self._dir / f"{safe_name(chat_id)}.txt")
+        return JsonLinesFile(hut_file(self._dir, chat_id, SESSION_HISTORY_FILE))
 
     def append(self, chat_id: str, role: str, text: str, uid: str = "", name: str = "") -> None:
         f = self._file(chat_id)
@@ -254,7 +259,7 @@ class HistoryStore:
 
 
 class MemoryDataStore:
-    """memorydata/<chat_id>.txt: MỌI tin của hội thoại (kể cả tin bộ lọc chặn), mỗi dòng một JSON.
+    """huts/<chat_id>/memorydata.txt: MỌI tin của hội thoại (kể cả tin bộ lọc chặn), mỗi dòng một JSON.
 
     {"t", "role": "user"|"model", "msg_id", "uid", "name", "type": "text"|"other", "text",
      "filter": {"passed", "stage", "reason"}}   (câu trả lời của bot không có "filter")
@@ -262,12 +267,12 @@ class MemoryDataStore:
     Khác HistoryStore (session gửi cho Gemini, chỉ có tin qua lọc). Bot đọc file này qua tool doc_memorydata.
     """
 
-    def __init__(self, directory: Path, keep: int = 5000) -> None:
-        self._dir = directory
+    def __init__(self, huts_dir: Path, keep: int = 5000) -> None:
+        self._dir = huts_dir
         self.keep = keep
 
     def path(self, chat_id: str) -> Path:
-        return self._dir / f"{safe_name(chat_id)}.txt"
+        return hut_file(self._dir, chat_id, MEMORYDATA_FILE)
 
     def _append(self, chat_id: str, record: dict[str, Any]) -> None:
         f = JsonLinesFile(self.path(chat_id))

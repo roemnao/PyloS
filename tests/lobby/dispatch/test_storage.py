@@ -63,11 +63,13 @@ def test_seen_store_is_bounded_and_persistent(tmp_path):
 
 
 def test_history_tail_trim_and_safe_filename(tmp_path):
-    store = HistoryStore(tmp_path / "session_history", keep=5)
+    store = HistoryStore(tmp_path / "huts", keep=5)
     for i in range(12):
         store.append("../evil/chat", "user", str(i))
-    files = list((tmp_path / "session_history").iterdir())
-    assert len(files) == 1 and files[0].parent == tmp_path / "session_history"
+    huts = list((tmp_path / "huts").iterdir())  # một túp lều, nằm ngay trong huts/ (tên đã được làm sạch)
+    assert len(huts) == 1 and huts[0].parent == tmp_path / "huts" and huts[0].is_dir()
+    files = list(huts[0].iterdir())
+    assert [f.name for f in files] == ["session_history.txt"]
     assert [r["text"] for r in store.recent("../evil/chat", 3)] == ["9", "10", "11"]
     assert JsonLinesFile(files[0]).count_lines() <= 10
 

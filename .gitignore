@@ -31,6 +31,7 @@ src/pylos/gate/guest_house/huts/
 src/pylos/residential/residents/pylos/workspace/.backup/
 src/pylos/lobby/office/agent_tools/custom/
 /userdata_backup_*.zip
+/data_backup_*.zip
 .ruff_cache/
 
 # graphify: graphify-out là junction trỏ vào Toà bản đồ; bộ đệm trích xuất và đường dẫn riêng của máy thì không commit

@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "src/bot/command_line.py": {
-    "mtime": 1794150213.3991687,
-    "seen": 1794150651.327677,
-    "ast_hash": "46be11b09a158a064e358ceca7a1d368",
+    "mtime": 1794151692.6174703,
+    "seen": 1794152141.4008455,
+    "ast_hash": "adcd5d383c08ef71c717984b542b2854",
     "semantic_hash": ""
   },
   "src/bot/core/__init__.py": {
@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794150531.14745,
-    "seen": 1794150651.327677,
-    "ast_hash": "2f53f653e66a766fe5c56ee87c8c2972",
+    "mtime": 1794152051.696622,
+    "seen": 1794152141.4018438,
+    "ast_hash": "1752a9fa426de8b8224f39d648396dd0",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1794150531.1764514,
-    "seen": 1794150651.327677,
-    "ast_hash": "6f2d7572dcf22a024be91c001525d5db",
+    "mtime": 1794152051.696622,
+    "seen": 1794152141.4018438,
+    "ast_hash": "90a58c6dc9782d467cb3a2a249e9d9ce",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/admin_web_server.py": {
-    "mtime": 1793885161.5623977,
-    "seen": 1793885308.64541,
-    "ast_hash": "a8d82a93b7b604342815619b60f70a7a",
+    "mtime": 1794151692.6204674,
+    "seen": 1794152141.4018438,
+    "ast_hash": "1f6a0a52d42e249e4de98b0350f2b922",
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/google_login.py": {
@@ -744,9 +744,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/config.py": {
-    "mtime": 1794150213.4501836,
-    "seen": 1794150651.327677,
-    "ast_hash": "add9912e381716ffa7879781e6bb8eab",
+    "mtime": 1794151692.5813825,
+    "seen": 1794152141.4008455,
+    "ast_hash": "5ed9e3afa01579913ba5ecd63f00d10b",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/data_stores.py": {
@@ -756,9 +756,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/first_run_setup.py": {
-    "mtime": 1794150213.4521854,
-    "seen": 1794150651.327677,
-    "ast_hash": "1f1d7e68c9dfcb1c65d50046534b1236",
+    "mtime": 1794151916.6360464,
+    "seen": 1794152141.4008455,
+    "ast_hash": "5c9233b5981ebb7ca52e087ea7537194",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/storage.py": {
@@ -774,9 +774,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/userdata_paths.py": {
-    "mtime": 1794150426.439075,
-    "seen": 1794150651.327677,
-    "ast_hash": "e0d211c6d718f03adccec6e20dfee817",
+    "mtime": 1794151836.6664383,
+    "seen": 1794152141.4018438,
+    "ast_hash": "58878829ea18af8d42f733cbce5e7510",
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/__init__.py": {
@@ -798,15 +798,15 @@
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/system_prompt.py": {
-    "mtime": 1793885161.6264865,
-    "seen": 1793885308.64541,
-    "ast_hash": "0d9d5299d5c095d93fec36a928757273",
+    "mtime": 1794151692.585385,
+    "seen": 1794152141.4018438,
+    "ast_hash": "3fd656a44b1ba48c16ce356a460fcd9d",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/templates/MEMORY.md": {
-    "mtime": 1792633270.7212255,
-    "seen": 1793885308.64541,
-    "ast_hash": "59341d8efc5740632d96613661ce01d5",
+    "mtime": 1794151692.6439948,
+    "seen": 1794152141.4018438,
+    "ast_hash": "dbfb46c0a1433629577b3ec6782a0848",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/templates/SYSTEM.md": {
@@ -858,9 +858,9 @@
     "semantic_hash": ""
   },
   "tests/gate/side_gate/test_desktop.py": {
-    "mtime": 1794150304.0367787,
-    "seen": 1794150651.327677,
-    "ast_hash": "856c2f2b5f6b9af9ae3d71973c56298c",
+    "mtime": 1794151836.6674407,
+    "seen": 1794152141.4018438,
+    "ast_hash": "68d8a6fa73480b16987c52249de09733",
     "semantic_hash": ""
   },
   "tests/gate/side_gate/test_vps_supervisor.py": {
@@ -936,9 +936,9 @@
     "semantic_hash": ""
   },
   "tests/management/owner/test_admin.py": {
-    "mtime": 1794150304.0347884,
-    "seen": 1794150651.327677,
-    "ast_hash": "a2605f1cf9d97cfd830e08a57f7b99bf",
+    "mtime": 1794151836.6674407,
+    "seen": 1794152141.4018438,
+    "ast_hash": "8d889f9a4a5549e7204f6c505fdda415",
     "semantic_hash": ""
   },
   "tests/management/owner/test_google_login.py": {
@@ -987,6 +987,30 @@
     "mtime": 1793938320.1347332,
     "seen": 1793938336.9813027,
     "ast_hash": "26b027fc8cfe2b34d8dc719a616f7366",
+    "semantic_hash": ""
+  },
+  "tests/residential/residents/test_workspace_prompt.py": {
+    "mtime": 1794151974.5075333,
+    "seen": 1794152141.4018438,
+    "ast_hash": "e122d622b5436afe0aec81963318e668",
+    "semantic_hash": ""
+  },
+  "src/pylos/gate/fence/SYSTEM.md": {
+    "mtime": 1794151710.066937,
+    "seen": 1794152141.4018438,
+    "ast_hash": "f3eb2fa621dd327b05fdaa83791bf9b7",
+    "semantic_hash": ""
+  },
+  "src/pylos/residential/residents/pylos/workspace/MEMORY.md": {
+    "mtime": 1794151710.423333,
+    "seen": 1794152141.4018438,
+    "ast_hash": "dbfb46c0a1433629577b3ec6782a0848",
+    "semantic_hash": ""
+  },
+  "src/pylos/residential/residents/pylos/workspace/SOUL.md": {
+    "mtime": 1794151166.4808357,
+    "seen": 1794152141.4018438,
+    "ast_hash": "bc841a0a725b66dc75ec2721c770d47f",
     "semantic_hash": ""
   }
 }
