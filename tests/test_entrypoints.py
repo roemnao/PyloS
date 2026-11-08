@@ -43,6 +43,10 @@ def test_every_module_imports(module):
         if (exc.name or "").split(".")[0] in OPTIONAL_LIBS:
             pytest.skip(f"thiếu thư viện tuỳ chọn {exc.name}")
         raise
+    except Exception as exc:  # noqa: BLE001
+        if type(exc).__name__ == "DisplayNameError":  # pystray trên Linux không có màn hình (CI): module của app cửa sổ
+            pytest.skip("không có màn hình (X11) trên máy chạy test")
+        raise
 
 
 def test_python_dash_m_bot_still_works():
