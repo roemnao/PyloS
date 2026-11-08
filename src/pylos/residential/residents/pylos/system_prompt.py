@@ -1,4 +1,4 @@
-"""System prompt lấy từ workspace/SYSTEM.md và workspace/MEMORY.md, tự nạp lại khi file đổi."""
+"""System prompt: quy tắc chung (gate/fence/SYSTEM.md), mọi tài liệu trong workspace của bot (SOUL.md...) và MEMORY.md; tự nạp lại khi file đổi."""
 
 from __future__ import annotations
 
@@ -39,15 +39,48 @@ class _CachedFile:
         return self._text
 
 
+MAX_WORKSPACE_CHARS = 60_000  # tổng tài liệu workspace đưa vào prompt; quá thì bỏ phần sau và ghi cảnh báo
+DOC_SUFFIXES = {".md", ".txt"}
+MEMORY_NAME = "MEMORY.md"
+
+
 class PromptBuilder:
-    def __init__(self, workspace_dir: Path) -> None:
-        self._system = _CachedFile(workspace_dir / "SYSTEM.md")
-        self._memory = _CachedFile(workspace_dir / "MEMORY.md")
+    """`system_file`: quy tắc chung của bot (ở hàng rào). Không đưa thì lấy workspace/SYSTEM.md (tương thích cũ)."""
+
+    def __init__(self, workspace_dir: Path, system_file: Path | None = None) -> None:
+        self._workspace = workspace_dir
+        self._system = _CachedFile(system_file or workspace_dir / "SYSTEM.md")
+        self._memory = _CachedFile(workspace_dir / MEMORY_NAME)
+        self._docs: dict[Path, _CachedFile] = {}
+
+    def workspace_docs(self) -> list[tuple[str, str]]:
+        """Mọi tài liệu .md/.txt trong workspace (kể cả thư mục con, trừ thư mục ẩn như .backup và MEMORY.md), theo tên."""
+        if not self._workspace.is_dir():
+            return []
+        found = []
+        for path in sorted(self._workspace.rglob("*"), key=lambda p: p.relative_to(self._workspace).as_posix().lower()):
+            rel = path.relative_to(self._workspace)
+            if (not path.is_file() or path.suffix.lower() not in DOC_SUFFIXES or any(part.startswith(".") for part in rel.parts)
+                    or rel.as_posix() == MEMORY_NAME or path == self._system.path):
+                continue
+            text = self._docs.setdefault(path, _CachedFile(path)).read()
+            if text:
+                found.append((rel.as_posix(), text))
+        used, kept = 0, []
+        for name, text in found:
+            if used + len(text) > MAX_WORKSPACE_CHARS:
+                log.warning("Tài liệu workspace quá dài: bỏ %s và các file sau (tối đa %d ký tự)", name, MAX_WORKSPACE_CHARS)
+                break
+            used += len(text)
+            kept.append((name, text))
+        return kept
 
     def build(self, *, is_group: bool, tool_names: list[str], members: list[str] | None = None,
               sender_role: str = "", team_names: list[str] | None = None) -> str:
         now = now_vn()
         parts = [self._system.read() or FALLBACK_SYSTEM]
+        for name, text in self.workspace_docs():  # tài liệu riêng của bot: bot là ai, trả lời thế nào
+            parts.append(f"## {name}\n{text}")
         parts.append(
             "## Bối cảnh\n"
             f"- Bây giờ: {WEEKDAYS[now.weekday()]}, {now:%H:%M %d/%m/%Y} (giờ Việt Nam).\n"

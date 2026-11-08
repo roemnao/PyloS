@@ -2,11 +2,13 @@
 
     management/owner/secrets/   khoá & thông số người dùng nhập: settings.env, zalo_login_session.json
     management/owner/runtime/   bot tự quản lý: logs/, *.lock, *.pid, bot_status.txt, standby, handover_backups/...
-    gate/guest_house/data/      dữ liệu theo người / nhóm chat: memorydata/, session_history/, *.txt
-    residential/residents/pylos/workspace/   SYSTEM.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), tạo từ file mẫu
+    gate/guest_house/huts/<chat_id>/   túp lều của MỘT người hoặc MỘT nhóm Zalo: memorydata.txt (mọi tin), session_history.txt (gửi cho Gemini)
+    gate/guest_house/data/      cài đặt và thống kê chung: group_settings.txt, daily_stats.txt, token_usage.txt, ...
+    residential/residents/pylos/workspace/   tài liệu riêng của bot (SOUL.md...), bot đọc hết; MEMORY.md (ghi nhớ). Git theo dõi (trừ .backup/)
+    gate/fence/SYSTEM.md                     quy tắc chung của bot (nằm ở hàng rào, bot không tự sửa), git theo dõi
     lobby/office/agent_tools/custom/         tool người dùng tự viết (.py)
 
-Git bỏ qua mọi nội dung các thư mục này (.gitignore). Tên từng file và ý nghĩa: xem các hằng số bên dưới.
+Git bỏ qua nội dung secrets, runtime, guest_house/data, custom (.gitignore); workspace và fence/SYSTEM.md thì git theo dõi. Tên từng file và ý nghĩa: xem các hằng số bên dưới.
 
 Chuyển máy chỉ cần chép các thư mục đó (hoặc dùng gói chuyển máy). Hai lần chuyển bố cục, đều tự chạy ở lần khởi động đầu:
   migrate_legacy():   bản cũ nhất (.env, data/, logs/, workspace/, tools/ ngay ở APP_HOME) -> userdata/
@@ -33,12 +35,14 @@ CONFIG_REL = SECRETS_REL
 ENV_REL = f"{SECRETS_REL}/settings.env"                      # khoá API và mọi cài đặt (trang Cài đặt ghi vào đây)
 SESSION_REL = f"{SECRETS_REL}/zalo_login_session.json"       # phiên đăng nhập acc Zalo cá nhân (quét QR)
 DATA_REL = f"{CITY}/gate/guest_house/data"
-WORKSPACE_REL = f"{CITY}/residential/residents/pylos/workspace"   # SYSTEM.md (bot là ai), MEMORY.md (ghi nhớ)
+HUTS_REL = f"{CITY}/gate/guest_house/huts"                  # túp lều: mỗi người / nhóm một thư mục
+WORKSPACE_REL = f"{CITY}/residential/residents/pylos/workspace"   # tài liệu riêng của bot (SOUL.md...), MEMORY.md (ghi nhớ)
+SYSTEM_FILE_REL = f"{CITY}/gate/fence/SYSTEM.md"             # quy tắc chung của bot, ở hàng rào
 TOOLS_REL = f"{CITY}/lobby/office/agent_tools/custom"        # tool người dùng tự viết (.py)
 SYSTEM_REL = f"{CITY}/management/owner/runtime"
 LOGS_REL = f"{SYSTEM_REL}/logs"
-# Thư mục dữ liệu chạy máy nằm trong cây mã nguồn (không phải gói Python, git bỏ qua): test khung Thành bỏ qua chúng.
-RUNTIME_DIRS = (SECRETS_REL, DATA_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
+# Thư mục dữ liệu nằm trong cây mã nguồn (không phải gói Python; git bỏ qua trừ workspace): test khung Thành bỏ qua chúng.
+RUNTIME_DIRS = (SECRETS_REL, DATA_REL, HUTS_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
 
 # Bố cục trung gian (userdata/), chỉ còn dùng để chuyển sang Thành.
 USERDATA = "userdata"
@@ -58,8 +62,11 @@ DAILY_STATS_FILE = "daily_stats.txt"          # số tin nhận/trả lời/lỗ
 TOKEN_USAGE_FILE = "token_usage.txt"          # token Gemini đã dùng mỗi ngày (hạn mức ngày)
 FAILED_REPLIES_FILE = "failed_replies.txt"    # câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
 ASSIGNED_EVENTS_FILE = "assigned_events.txt"  # lịch bot đã giao cho người khác (để sửa / huỷ "việc lúc nãy")
-MEMORYDATA_DIR = "memorydata"                 # mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc
-SESSION_HISTORY_DIR = "session_history"       # session: tin qua bộ lọc + câu trả lời (gửi cho Gemini)
+MEMORYDATA_DIR = "memorydata"                 # (bố cục cũ) thư mục chứa mọi tin; nay mỗi túp lều có memorydata.txt
+SESSION_HISTORY_DIR = "session_history"       # (bố cục cũ) thư mục session; nay mỗi túp lều có session_history.txt
+# ---------- tên file bên trong một túp lều (HUTS_REL/<chat_id>/) ----------
+MEMORYDATA_FILE = "memorydata.txt"            # mọi tin của hội thoại, kèm kết quả bộ lọc
+SESSION_HISTORY_FILE = "session_history.txt"  # session: tin qua bộ lọc + câu trả lời (gửi cho Gemini)
 CONSOLE_TEST_DIR = "console_test"             # dữ liệu riêng của chế độ chat thử `python -m bot console`
 
 # ---------- tên file/thư mục bên trong management/owner/runtime (Settings.system_dir) ----------
@@ -288,10 +295,15 @@ def needs_city_migration(home: Path = APP_HOME) -> bool:
 
 
 def _city_old_running(home: Path) -> bool:
+    return _locks_held(home / OLD_SYSTEM_REL)
+
+
+def _locks_held(system_dir: Path) -> bool:
+    """Có file khoá của bot / ứng dụng quản lý đang bị một tiến trình giữ trong thư mục hệ thống không."""
     from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
 
     for name in _CITY_LOCKS:
-        path = home / OLD_SYSTEM_REL / name
+        path = system_dir / name
         if not path.exists():
             continue
         lock = InstanceLock(path)
@@ -390,11 +402,82 @@ def migrate_to_city(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
         (home / ".migrate.lock").unlink(missing_ok=True)
 
 
+# ---------- memorydata/ và session_history/ -> túp lều ----------
+
+_HUT_MOVES = ((MEMORYDATA_DIR, MEMORYDATA_FILE), (SESSION_HISTORY_DIR, SESSION_HISTORY_FILE))
+
+
+def needs_huts_migration(home: Path = APP_HOME) -> bool:
+    """Còn memorydata/<chat>.txt hoặc session_history/<chat>.txt kiểu cũ trong data/."""
+    return any((home / DATA_REL / old).is_dir() for old, _ in _HUT_MOVES)
+
+
+def _backup_for_huts(home: Path) -> Path | None:
+    import zipfile
+
+    data = home / DATA_REL
+    files = [p for old, _ in _HUT_MOVES if (data / old).is_dir() for p in sorted((data / old).rglob("*")) if p.is_file()]
+    if not files:
+        return None
+    target = home / f"data_backup_{time.strftime('%Y%m%d-%H%M%S')}.zip"
+    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in files:
+            zf.write(path, path.relative_to(data).as_posix())
+    return target
+
+
+def migrate_to_huts(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
+    """data/memorydata/<chat>.txt -> huts/<chat>/memorydata.txt, data/session_history/<chat>.txt -> huts/<chat>/session_history.txt.
+    Sao lưu zip trước; chạy lại an toàn (túp lều đã có file thì giữ bản ở túp lều, bản cũ để nguyên); chờ bản cũ tắt."""
+    if not needs_huts_migration(home):
+        return []
+    from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+
+    guard = InstanceLock(home / ".migrate.lock")
+    try:
+        guard.acquire(wait=30.0)
+    except AlreadyRunning:
+        return []
+    try:
+        if not needs_huts_migration(home):
+            return []
+        deadline = time.monotonic() + wait_old
+        while _locks_held(home / SYSTEM_REL):
+            if time.monotonic() >= deadline:
+                log.warning("Bản cũ của bot/ứng dụng vẫn đang chạy: tạm chưa chuyển memorydata/session_history vào túp lều.")
+                return []
+            time.sleep(0.5)
+        backup = _backup_for_huts(home)
+        moved: list[str] = []
+        for old, name in _HUT_MOVES:
+            src_dir = home / DATA_REL / old
+            if not src_dir.is_dir():
+                continue
+            for src in sorted(src_dir.glob("*.txt")):
+                dst = home / HUTS_REL / src.stem / name
+                try:
+                    if _move(src, dst, False):
+                        moved.append(f"{old}/{src.name} -> huts/{src.stem}/{name}")
+                except OSError as exc:
+                    log.warning("Không chuyển được %s: %s", src, exc)
+            try:
+                src_dir.rmdir()  # chỉ xoá được khi đã rỗng
+            except OSError:
+                log.warning("%s còn file chưa chuyển (túp lều đã có bản khác): giữ lại", src_dir.name)
+        log.info("Đã chuyển %d file vào túp lều (sao lưu: %s)", len(moved), backup.name if backup else "không cần")
+        LAST_MIGRATED.extend(moved)
+        return moved
+    finally:
+        guard.release()
+        (home / ".migrate.lock").unlink(missing_ok=True)
+
+
 def migrate_all(wait_old: float = 0.0) -> None:
-    """Hai lần chuyển nối nhau: bố cục cũ nhất -> userdata/ -> Thành."""
+    """Các lần chuyển nối nhau: bố cục cũ nhất -> userdata/ -> Thành -> túp lều."""
     migrate_legacy(wait_old=wait_old)
     migrate_to_city(wait_old=wait_old)
+    migrate_to_huts(wait_old=wait_old)
 
 
 def pending_migration(home: Path = APP_HOME) -> bool:
-    return needs_migration(home) or needs_city_migration(home)
+    return needs_migration(home) or needs_city_migration(home) or needs_huts_migration(home)

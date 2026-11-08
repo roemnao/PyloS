@@ -76,6 +76,10 @@ def test_export_import_roundtrip_and_exclusions(tmp_path, clean_env, running):
     _, dst = make_side(tmp_path / "b", VPS_TOKEN)
     write(src, "group_settings.txt", "nhom-a")
     write(src, "memorydata/c1.txt", "tin 1")
+    (src.huts_dir / "c1").mkdir(parents=True)
+    (src.huts_dir / "c1" / "memorydata.txt").write_text("tin trong túp lều", encoding="utf-8")
+    (dst.huts_dir / "cu").mkdir(parents=True)
+    (dst.huts_dir / "cu" / "memorydata.txt").write_text("túp lều chỉ có ở bên nhận", encoding="utf-8")
     write(src, "workspace/SYSTEM.md", "tính cách")
     write(src, "workspace/.backup/old.md", "bản cũ")  # không được đi theo
     write(src, "console_test/x.txt", "thử")
@@ -90,6 +94,7 @@ def test_export_import_roundtrip_and_exclusions(tmp_path, clean_env, running):
     with zipfile.ZipFile(bundle) as zf:
         names = set(zf.namelist())
     assert "data/group_settings.txt" in names and "data/memorydata/c1.txt" in names
+    assert "huts/c1/memorydata.txt" in names
     assert "system/processed_message_ids.txt" in names and "manifest.json" in names
     assert not any(".backup" in n or "console_test" in n or n.endswith((".lock", ".log")) for n in names)
     assert not any("settings.env" in n or n.endswith(".env") for n in names)
@@ -98,6 +103,8 @@ def test_export_import_roundtrip_and_exclusions(tmp_path, clean_env, running):
     result = handover.import_bundle(dst, bundle)
     assert result["origin"] == "test"
     assert (dst.data_dir / "group_settings.txt").read_text(encoding="utf-8") == "nhom-a"
+    assert (dst.huts_dir / "c1" / "memorydata.txt").read_text(encoding="utf-8") == "tin trong túp lều"
+    assert not (dst.huts_dir / "cu").exists() or not any((dst.huts_dir / "cu").iterdir())  # giống hệt nơi gửi
     assert (dst.data_dir / "workspace" / "SYSTEM.md").read_text(encoding="utf-8") == "tính cách"
     assert (dst.system_dir / "processed_message_ids.txt").read_text(encoding="utf-8") == "id1\n"
     assert not (dst.data_dir / "stale.txt").exists()  # bản sao giống hệt nơi gửi

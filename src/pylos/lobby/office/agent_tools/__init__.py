@@ -26,7 +26,8 @@ class ToolContext:
     user_id: str
     user_name: str
     is_owner: bool
-    data_dir: Path | None = None  # thư mục data/ (cho tool đọc memorydata của chính hội thoại này)
+    data_dir: Path | None = None  # thư mục data/ (cài đặt và thống kê chung)
+    huts_dir: Path | None = None  # thư mục huts/ (cho tool đọc memorydata của chính túp lều của hội thoại này)
     # Thông tin về tin đang xử lý, cho tool giao lịch biết giao cho ai:
     is_group: bool = False
     chat_name: str = ""

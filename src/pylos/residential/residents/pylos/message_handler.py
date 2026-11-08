@@ -19,7 +19,7 @@ from pylos.lobby.dispatch.shared.storage import MODE_ALL, ActivityStore, FailedS
 from pylos.gate.main_gate.zalo.reply_formatting import split_message, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, parse_updates
-from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, MEMORYDATA_DIR, PROCESSED_IDS_FILE, SESSION_HISTORY_DIR, TOKEN_USAGE_FILE
+from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PROCESSED_IDS_FILE, TOKEN_USAGE_FILE
 
 log = logging.getLogger(__name__)
 
@@ -73,13 +73,13 @@ class Bot:
         data = settings.data_dir
         self.groups = GroupStore(data / GROUP_SETTINGS_FILE, settings.allowed_chat_ids)
         self.seen = SeenStore(settings.system_dir / PROCESSED_IDS_FILE)
-        self.history = HistoryStore(data / SESSION_HISTORY_DIR, keep=max(200, settings.history_turns * 4))
+        self.history = HistoryStore(settings.huts_dir, keep=max(200, settings.history_turns * 4))
         self.state = StateStore(settings.system_dir / BOT_STATUS_FILE)
         self.usage = UsageStore(data / TOKEN_USAGE_FILE)
         self.failed = FailedStore(data / FAILED_REPLIES_FILE)
         self.stats = StatsStore(data / DAILY_STATS_FILE)
         self.activity = ActivityStore(data / CHAT_ACTIVITY_FILE)
-        self.memory = MemoryDataStore(data / MEMORYDATA_DIR, keep=settings.memorydata_keep)
+        self.memory = MemoryDataStore(settings.huts_dir, keep=settings.memorydata_keep)
         self.filter = MessageFilter(settings, agent, self._self_identity)
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
@@ -332,7 +332,7 @@ class Bot:
         role = self._role(msg, is_owner)
         self_id, _ = self._self_identity()
         ctx = ToolContext(
-            msg.chat_id, msg.from_id, msg.from_name, is_owner, self.settings.data_dir,
+            msg.chat_id, msg.from_id, msg.from_name, is_owner, self.settings.data_dir, self.settings.huts_dir,
             is_group=msg.is_group, chat_name=self._chat_name(msg), message_id=msg.message_id,
             mentions=tuple(m for m in msg.mentions if m != self_id), members=members, self_id=self_id,
             can_assign=role in (LEADER, OWNER), role=role,

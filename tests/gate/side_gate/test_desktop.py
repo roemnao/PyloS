@@ -115,7 +115,7 @@ def test_ensure_home_creates_userdata_without_overwriting(tmp_path):
     env.parent.mkdir(parents=True)
     env.write_text("ZALO_BOT_TOKEN=keep-me\n", encoding="utf-8")
     created = first_run_setup.ensure_home(tmp_path)
-    assert set(created) == {"src/pylos/residential/residents/pylos/workspace/SYSTEM.md",
+    assert set(created) == {"src/pylos/gate/fence/SYSTEM.md",
                             "src/pylos/residential/residents/pylos/workspace/MEMORY.md",
                             "src/pylos/lobby/office/agent_tools/custom/_example.py"}
     assert env.read_text(encoding="utf-8") == "ZALO_BOT_TOKEN=keep-me\n"

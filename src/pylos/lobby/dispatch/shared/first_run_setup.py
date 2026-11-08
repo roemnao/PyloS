@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 from pylos.lobby.dispatch.shared.config import APP_HOME, ENV_FILE, Settings
-from pylos.lobby.dispatch.shared.userdata_paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
+from pylos.lobby.dispatch.shared.userdata_paths import CONFIG_REL, DATA_REL, ENV_REL, LOGS_REL, SYSTEM_FILE_REL, SYSTEM_REL, TOOLS_REL, WORKSPACE_REL
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ _DIRS = (CONFIG_REL, DATA_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL, LOGS_REL)
 # (file mẫu trong templates/ cạnh file này, đích so với APP_HOME)
 _FILES = (
     ("env.example", ENV_REL),
-    ("SYSTEM.md", WORKSPACE_REL + "/SYSTEM.md"),
+    ("SYSTEM.md", SYSTEM_FILE_REL),  # có trong git; chép khi thiếu (ví dụ ZaloBot.exe)
     ("MEMORY.md", WORKSPACE_REL + "/MEMORY.md"),
     ("tool_example.py.tmpl", TOOLS_REL + "/_example.py"),
 )
@@ -33,6 +33,7 @@ def ensure_home(home: Path = APP_HOME) -> list[str]:
     for template, target in _FILES:
         destination = home / target
         if not destination.exists():
+            destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(TEMPLATES / template, destination)
             created.append(target)
     if created:

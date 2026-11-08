@@ -13,7 +13,7 @@ before adding, moving or naming anything. Which building a file belongs to: [reg
 4. **Every tracked file has a building.** `src/pylos/lobby/atlas/regions.json` maps path prefixes to buildings; files under
    `src/pylos/<zone>/<building>/` need nothing. Only a new building or a new top-level folder needs one line in `rules` (the tests check it).
 5. **Do not change where data lives** (settings in `management/owner/secrets`, Zalo session, lock/standby/log files in
-   `management/owner/runtime`, chat data in `gate/guest_house/data`, the bot's `workspace/` in `residential/residents/pylos`,
+   `management/owner/runtime`, chat data in `gate/guest_house/huts/<chat_id>/` (one hut per person or group) and shared settings in `gate/guest_house/data`, the bot's `workspace/` in `residential/residents/pylos` (git tracks it; the bot reads every file in it), the bot's general rules `gate/fence/SYSTEM.md`,
    handover bundle) unless that is the task. Data moves need a backup and must be safe to run twice (see `userdata_paths.migrate_to_city`).
 
 ## Conventions

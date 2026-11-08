@@ -66,7 +66,7 @@ async def _run(settings: Settings) -> int:
     else:
         zalo = ZaloClient(settings.zalo_bot_token)
     agent, tools = _build_agent(settings)
-    bot = Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir), tools.names())
+    bot = Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir, settings.system_file), tools.names())
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -184,7 +184,7 @@ class ConsoleZalo:
 
 async def _console(settings: Settings, chat_id: str, user_id: str, name: str, group: bool) -> None:
     agent, tools = _build_agent(settings, allow_echo=True)
-    bot = Bot(settings, ConsoleZalo(), agent, PromptBuilder(settings.workspace_dir), tools.names())
+    bot = Bot(settings, ConsoleZalo(), agent, PromptBuilder(settings.workspace_dir, settings.system_file), tools.names())
     kind = "GROUP" if group else "PRIVATE"
     print(
         f"Chat thử: chat_id={chat_id} ({kind}), bạn là {name} (user_id={user_id}).\n"
@@ -602,6 +602,7 @@ def main(argv: list[str] | None = None) -> int:
             console_settings = dataclasses.replace(
                 settings,
                 data_dir=settings.data_dir / CONSOLE_TEST_DIR,
+                huts_dir=settings.data_dir / CONSOLE_TEST_DIR / "huts",
                 system_dir=settings.data_dir / CONSOLE_TEST_DIR / "system",  # không lẫn state/seen với bot thật
                 owner_zalo_id=settings.owner_zalo_id or user_id,
             )

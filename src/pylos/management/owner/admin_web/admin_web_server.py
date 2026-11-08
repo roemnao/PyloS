@@ -40,7 +40,7 @@ from pylos.lobby.dispatch.shared.storage import MODES, ActivityStore, FailedStor
 from pylos.gate.main_gate.zalo.reply_formatting import split_message
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms, now_vn
 from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
-from pylos.lobby.dispatch.shared.userdata_paths import ADMIN_DEVICES_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, MEMORYDATA_DIR, PENDING_UPDATES_FILE, SESSION_HISTORY_DIR, TOKEN_USAGE_FILE, UPDATE_REQUEST
+from pylos.lobby.dispatch.shared.userdata_paths import ADMIN_DEVICES_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PENDING_UPDATES_FILE, TOKEN_USAGE_FILE, UPDATE_REQUEST
 
 log = logging.getLogger(__name__)
 
@@ -497,7 +497,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.delete("/api/groups/{chat_id}/history")
     def clear_history(chat_id: str) -> dict[str, Any]:
-        HistoryStore(ctx.settings().data_dir / SESSION_HISTORY_DIR).clear(chat_id)
+        HistoryStore(ctx.settings().huts_dir).clear(chat_id)
         return {"ok": True}
 
     @app.get("/api/history/{chat_id}")
@@ -505,7 +505,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = HistoryStore(settings.data_dir / SESSION_HISTORY_DIR).recent(chat_id, max(1, min(n, 500)))
+        records = HistoryStore(settings.huts_dir).recent(chat_id, max(1, min(n, 500)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t")}
             for r in records
@@ -517,7 +517,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
         settings = ctx.settings()
         if not settings.admin_show_history:
             raise HTTPException(403, "Trang Hội thoại đang tắt (ADMIN_SHOW_HISTORY=false).")
-        records = MemoryDataStore(settings.data_dir / MEMORYDATA_DIR).recent(chat_id, max(1, min(n, 2000)))
+        records = MemoryDataStore(settings.huts_dir).recent(chat_id, max(1, min(n, 2000)))
         return {"chat_id": chat_id, "messages": [
             {"role": r.get("role"), "name": r.get("name", ""), "text": r.get("text", ""), "t": r.get("t"),
              "type": r.get("type", "text"), "filter": r.get("filter")}
@@ -529,7 +529,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
     def _workspace_path(settings: Settings, name: str) -> Path:
         if name not in WORKSPACE_FILES:
             raise HTTPException(404, "Chỉ sửa được SYSTEM hoặc MEMORY")
-        return settings.workspace_dir / WORKSPACE_FILES[name]
+        return settings.system_file if name == "SYSTEM" else settings.workspace_dir / WORKSPACE_FILES[name]
 
     @app.get("/api/workspace/{name}")
     def read_workspace(name: str) -> dict[str, Any]:
@@ -542,12 +542,13 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
 
     @app.put("/api/workspace/{name}")
     def write_workspace(name: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
-        path = _workspace_path(ctx.settings(), name)
+        settings = ctx.settings()
+        path = _workspace_path(settings, name)
         content = body.get("content")
         if not isinstance(content, str) or len(content) > MAX_WORKSPACE_CHARS:
             raise HTTPException(400, "Nội dung không hợp lệ hoặc quá dài")
         if path.is_file():
-            backup_dir = path.parent / ".backup"
+            backup_dir = settings.workspace_dir / ".backup"  # sao lưu luôn ở workspace, kể cả khi sửa SYSTEM.md ở hàng rào
             atomic_write_text(backup_dir / f"{name}-{now_vn():%Y%m%d-%H%M%S}.md", path.read_text(encoding="utf-8"))
             for old in sorted(backup_dir.glob(f"{name}-*.md"))[:-20]:
                 old.unlink(missing_ok=True)
@@ -841,7 +842,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             )
         else:
             agent = EchoAgent()
-        system = PromptBuilder(settings.workspace_dir).build(is_group=bool(body.get("is_group")), tool_names=tools.names())
+        system = PromptBuilder(settings.workspace_dir, settings.system_file).build(is_group=bool(body.get("is_group")), tool_names=tools.names())
         ctx_tool = ToolContext("admin-playground", settings.owner_zalo_id or "admin", "Chủ bot", is_owner=True, can_assign=True)
         try:
             reply = await agent.reply(system, turns, ctx_tool)

@@ -23,7 +23,9 @@ GEMINI_API_KEY=
 DAILY_TOKEN_BUDGET=1000
 ADMIN_TOKEN={ADMIN_TOKEN}
 DATA_DIR=data
+HUTS_DIR=huts
 WORKSPACE_DIR=workspace
+SYSTEM_FILE=fence/SYSTEM.md
 LOG_DIR=logs
 OWNER_ZALO_ID=owner
 """
@@ -37,7 +39,8 @@ def env_path(tmp_path, monkeypatch):
     path = tmp_path / ".env"
     path.write_text(ENV_TEXT, encoding="utf-8")
     (tmp_path / "workspace").mkdir()
-    (tmp_path / "workspace" / "SYSTEM.md").write_text("Bạn là trợ lý.", encoding="utf-8")
+    (tmp_path / "fence").mkdir()
+    (tmp_path / "fence" / "SYSTEM.md").write_text("Bạn là trợ lý.", encoding="utf-8")
     return path
 
 
@@ -198,7 +201,7 @@ def test_groups_list_shows_leaders(client, tmp_path):
 # ---------- hội thoại ----------
 
 def test_history_view_and_toggle(client, env_path, tmp_path):
-    HistoryStore(tmp_path / "data" / "session_history").append("g1", "user", "xin chào", uid="u", name="An")
+    HistoryStore(tmp_path / "huts").append("g1", "user", "xin chào", uid="u", name="An")
     data = client.get("/api/history/g1", headers=AUTH).json()
     assert data["messages"][0]["text"] == "xin chào" and data["messages"][0]["name"] == "An"
     for evil in ("..%2F..%2F.env", "..%5C..%5C.env", "....env"):
@@ -218,7 +221,7 @@ def test_workspace_edit_with_backup(client, tmp_path):
     assert client.get("/api/workspace/SYSTEM", headers=AUTH).json()["content"] == "Bạn là trợ lý."
     res = client.put("/api/workspace/SYSTEM", json={"content": "Trợ lý mới\r\n"}, headers=AUTH)
     assert res.status_code == 200
-    assert (tmp_path / "workspace" / "SYSTEM.md").read_text(encoding="utf-8") == "Trợ lý mới\n"
+    assert (tmp_path / "fence" / "SYSTEM.md").read_text(encoding="utf-8") == "Trợ lý mới\n"  # SYSTEM.md ở hàng rào, sao lưu ở workspace
     backups = list((tmp_path / "workspace" / ".backup").glob("SYSTEM-*.md"))
     assert len(backups) == 1 and backups[0].read_text(encoding="utf-8") == "Bạn là trợ lý."
     assert client.get("/api/workspace/MEMORY", headers=AUTH).json()["content"] == ""
@@ -258,7 +261,7 @@ def test_failed_list_and_dismiss(client, tmp_path):
 def test_playground_uses_echo_without_key_and_keeps_group_history_clean(client, tmp_path):
     res = client.post("/api/playground", json={"messages": [{"role": "user", "text": "chào bot"}]}, headers=AUTH).json()
     assert res["ok"] and res["echo"] and "chào bot" in res["reply"]
-    assert not (tmp_path / "data" / "session_history").exists()
+    assert not (tmp_path / "huts").exists()
     assert client.post("/api/playground", json={"messages": []}, headers=AUTH).status_code == 400
 
 
@@ -346,7 +349,7 @@ def test_update_button_asks_gui_to_update_and_shows_pending(client, tmp_path, mo
 def test_memorydata_api_shows_filter_result_and_respects_history_switch(client, env_path, tmp_path):
     from pylos.lobby.dispatch.shared.storage import MemoryDataStore
 
-    store = MemoryDataStore(tmp_path / "data" / "memorydata")
+    store = MemoryDataStore(tmp_path / "huts")
     store.add_user("g1", msg_id="1", uid="u", name="An", text="tán gẫu", is_text=True,
                    decision={"passed": False, "stage": "ai", "reason": "nói với nhau"})
     store.add_model("g1", "chào")

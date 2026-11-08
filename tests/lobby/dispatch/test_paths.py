@@ -142,11 +142,11 @@ def test_migrates_userdata_into_the_city_with_a_backup_and_drops_the_old_workspa
     home = userdata_home(tmp_path)
     assert userdata_paths.needs_city_migration(home) and userdata_paths.pending_migration(home)
     moved = userdata_paths.migrate_to_city(home)
-    assert moved and not userdata_paths.pending_migration(home)
+    assert moved and not userdata_paths.needs_city_migration(home)
 
     city = home / "src" / "pylos"
     for rel in ("management/owner/secrets/settings.env", "management/owner/secrets/zalo_login_session.json",
-                "gate/guest_house/data/memorydata/g1.txt", "gate/guest_house/data/group_settings.txt",
+                "gate/guest_house/data/memorydata/g1.txt", "gate/guest_house/data/group_settings.txt",  # chưa vào túp lều: bước riêng
                 "lobby/office/agent_tools/custom/thoi_tiet.py", "management/owner/runtime/bot_status.txt",
                 "management/owner/runtime/logs/bot.log", "management/owner/runtime/app_window_profile/cache"):
         assert (city / rel).exists(), rel
@@ -181,5 +181,63 @@ def test_city_migration_waits_for_the_old_version(tmp_path):
     try:
         assert userdata_paths.migrate_to_city(home) == []
         assert userdata_paths.needs_city_migration(home) and not list(home.glob("userdata_backup_*.zip"))
+    finally:
+        held.release()
+
+
+# ---------- memorydata/ và session_history/ -> túp lều ----------
+
+def old_chat_data(tmp_path):
+    home = tmp_path / "home"
+    data = home / "src" / "pylos" / "gate" / "guest_house" / "data"
+    (data / "memorydata").mkdir(parents=True)
+    (data / "session_history").mkdir()
+    (data / "memorydata" / "g1.txt").write_text('{"text": "tin 1"}\n', encoding="utf-8")
+    (data / "memorydata" / "u2.txt").write_text('{"text": "tin 2"}\n', encoding="utf-8")
+    (data / "session_history" / "g1.txt").write_text('{"text": "session 1"}\n', encoding="utf-8")
+    (data / "group_settings.txt").write_text("{}", encoding="utf-8")
+    return home
+
+
+def test_chat_data_moves_into_one_hut_per_person_or_group(tmp_path):
+    import zipfile
+
+    home = old_chat_data(tmp_path)
+    assert userdata_paths.needs_huts_migration(home) and userdata_paths.pending_migration(home)
+    moved = userdata_paths.migrate_to_huts(home)
+    assert len(moved) == 3 and not userdata_paths.pending_migration(home)
+
+    huts = home / "src" / "pylos" / "gate" / "guest_house" / "huts"
+    assert (huts / "g1" / "memorydata.txt").read_text(encoding="utf-8") == '{"text": "tin 1"}\n'
+    assert (huts / "g1" / "session_history.txt").is_file() and (huts / "u2" / "memorydata.txt").is_file()
+    assert not (huts / "u2" / "session_history.txt").exists()
+    data = home / "src" / "pylos" / "gate" / "guest_house" / "data"
+    assert not (data / "memorydata").exists() and not (data / "session_history").exists()
+    assert (data / "group_settings.txt").is_file()  # cài đặt chung ở lại data/
+
+    zips = list(home.glob("data_backup_*.zip"))
+    assert len(zips) == 1 and "memorydata/g1.txt" in zipfile.ZipFile(zips[0]).namelist()
+    assert userdata_paths.migrate_to_huts(home) == [] and len(list(home.glob("data_backup_*.zip"))) == 1  # lần hai không làm gì
+
+
+def test_hut_migration_keeps_a_hut_file_that_already_exists(tmp_path):
+    home = old_chat_data(tmp_path)
+    huts = home / "src" / "pylos" / "gate" / "guest_house" / "huts"
+    (huts / "g1").mkdir(parents=True)
+    (huts / "g1" / "memorydata.txt").write_text("mới hơn\n", encoding="utf-8")
+    userdata_paths.migrate_to_huts(home)
+    assert (huts / "g1" / "memorydata.txt").read_text(encoding="utf-8") == "mới hơn\n"
+    old = home / "src" / "pylos" / "gate" / "guest_house" / "data" / "memorydata" / "g1.txt"
+    assert old.is_file()  # bản cũ không bị mất, chờ người xem
+
+
+def test_hut_migration_waits_for_the_running_bot(tmp_path):
+    home = old_chat_data(tmp_path)
+    system = home / "src" / "pylos" / "management" / "owner" / "runtime"
+    system.mkdir(parents=True)
+    held = InstanceLock(system / "bot.lock")
+    held.acquire()
+    try:
+        assert userdata_paths.migrate_to_huts(home) == [] and userdata_paths.needs_huts_migration(home)
     finally:
         held.release()

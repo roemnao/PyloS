@@ -6,9 +6,7 @@ zalo_session.json
 # Dữ liệu và log của bot (có nội dung cá nhân)
 data/
 logs/
-workspace/MEMORY.md
-workspace/notes/
-workspace/.backup/
+/workspace/
 
 # Python
 __pycache__/
@@ -24,13 +22,16 @@ dist/
 userdata/
 .migrate.lock
 
-# Dữ liệu chạy máy nằm ngay trong Thành (xem userdata_paths.py): bí mật, nhật ký/khoá, dữ liệu người dùng, workspace của bot, tool tự viết
+# Dữ liệu chạy máy nằm ngay trong Thành (xem userdata_paths.py): bí mật, nhật ký/khoá, dữ liệu người dùng, bản sao lưu workspace, tool tự viết.
+# workspace của bot (SOUL.md, MEMORY.md...) và gate/fence/SYSTEM.md thì git theo dõi.
 src/pylos/management/owner/secrets/
 src/pylos/management/owner/runtime/
 src/pylos/gate/guest_house/data/
-src/pylos/residential/residents/pylos/workspace/
+src/pylos/gate/guest_house/huts/
+src/pylos/residential/residents/pylos/workspace/.backup/
 src/pylos/lobby/office/agent_tools/custom/
 /userdata_backup_*.zip
+/data_backup_*.zip
 .ruff_cache/
 
 # graphify: graphify-out là junction trỏ vào Toà bản đồ; bộ đệm trích xuất và đường dẫn riêng của máy thì không commit
@@ -41,3 +42,4 @@ src/pylos/lobby/atlas/.graphify_root
 
 # Thư mục tạm của công cụ phân tích (rác, không commit)
 .ua/
+!src/pylos/gate/main_gate/logs/

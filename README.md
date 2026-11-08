@@ -14,9 +14,10 @@ D:\pylosSever\
 │  │  management\owner\secrets\      khoá & thông số bạn nhập: settings.env (khoá Gemini/Zalo/web lịch, trang Cài đặt ghi vào đây),
 │  │                               zalo_login_session.json (phiên Zalo quét QR, giữ kín như mật khẩu)
 │  │  management\owner\runtime\      bot tự quản lý, không cần đụng: logs\, bot_status.txt, processed_message_ids.txt, *.lock, *.pid, …
-│  │  gate\guest_house\data\         dữ liệu theo người / nhóm chat: memorydata\ (mọi tin + kết quả lọc), session_history\ (gửi cho Gemini),
-│  │                               group_settings.txt, chat_activity.txt, daily_stats.txt, token_usage.txt, failed_replies.txt, assigned_events.txt
-│  │  residential\residents\pylos\workspace\   SYSTEM.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), .backup\ (tự tạo từ file mẫu)
+│  │  gate\guest_house\huts\<chat_id>\  TÚP LỀU của một người hoặc một nhóm Zalo: memorydata.txt (mọi tin + kết quả lọc), session_history.txt (gửi cho Gemini)
+│  │  gate\guest_house\data\         cài đặt và thống kê chung: group_settings.txt, chat_activity.txt, daily_stats.txt, token_usage.txt, failed_replies.txt, assigned_events.txt
+│  │  residential\residents\pylos\workspace\   tài liệu riêng của bot: SOUL.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), ... Bot đọc MỌI file .md/.txt ở đây; git theo dõi (trừ .backup\)
+│  │  gate\fence\SYSTEM.md             quy tắc chung của bot (nằm ở hàng rào, bot không tự sửa), git theo dõi
 │  │  lobby\office\agent_tools\custom\         tool tự viết (.py)
 │  ├─ management\                  Khu quản lý
 │  │  ├─ owner\admin_web\          trang web quản lý (admin_web_server.py, static\)
@@ -150,7 +151,7 @@ Mở http://127.0.0.1:8081. Có hai cách vào:
 | Tổng quan | Bật / tắt / khởi động lại bot, xem trạng thái, tin và token hôm nay, biểu đồ 14 ngày, cảnh báo |
 | Nhóm | Đặt tên gợi nhớ, cho phép / chặn, đổi chế độ `all` / `default`, xóa lịch sử; có hiệu lực ngay, không cần khởi động lại |
 | Hội thoại | Đọc lịch sử bot dùng làm ngữ cảnh (tắt được bằng `ADMIN_SHOW_HISTORY=false`) |
-| Chỉ dẫn | Sửa `SYSTEM.md` và `MEMORY.md`, tự sao lưu vào `src/pylos/residential/residents/pylos/workspace/.backup/` |
+| Chỉ dẫn | Sửa `SYSTEM.md` (quy tắc chung, ở `gate/fence`) và `MEMORY.md`; các file khác trong workspace (như `SOUL.md`) sửa trực tiếp, bot tự nạp lại. Tự sao lưu vào `src/pylos/residential/residents/pylos/workspace/.backup/` |
 | Chat thử | Nói chuyện với trợ lý mà không qua Zalo (token vẫn được tính) |
 | Log | Xem log bot / giao diện, lọc theo mức, theo dõi trực tiếp |
 | Tin lỗi | Gửi lại hoặc bỏ qua tin bot không gửi được |
@@ -263,8 +264,8 @@ Mỗi cuộc trò chuyện (nhóm hoặc chat riêng) đã được cho phép c�
 
 | | Nằm ở | Chứa gì | Dùng để |
 |---|---|---|---|
-| **Memorydata** | `src/pylos/gate/guest_house/data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
-| **Session** | `src/pylos/gate/guest_house/data/session_history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
+| **Memorydata** | `src/pylos/gate/guest_house/huts/<chat>/memorydata.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
+| **Session** | `src/pylos/gate/guest_house/huts/<chat>/session_history.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
 
 **Bộ lọc** quyết định tin trong nhóm có đang nhờ bot trả lời không (chat riêng thì tin nào cũng qua). Các tầng chạy theo thứ tự:
 1. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
@@ -433,8 +434,9 @@ Mọi dữ liệu của bạn nằm trong Thành, ở các thư mục `secrets`,
 | `src/pylos/gate/guest_house/data/daily_stats.txt`, `token_usage.txt` | Số liệu theo ngày, token đã dùng. |
 | `src/pylos/gate/guest_house/data/failed_replies.txt` | Câu trả lời gửi lỗi (trang Tin lỗi). |
 | `src/pylos/gate/guest_house/data/assigned_events.txt` | Lịch bot đã giao cho người khác qua web iforgotmywayhome (mã lịch, người nhận). |
-| `src/pylos/gate/guest_house/data/session_history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
-| `src/pylos/gate/guest_house/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
-| `src/pylos/residential/residents/pylos/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
+| `src/pylos/gate/guest_house/huts/<chat>/session_history.txt` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
+| `src/pylos/gate/guest_house/huts/<chat>/memorydata.txt` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
+| `src/pylos/gate/fence/SYSTEM.md` | Quy tắc chung của trợ lý. Sửa xong bot tự nạp lại. |
+| `src/pylos/residential/residents/pylos/workspace/*.md` | Tài liệu riêng của bot (`SOUL.md`: bot là ai, trả lời thế nào). Bot đọc hết mọi file ở đây. |
 | `src/pylos/residential/residents/pylos/workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
 | `src/pylos/management/owner/runtime/logs/` | `bot.log` (xoay vòng 5 × 1 MB), `admin.log`, `gui.log`, `supervisor.log`. |

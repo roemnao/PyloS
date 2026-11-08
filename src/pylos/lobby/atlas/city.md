@@ -112,7 +112,7 @@ Inside a bot's apartment:
 
 | Folder | Holds |
 |---|---|
-| `workspace/` | working files, drafts |
+| `workspace/` | the bot's own documents (`SOUL.md`: who it is and how it answers, `MEMORY.md`: long-term notes, anything else you drop in). The bot reads **every** `.md`/`.txt` file here (hidden folders such as `.backup/` excluded); `MEMORY.md` is read as data, the rest as instructions. Tracked by git |
 | `persona/` | voice and habits (the bot may tune these); the bot's *rules* are not editable by the bot |
 | `bookshelf/` | versioned copies of library documents |
 | `memory/muscle/` | skills distilled from the bookshelf or written by the bot; retuned weekly from the manager's score, rolled back if the score drops |
@@ -218,7 +218,7 @@ working assumptions, not decisions.
 | Bus technology | a bus interface with an in-process implementation; SQLite once there are several processes |
 | Bot entry point | `python -m bot run` / `python -m bot gui` stay (the VPS systemd unit depends on them) |
 | Root package | `src/pylos/` |
-| Where data lives | moved into the city (2026-11): secrets and runtime files in `management/owner/{secrets,runtime}`, chat data in `gate/guest_house/data`, the bot's own `workspace/` in its apartment `residential/residents/pylos/`, custom tools in `lobby/office/agent_tools/custom`. All git-ignored; no `userdata/` any more |
+| Where data lives | moved into the city (2026-11): secrets and runtime files in `management/owner/{secrets,runtime}`, chat data in huts `gate/guest_house/huts/<chat_id>/` (one hut per person or group: `memorydata.txt`, `session_history.txt`) plus shared settings in `gate/guest_house/data`, custom tools in `lobby/office/agent_tools/custom` (all git-ignored); the bot's own `workspace/` in its apartment `residential/residents/pylos/` and its general rules `gate/fence/SYSTEM.md` (the bot cannot edit them) are tracked by git. No `userdata/` any more |
 | Dangerous commands over Zalo | `shell` and destructive commands only from the admin web UI |
 | Scripts inside skills | muscle memory is text only; scripts run only from vetted library skills, through `office` |
 | Persona rules | kept outside the bot's apartment, loaded into the prompt at run time |

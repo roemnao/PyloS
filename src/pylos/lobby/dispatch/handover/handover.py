@@ -1,7 +1,8 @@
 """Gói dữ liệu để chuyển bot giữa máy local và VPS (xem docs/PLAN.md, mục Điều khiển VPS từ xa).
 
 Gói là một file zip gồm:
-  data/...                   toàn bộ Settings.data_dir (nhóm, lịch sử, memorydata, tool tự viết...)
+  data/...                   toàn bộ Settings.data_dir (cài đặt nhóm, thống kê...)
+  huts/...                   toàn bộ Settings.huts_dir (túp lều: memorydata, session của từng người / nhóm)
   workspace/...              Settings.workspace_dir, chỉ khi nó nằm ngoài data_dir
   system/processed_message_ids.txt   id tin đã xử lý, để bên nhận không trả lời lại tin cũ
   session/zalo_login_session.json    phiên acc Zalo cá nhân (nếu có)
@@ -67,6 +68,7 @@ def _workspace_outside_data(settings: Settings) -> bool:
 def _sources(settings: Settings) -> list[tuple[str, Path]]:
     """[(tên trong zip, file thật)]"""
     items = [(f"data/{p.relative_to(settings.data_dir).as_posix()}", p) for p in _tree(settings.data_dir)]
+    items += [(f"huts/{p.relative_to(settings.huts_dir).as_posix()}", p) for p in _tree(settings.huts_dir)]
     if _workspace_outside_data(settings):
         items += [(f"workspace/{p.relative_to(settings.workspace_dir).as_posix()}", p) for p in _tree(settings.workspace_dir)]
     ids = settings.system_dir / PROCESSED_IDS_FILE
@@ -109,6 +111,8 @@ def _target(settings: Settings, arc: str) -> Path | None:
         return settings.zalo_session_file
     if len(parts) >= 2 and parts[0] == "data":
         root = settings.data_dir
+    elif len(parts) >= 2 and parts[0] == "huts":
+        root = settings.huts_dir
     elif len(parts) >= 2 and parts[0] == "workspace" and _workspace_outside_data(settings):
         root = settings.workspace_dir
     else:
@@ -207,7 +211,7 @@ def import_bundle(settings: Settings, zip_path: Path) -> dict[str, Any]:
                     raise
                 time.sleep(0.1 * (attempt + 1))
     # Bản sao phải giống hệt nơi gửi: bỏ file chỉ có ở máy này (đã có bản sao lưu).
-    roots = [(settings.data_dir, "data")]
+    roots = [(settings.data_dir, "data"), (settings.huts_dir, "huts")]
     if _workspace_outside_data(settings):
         roots.append((settings.workspace_dir, "workspace"))
     for root, _ in roots:
