@@ -279,6 +279,8 @@ Kiểm tra bộ lọc: giao diện quản lý → **Hội thoại** → chọn *
 
 Cấu hình (trang Cài đặt → **Bộ lọc & memorydata**): `FILTER_AI`, `FILTER_MODEL` (nên dùng model rẻ), `FILTER_CONTEXT_LINES`, `MEMORYDATA_KEEP` (số tin giữ lại mỗi file). Muốn thêm tên gọi bot, sửa `BOT_NAMES`, ví dụ `bot,trợ lý,Pylos`.
 
+Câu trả lời nhiều dòng được tách thành nhiều tin Zalo (trang Cài đặt → **Gemini**): `REPLY_SPLIT` (`line` mỗi dòng một tin, `paragraph` mỗi đoạn một tin, `off` một tin), `REPLY_MAX_PARTS` (tối đa số tin, nhiều dòng hơn thì gộp lại), `REPLY_PART_DELAY_MS` (nghỉ giữa các tin). Khối code và danh sách gạch đầu dòng không bị tách. memorydata và session vẫn lưu một bản đầy đủ.
+
 Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc bật `ALLOW_ALL_CHATS=true`. Nhóm chưa được phép thì bot không lưu gì. Chế độ acc Zalo cá nhân nhận được mọi tin trong nhóm. Zalo Bot thì có thể chỉ nhận tin nhắc tới bot (Zalo chưa ghi rõ).
 
 ## Nối với web bot lịch iforgotmywayhome (repo quanlythoigian)

@@ -223,7 +223,7 @@ async def test_long_reply_is_split_under_limit(make_bot, zalo, agent):
 
 async def test_markdown_is_stripped(make_bot, zalo, agent):
     agent.reply_text = "## Tiêu đề\n**đậm** và\n- ý một"
-    bot = make_bot(ALLOWED_CHAT_IDS=GROUP)
+    bot = make_bot(ALLOWED_CHAT_IDS=GROUP, REPLY_SPLIT="off")  # test này chỉ kiểm làm sạch markdown
     await send(bot, event("/bot định dạng"))
     assert zalo.texts(GROUP)[-1] == "Tiêu đề\nđậm và\n• ý một"
 
