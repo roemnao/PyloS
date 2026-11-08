@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-from pylos.lobby.dispatch.shared.userdata_paths import APP_HOME, APP_NAME, DATA_REL, ENV_FILE, ENV_REL, HUTS_REL, LOGS_REL, SESSION_REL, SYSTEM_FILE_REL, SYSTEM_REL, WORKSPACE_REL, app_home, is_frozen
+from pylos.lobby.dispatch.shared.userdata_paths import APP_HOME, APP_NAME, DATA_REL, ENV_FILE, ENV_REL, FILTER_WORKSPACE_REL, HUTS_REL, LOGS_REL, SESSION_REL, SYSTEM_FILE_REL, SYSTEM_REL, WORKSPACE_REL, app_home, is_frozen
 
 # Giữ tên PROJECT_ROOT cho code cũ; khi chạy từ exe nó là thư mục chứa exe.
 PROJECT_ROOT = APP_HOME
@@ -90,6 +90,8 @@ class Settings:
     # Bộ lọc tin nhóm (bot/core/message_filter.py) và memorydata (mọi tin của từng hội thoại)
     filter_ai: bool = True
     filter_model: str = ""
+    # Căn hộ của bot lọc: mọi .md/.txt trong đây là chỉ dẫn cho bộ lọc AI (thiếu thì dùng chỉ dẫn mặc định trong code)
+    filter_workspace_dir: Path = Path(FILTER_WORKSPACE_REL)
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
     schedule_api_key: str = ""
@@ -195,6 +197,7 @@ class Settings:
             bot_names=_csv(env["BOT_NAMES"]) if "BOT_NAMES" in env else ("bot",),
             filter_ai=_bool(env, "FILTER_AI", True),
             filter_model=env.get("FILTER_MODEL", "").strip(),
+            filter_workspace_dir=path("FILTER_WORKSPACE_DIR", FILTER_WORKSPACE_REL),
             filter_context_lines=_int(env, "FILTER_CONTEXT_LINES", 6),
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
