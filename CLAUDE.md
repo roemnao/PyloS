@@ -12,8 +12,9 @@ before adding, moving or naming anything. Which building a file belongs to: [reg
    allowed: add a line to `regions.json` `rules` and tell the owner.
 4. **Every tracked file has a building.** `src/pylos/lobby/atlas/regions.json` maps path prefixes to buildings; files under
    `src/pylos/<zone>/<building>/` need nothing. Only a new building or a new top-level folder needs one line in `rules` (the tests check it).
-5. **Do not change where data lives in `userdata/`** (settings, Zalo session, lock file, standby file, handover bundle)
-   unless that is the task. Data moves need a backup and must be safe to run twice.
+5. **Do not change where data lives** (settings in `management/owner/secrets`, Zalo session, lock/standby/log files in
+   `management/owner/runtime`, chat data in `gate/guest_house/data`, the bot's `workspace/` in `residential/residents/pylos`,
+   handover bundle) unless that is the task. Data moves need a backup and must be safe to run twice (see `userdata_paths.migrate_to_city`).
 
 ## Conventions
 

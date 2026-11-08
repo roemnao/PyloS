@@ -278,7 +278,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
         qr_path.unlink(missing_ok=True)
 
     apply_session(session, settings.zalo_session_file, ENV_FILE)
-    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong userdata/config/settings.env.")
+    print(f"Đã lưu phiên đăng nhập vào {settings.zalo_session_file} và đặt RECEIVE_MODE=personal trong src/pylos/management/owner/secrets/settings.env.")
     if session.user_id:
         print(f"ID của acc phụ: {session.user_id}")
     if bot_process.is_running(settings):
@@ -290,7 +290,7 @@ def _zalo_login(settings: Settings, open_image: bool) -> int:
     else:
         print("Chạy bot: python -m bot run (hoặc gateway start).")
     if not settings.owner_zalo_id:
-        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong userdata/config/settings.env.")
+        print("Tiếp theo: từ acc CHÍNH, nhắn /id cho acc phụ rồi điền user_id vào OWNER_ZALO_ID trong src/pylos/management/owner/secrets/settings.env.")
     return 0
 
 
@@ -370,7 +370,7 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
         result = {"start": bot_process.start, "stop": bot_process.stop, "restart": bot_process.restart}[action](settings, bot_process.ADMIN)
         print(result.message)
         if result.ok and action != "stop":
-            print(f"Mở {url} và nhập ADMIN_TOKEN trong userdata/config/settings.env (hoặc chạy lại với --open).")
+            print(f"Mở {url} và nhập ADMIN_TOKEN trong src/pylos/management/owner/secrets/settings.env (hoặc chạy lại với --open).")
             if open_browser:
                 webbrowser.open(login_url)
         return result.code
@@ -407,19 +407,19 @@ def _admin(settings: Settings, action: str, open_browser: bool) -> int:
 
 
 def _prepare_home(command: str) -> str | None:
-    """Chuyển dữ liệu bản cũ vào userdata/ (một lần) rồi tạo thư mục/file mẫu còn thiếu.
+    """Chuyển dữ liệu bản cũ vào Thành (một lần, có sao lưu) rồi tạo thư mục/file mẫu còn thiếu.
 
-    Trả về thông báo lỗi nếu chưa chuyển được vì bản cũ còn chạy (không được tạo userdata/ mới lúc đó,
+    Trả về thông báo lỗi nếu chưa chuyển được vì bản cũ còn chạy (không được tạo thư mục dữ liệu mới lúc đó,
     kẻo dữ liệu cũ bị bỏ lại).
     """
     from pylos.lobby.dispatch.shared import userdata_paths
     from pylos.lobby.dispatch.shared.first_run_setup import ensure_home
 
     # Sau khi bấm Cập nhật, bản cũ của ứng dụng cần vài giây để thoát: ứng dụng mới chờ lâu hơn bot.
-    userdata_paths.migrate_legacy(wait_old=30.0 if command == "gui" else 5.0)
-    if userdata_paths.needs_migration():
+    userdata_paths.migrate_all(wait_old=30.0 if command == "gui" else 5.0)
+    if userdata_paths.pending_migration():
         return (
-            "Bản cũ của bot hoặc ứng dụng quản lý vẫn đang chạy nên chưa chuyển được dữ liệu sang thư mục userdata.\n"
+            "Bản cũ của bot hoặc ứng dụng quản lý vẫn đang chạy nên chưa chuyển được dữ liệu vào Thành.\n"
             "Thoát hẳn bản cũ (chuột phải biểu tượng Z ở khay → Thoát và tắt bot) rồi mở lại."
         )
     ensure_home()
@@ -516,7 +516,7 @@ def main(argv: list[str] | None = None) -> int:
         if command in ("me", "set-webhook", "delete-webhook", "webhook-info") and settings.personal:
             raise ConfigError(f"Lệnh {command} chỉ dùng với Zalo Bot (token), không dùng với RECEIVE_MODE=personal.")
         if command == "set-webhook" and not (8 <= len(settings.webhook_secret) <= 256):
-            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong userdata/config/settings.env.")
+            raise ConfigError("Cần WEBHOOK_SECRET dài 8–256 ký tự trong src/pylos/management/owner/secrets/settings.env.")
     except ConfigError as exc:
         print(f"Lỗi cấu hình: {exc}", file=sys.stderr)
         return EXIT_CONFIG

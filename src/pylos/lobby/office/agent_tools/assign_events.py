@@ -6,7 +6,7 @@ người và ghi log. Bật khi có SCHEDULE_API_KEY. Ai được giao lịch: A
 người), chỉnh được trên web.
 
 Người nhận lấy từ @tag thật trong tin, rồi tới tên khớp (không phân biệt dấu) với danh sách thành viên nhóm.
-Bot nhớ các lịch đã giao trong userdata/data/assigned_events.txt để sửa / huỷ "lịch lúc nãy".
+Bot nhớ các lịch đã giao trong gate/guest_house/data/assigned_events.txt để sửa / huỷ "lịch lúc nãy".
 
 API của web (src/calbot.js của quanlythoigian):
   POST   /assign        {title, start, end?, allDay?, note?, assignees: [{zaloUid, name}], source}

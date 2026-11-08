@@ -29,7 +29,7 @@ def check_access(raw: str | Path, actor: Actor, *, city_root: Path, huts_root: P
                  served_hut: str | None = None) -> Path:
     """Trả về đường dẫn đã chuẩn hoá nếu `actor` được vào, ngược lại ném AccessDenied.
 
-    `city_root`: thư mục pylos/ (4 khu). `huts_root`: nơi lưu túp lều (userdata/data/huts). `served_hut`: túp lều của
+    `city_root`: thư mục pylos/ (4 khu). `huts_root`: nơi lưu túp lều (gate/guest_house/data/huts). `served_hut`: túp lều của
     người (hoặc nhóm) mà bot đang phục vụ; None nghĩa là không phục vụ ai nên không vào túp lều nào.
     Chuẩn hoá bằng resolve() nên `..`, symlink và đường dẫn tuyệt đối không lách được; so sánh không phân biệt hoa/thường
     ở Windows nhờ chuẩn hoá của hệ điều hành.
@@ -57,5 +57,5 @@ def check_access(raw: str | Path, actor: Actor, *, city_root: Path, huts_root: P
     if parts[:2] == ("residential", "residents") and len(parts) >= 3 and parts[2] != actor.name:
         raise AccessDenied("căn hộ của bot khác")
     if parts[:2] == ("gate", "guest_house") and len(parts) >= 3:
-        raise AccessDenied("túp lều nằm trong userdata, không nằm trong mã nguồn")
+        raise AccessDenied("túp lều chỉ vào được qua huts_root, không qua đường dẫn trong nội thành")
     return path

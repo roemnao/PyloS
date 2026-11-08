@@ -114,7 +114,7 @@ class Settings:
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
         if env is None:
-            # Chỉ đọc userdata/config/settings.env: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
+            # Chỉ đọc src/pylos/management/owner/secrets/settings.env: exe được Windows bật lúc đăng nhập có thư mục làm việc bất kỳ,
             # tìm .env theo thư mục làm việc có thể đọc nhầm file của chương trình khác.
             candidate = APP_HOME / ENV_REL
             if candidate.is_file():
@@ -123,7 +123,7 @@ class Settings:
                         os.environ[key] = value
                         LOADED_FROM_DOTENV.add(key)
             env = dict(os.environ)
-        # Đường dẫn tương đối tính từ APP_HOME (thư mục chứa userdata/), không phụ thuộc nơi chạy.
+        # Đường dẫn tương đối tính từ APP_HOME (thư mục chứa src/pylos/), không phụ thuộc nơi chạy.
         base = base_dir or PROJECT_ROOT
 
         def path(name: str, default: str) -> Path:
@@ -214,7 +214,7 @@ class Settings:
         if missing:
             raise ConfigError(
                 "Thiếu biến môi trường: " + ", ".join(missing)
-                + ". Hãy điền vào userdata/config/settings.env (hoặc trang Cài đặt của ứng dụng quản lý)."
+                + ". Hãy điền vào src/pylos/management/owner/secrets/settings.env (hoặc trang Cài đặt của ứng dụng quản lý)."
             )
         if zalo and self.receive_mode == "webhook" and not (8 <= len(self.webhook_secret) <= 256):
             raise ConfigError("RECEIVE_MODE=webhook cần WEBHOOK_SECRET dài 8–256 ký tự.")

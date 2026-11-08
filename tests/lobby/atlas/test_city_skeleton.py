@@ -7,6 +7,8 @@ import importlib
 import re
 from pathlib import Path
 
+from pylos.lobby.dispatch.shared.userdata_paths import RUNTIME_DIRS
+
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").is_file())
 CITY = ROOT / "src" / "pylos"
 ZONES = {"management", "gate", "lobby", "residential"}
@@ -40,6 +42,8 @@ def test_every_folder_is_a_lowercase_snake_case_package():
             continue  # trong căn hộ history chỉ có dữ liệu (thư mục theo ngày), không phải gói Python
         if path.relative_to(CITY).parts[:2] == ("lobby", "atlas"):
             continue  # Toà bản đồ: đầu ra của graphify (dữ liệu), không phải gói Python
+        if any(path == ROOT / rel or (ROOT / rel) in path.parents for rel in RUNTIME_DIRS):
+            continue  # dữ liệu chạy máy trong Thành (bí mật, dữ liệu, workspace...), git bỏ qua
         if {"static", "packaging", "windows_task", "templates"} & set(path.relative_to(CITY).parts):
             continue  # file tĩnh, script build/Windows: không phải gói Python
         if path.is_dir() and path.name != "__pycache__":
@@ -48,8 +52,8 @@ def test_every_folder_is_a_lowercase_snake_case_package():
 
 
 def test_longest_path_stays_short_for_windows():
-    atlas = CITY / "lobby" / "atlas"  # đầu ra graphify (bộ đệm tên dài), không đóng gói vào exe
-    longest = max((str(p.relative_to(ROOT)) for p in CITY.rglob("*") if atlas not in p.parents), key=len)
+    skip = [CITY / "lobby" / "atlas", *(ROOT / rel for rel in RUNTIME_DIRS)]  # đầu ra graphify và dữ liệu chạy máy
+    longest = max((str(p.relative_to(ROOT)) for p in CITY.rglob("*") if not any(d in p.parents for d in skip)), key=len)
     assert len(longest) <= MAX_RELATIVE_PATH, longest
 
 

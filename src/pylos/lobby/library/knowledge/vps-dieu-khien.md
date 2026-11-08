@@ -102,7 +102,7 @@ Code thử `systemctl` thường (polkit) trước, không được thì `sudo -
 ### 3. Bật chế độ systemd cho bot trên VPS
 
 ```bash
-sudo -u pylos sh -c 'grep -q ^BOT_SUPERVISOR= /opt/pylos/userdata/config/settings.env || echo BOT_SUPERVISOR=systemd >> /opt/pylos/userdata/config/settings.env'
+sudo -u pylos sh -c 'grep -q ^BOT_SUPERVISOR= /opt/pylos/src/pylos/management/owner/secrets/settings.env || echo BOT_SUPERVISOR=systemd >> /opt/pylos/src/pylos/management/owner/secrets/settings.env'
 systemctl restart pylos-admin
 ```
 
