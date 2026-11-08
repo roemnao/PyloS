@@ -12,7 +12,7 @@ BOT, OWNER, MANAGER = Actor("bot", "pylos"), Actor("owner"), Actor("manager")
 
 @pytest.fixture
 def city(tmp_path):
-    root, huts = tmp_path / "pylos", tmp_path / "userdata" / "data" / "huts"
+    root, huts = tmp_path / "pylos", tmp_path / "gate_data" / "huts"
     for rel in ("management/owner/private_plans", "lobby/dispatch/bus", "lobby/library/skills",
                 "residential/residents/pylos/memory", "residential/residents/other/memory", "gate/guest_house"):
         (root / rel).mkdir(parents=True)

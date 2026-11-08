@@ -111,30 +111,33 @@ def test_spawn_command_source_and_frozen(monkeypatch):
 # ---------- lần chạy đầu ----------
 
 def test_ensure_home_creates_userdata_without_overwriting(tmp_path):
-    env = tmp_path / "userdata" / "config" / "settings.env"
+    env = tmp_path / "src" / "pylos" / "management" / "owner" / "secrets" / "settings.env"
     env.parent.mkdir(parents=True)
     env.write_text("ZALO_BOT_TOKEN=keep-me\n", encoding="utf-8")
     created = first_run_setup.ensure_home(tmp_path)
-    assert set(created) == {"userdata/data/workspace/SYSTEM.md", "userdata/data/workspace/MEMORY.md",
-                            "userdata/data/custom_tools/_example.py"}
+    assert set(created) == {"src/pylos/residential/residents/pylos/workspace/SYSTEM.md",
+                            "src/pylos/residential/residents/pylos/workspace/MEMORY.md",
+                            "src/pylos/lobby/office/agent_tools/custom/_example.py"}
     assert env.read_text(encoding="utf-8") == "ZALO_BOT_TOKEN=keep-me\n"
-    for directory in ("config", "data", "data/workspace", "data/custom_tools", "system", "system/logs"):
-        assert (tmp_path / "userdata" / directory).is_dir()
+    for directory in ("management/owner/secrets", "gate/guest_house/data", "residential/residents/pylos/workspace",
+                      "lobby/office/agent_tools/custom", "management/owner/runtime", "management/owner/runtime/logs"):
+        assert (tmp_path / "src" / "pylos" / directory).is_dir()
+    assert not (tmp_path / "userdata").exists()
     assert first_run_setup.ensure_home(tmp_path) == []
 
     fresh = tmp_path / "fresh"
-    assert "userdata/config/settings.env" in first_run_setup.ensure_home(fresh)
+    assert "src/pylos/management/owner/secrets/settings.env" in first_run_setup.ensure_home(fresh)
 
 
-def test_env_template_keeps_data_inside_userdata(tmp_path):
-    """Mẫu .env (app chép vào userdata/config/.env) không được trỏ dữ liệu về chỗ cũ data/, logs/..."""
+def test_env_template_keeps_data_inside_the_city(tmp_path):
+    """Mẫu .env (app chép vào management/owner/secrets) không được trỏ dữ liệu về chỗ cũ data/, logs/..."""
     from dotenv import dotenv_values
 
     template = ROOT / "src" / "pylos" / "lobby" / "dispatch" / "shared" / "templates" / "env.example"
     env = {k: v or "" for k, v in dotenv_values(template).items()}
     s = config.Settings.from_env(env, base_dir=tmp_path)
     for path in (s.data_dir, s.workspace_dir, s.log_dir, s.system_dir, s.zalo_session_file):
-        assert (tmp_path / "userdata") in path.parents, path
+        assert (tmp_path / "src" / "pylos") in path.parents, path
 
 
 def test_ensure_admin_token_writes_once(tmp_path):

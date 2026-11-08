@@ -28,7 +28,7 @@ NON_TEXT_REPLY = "Hiện mình chỉ đọc được tin nhắn chữ."
 EMPTY_PROMPT_REPLY = "Bạn cần mình giúp gì?"
 NO_OWNER_HINT = (
     "Bot chưa có chủ. Nếu bạn là người cài bot, hãy điền OWNER_ZALO_ID={user_id} "
-    "vào userdata/config/settings.env (hoặc trang Cài đặt) rồi khởi động lại bot."
+    "vào src/pylos/management/owner/secrets/settings.env (hoặc trang Cài đặt) rồi khởi động lại bot."
 )
 BUDGET_NOTICE = (
     "Đã dùng hết hạn mức token hôm nay. Đến hết ngày, mình chỉ trả lời "
@@ -152,7 +152,7 @@ class Bot:
             self._warned_no_owner.add(msg.from_id)
             log.warning(
                 "OWNER_ZALO_ID chưa đặt. Tin từ from_id=%s (%s), chat_id=%s (%s). "
-                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong userdata/config/settings.env rồi khởi động lại.",
+                "Nếu đây là bạn, điền from_id vào OWNER_ZALO_ID trong src/pylos/management/owner/secrets/settings.env rồi khởi động lại.",
                 msg.from_id, msg.from_name, msg.chat_id, msg.chat_type,
             )
 

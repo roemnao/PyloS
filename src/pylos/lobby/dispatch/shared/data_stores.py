@@ -1,4 +1,4 @@
-"""Các kho dữ liệu của bot (tên file: xem bot/userdata_paths.py), nằm trong userdata/data và userdata/system.
+"""Các kho dữ liệu của bot (tên file: xem bot/userdata_paths.py), nằm trong gate/guest_house/data và management/owner/runtime.
 
 Bot và giao diện quản lý (tiến trình riêng) cùng đọc/ghi các file này. Kho nào
 cả hai bên cùng ghi thì luôn đọc lại file ngay trước khi sửa (đọc-sửa-ghi),
@@ -195,7 +195,7 @@ class GroupStore:
 
 
 class SeenStore:
-    """processed_message_ids.txt (userdata/system): khóa các tin đã xử lý, chỉ giữ `keep` khóa gần nhất."""
+    """processed_message_ids.txt (management/owner/runtime): khóa các tin đã xử lý, chỉ giữ `keep` khóa gần nhất."""
 
     def __init__(self, path: Path, keep: int = 2000) -> None:
         self._file = JsonLinesFile(path)
@@ -290,7 +290,7 @@ class MemoryDataStore:
 
 
 class StateStore:
-    """bot_status.txt (userdata/system): thời điểm khởi động, lần poll cuối, tin cuối (để healthcheck)."""
+    """bot_status.txt (management/owner/runtime): thời điểm khởi động, lần poll cuối, tin cuối (để healthcheck)."""
 
     def __init__(self, path: Path) -> None:
         self._file = JsonObjectFile(path)

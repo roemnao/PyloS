@@ -1,5 +1,5 @@
 # Files graphify must not put into the city map (gitignore syntax).
-# Already skipped through .gitignore: userdata/, build/, dist/, .venv/
+# Already skipped through .gitignore: build/, dist/, .venv/ and the data folders inside the city (secrets, runtime, data, workspace, custom tools)
 .ua/
 graphify-out/
 # Toà bản đồ chính là đầu ra của graphify (regions.out): không tự đọc lại mình

@@ -214,11 +214,11 @@ working assumptions, not decisions.
 | Can other bots enter a hut | postponed until there are two or more bots |
 | In a group, can the bot read members' personal huts | no — only the group's hut |
 | Short-term memory vs. personal data | personal parts go straight to the hut; short-term keeps only de-identified material |
-| Where secrets live | `userdata/config/settings.env` as today; `owner/` only documents them |
+| Where secrets live | `src/pylos/management/owner/secrets/settings.env` as today; `owner/` only documents them |
 | Bus technology | a bus interface with an in-process implementation; SQLite once there are several processes |
 | Bot entry point | `python -m bot run` / `python -m bot gui` stay (the VPS systemd unit depends on them) |
 | Root package | `src/pylos/` |
-| `userdata/` | stays where it is, mapped into huts/apartments by a path layer |
+| Where data lives | moved into the city (2026-11): secrets and runtime files in `management/owner/{secrets,runtime}`, chat data in `gate/guest_house/data`, the bot's own `workspace/` in its apartment `residential/residents/pylos/`, custom tools in `lobby/office/agent_tools/custom`. All git-ignored; no `userdata/` any more |
 | Dangerous commands over Zalo | `shell` and destructive commands only from the admin web UI |
 | Scripts inside skills | muscle memory is text only; scripts run only from vetted library skills, through `office` |
 | Persona rules | kept outside the bot's apartment, loaded into the prompt at run time |

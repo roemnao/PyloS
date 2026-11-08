@@ -90,12 +90,13 @@ def test_run_command_exits_in_standby(tmp_path, monkeypatch):
     settings = make_settings(tmp_path)
     bot_process.set_standby(settings, "Bot đang chạy ở VPS.")
     monkeypatch.setattr(command_line, "setup_logging", lambda *a, **k: None)
+    monkeypatch.setattr(command_line, "_prepare_home", lambda command: None)  # không chuyển dữ liệu thật của máy đang chạy test
     monkeypatch.setattr(Settings, "from_env", classmethod(lambda cls, *a, **k: settings))
     assert command_line.main(["run"]) == bot_process.EXIT_STANDBY
 
 
 def test_api_server_returns_info_without_secrets(tmp_path):
-    (tmp_path / "userdata" / "config").mkdir(parents=True)
+    (tmp_path / "src" / "pylos" / "management" / "owner" / "secrets").mkdir(parents=True)
     env = tmp_path / ".env"
     env.write_text(f"ADMIN_TOKEN={TOKEN}\nZALO_BOT_TOKEN=999:secret\nDATA_DIR=data\nWORKSPACE_DIR=ws\nLOG_DIR=logs\n", encoding="utf-8")
     client = TestClient(create_app(AdminContext(env, tmp_path), 8081), base_url=BASE)

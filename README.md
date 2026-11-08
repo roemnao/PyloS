@@ -10,27 +10,14 @@ Kế hoạch và các quyết định thiết kế nằm trong [PLAN.md](src/pyl
 D:\pylosSever\
 ├─ ZaloBot.cmd                      bấm đúp để mở app
 ├─ README.md
-├─ userdata\                        MỌI THỨ CỦA RIÊNG BẠN (không lên GitHub; chuyển máy chỉ cần chép thư mục này)
-│  ├─ config\                       (1) khoá & thông số bạn nhập
-│  │  ├─ settings.env               khoá Gemini/Zalo/web lịch và mọi cài đặt (trang Cài đặt ghi vào đây)
-│  │  └─ zalo_login_session.json    phiên đăng nhập acc Zalo (quét QR), giữ kín như mật khẩu
-│  ├─ data\                         (2) dữ liệu bot
-│  │  ├─ memorydata\                mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc
-│  │  ├─ session_history\           session: tin qua bộ lọc + câu trả lời của bot (gửi cho Gemini)
-│  │  ├─ workspace\                 SYSTEM.md (tính cách), MEMORY.md (ghi nhớ), .backup\
-│  │  ├─ custom_tools\              tool tự viết (.py)
-│  │  ├─ group_settings.txt         nhóm nào được phép, chế độ all/default, nhãn tự đặt
-│  │  ├─ chat_activity.txt          lần nhắn cuối của từng cuộc trò chuyện
-│  │  ├─ daily_stats.txt            số tin nhận/trả lời/lỗi/token theo ngày
-│  │  ├─ token_usage.txt            token Gemini đã dùng mỗi ngày (hạn mức)
-│  │  ├─ failed_replies.txt         câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
-│  │  └─ assigned_events.txt        lịch bot đã giao cho người khác (để sửa / huỷ "lịch lúc nãy")
-│  └─ system\                       (3) bot tự quản lý, không cần đụng
-│     ├─ logs\                      bot.log, admin.log, gui.log, supervisor.log
-│     ├─ bot_status.txt             lúc khởi động, lần nhận tin cuối
-│     ├─ processed_message_ids.txt  id tin đã xử lý (chống trả lời trùng)
-│     └─ *.lock, *.pid, app_window_profile\, …
-├─ src\pylos\                      THÀNH (code mới, chia khu → toà → căn hộ; xem city.md)
+├─ src\pylos\                      THÀNH (code, chia khu → toà → căn hộ; xem city.md). DỮ LIỆU CỦA RIÊNG BẠN cũng nằm ngay trong Thành (git bỏ qua):
+│  │  management\owner\secrets\      khoá & thông số bạn nhập: settings.env (khoá Gemini/Zalo/web lịch, trang Cài đặt ghi vào đây),
+│  │                               zalo_login_session.json (phiên Zalo quét QR, giữ kín như mật khẩu)
+│  │  management\owner\runtime\      bot tự quản lý, không cần đụng: logs\, bot_status.txt, processed_message_ids.txt, *.lock, *.pid, …
+│  │  gate\guest_house\data\         dữ liệu theo người / nhóm chat: memorydata\ (mọi tin + kết quả lọc), session_history\ (gửi cho Gemini),
+│  │                               group_settings.txt, chat_activity.txt, daily_stats.txt, token_usage.txt, failed_replies.txt, assigned_events.txt
+│  │  residential\residents\pylos\workspace\   SYSTEM.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), .backup\ (tự tạo từ file mẫu)
+│  │  lobby\office\agent_tools\custom\         tool tự viết (.py)
 │  ├─ management\                  Khu quản lý
 │  │  ├─ owner\admin_web\          trang web quản lý (admin_web_server.py, static\)
 │  │  └─ managers\plans\           kế hoạch (PLAN.md, KE-HOACH-CAP-NHAT-...)
@@ -50,7 +37,7 @@ D:\pylosSever\
 └─ tests\
 ```
 
-Lần đầu mở bản mới, bot **tự chuyển** dữ liệu của bản cũ (`.env`, `data/`, `logs/`, `workspace/`, tools tự viết trong `tools/`) vào `userdata\` và đổi sang tên mới ở trên (ví dụ `.env` → `settings.env`, `groups.txt` → `group_settings.txt`, `history/` → `session_history/`). Bạn không phải làm gì. Hai thư mục `workspace/` và `tools/` còn ở gốc chỉ chứa file mẫu, sẽ được gỡ ở bản cập nhật sau.
+Lần đầu mở bản mới, bot **tự chuyển** dữ liệu của bản cũ (`userdata\`, hoặc xa hơn là `.env`, `data/`, `logs/`, `workspace/`, `tools/` ở gốc) vào các thư mục trên trong Thành. Trước khi chuyển bot **sao lưu** toàn bộ vào `userdata_backup_<ngày giờ>.zip` ở thư mục gốc (không lên GitHub). Riêng `workspace` cũ (SYSTEM.md, MEMORY.md) **bị xoá**, chỉ còn trong file zip; bot tạo lại bản mới từ file mẫu. Bạn không phải làm gì.
 
 ## Cài đặt (Windows)
 
@@ -59,10 +46,10 @@ Cần Python 3.11 trở lên. Mở PowerShell trong thư mục dự án:
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -e ".[dev]"
-.venv\Scripts\python.exe -m bot health             # chạy một lệnh bất kỳ để tạo userdata\config\settings.env
+.venv\Scripts\python.exe -m bot health             # chạy một lệnh bất kỳ để tạo src\pylos\management\owner\secrets\settings.env
 ```
 
-Sau đó mở `userdata\config\settings.env` (hoặc trang Cài đặt trong app) và điền:
+Sau đó mở `src\pylos\management\owner\secrets\settings.env` (hoặc trang Cài đặt trong app) và điền:
 
 - `ZALO_BOT_TOKEN`: token nhận được khi tạo bot bằng Zalo Bot Creator.
 - `GEMINI_API_KEY`: API key lấy từ Google AI Studio.
@@ -79,7 +66,7 @@ Sau đó mở `userdata\config\settings.env` (hoặc trang Cài đặt trong app
 
 Ở chế độ `console`:
 - Chưa có `GEMINI_API_KEY` thì bot chỉ lặp lại tin nhắn (echo). Có key thì bot gọi Gemini thật.
-- Dữ liệu chat thử lưu riêng trong `userdata/data/console_test`.
+- Dữ liệu chat thử lưu riêng trong `src/pylos/gate/guest_house/data/console_test`.
 - Gõ `/allow`, rồi `/bot xin chào`, `/mode all`, `/status`... để thử các chế độ.
 
 ## Lần chạy đầu tiên với Zalo
@@ -97,11 +84,11 @@ Sau đó mở `userdata\config\settings.env` (hoặc trang Cài đặt trong app
    ```
 
 3. Thêm bot vào nhóm và nhắn `/id` trong nhóm. Khi `OWNER_ZALO_ID` còn trống, bot trả lời cho bất kỳ ai, và log in `from_id` của mọi người nhắn tới.
-4. Điền `user_id` của bạn vào `OWNER_ZALO_ID` trong `userdata\config\settings.env`, rồi khởi động lại bot (Ctrl+C rồi chạy lại lệnh ở bước 2).
+4. Điền `user_id` của bạn vào `OWNER_ZALO_ID` trong `src\pylos\management\owner\secrets\settings.env`, rồi khởi động lại bot (Ctrl+C rồi chạy lại lệnh ở bước 2).
 5. Trong nhóm, gõ `/allow`. Từ đây:
    - Bot trả lời tin bắt đầu bằng `/bot` (chế độ `default`).
    - `/mode all` để bot tự nhận ra cả những câu nhờ nó mà không gọi tên (bộ lọc AI, xem mục "Bộ lọc tin nhóm và memorydata").
-6. Xem `userdata/system/logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
+6. Xem `src/pylos/management/owner/runtime/logs/bot.log` để biết bot nhận được gì trong nhóm. Zalo chưa ghi rõ bot nhận mọi tin hay chỉ tin nhắc tên.
 
 ## Mở ứng dụng bằng ZaloBot.cmd (khuyên dùng)
 
@@ -132,16 +119,16 @@ Bấm đúp `D:\pylosSever\ZaloBot.exe`. Một cửa sổ "Quản lý Bot Zalo" 
 - **Màu chấm trên biểu tượng**: xanh = bot đang chạy, cam = đang chạy nhưng có cảnh báo, xám = đã dừng.
 - **Khởi động cùng Windows**: tích trong menu khay. Khi đăng nhập, ứng dụng tự chạy ẩn ở khay và bật bot. Không cần `install-task.ps1`.
 - Mở exe lần hai chỉ đưa cửa sổ đang chạy lên, không mở thêm bản mới.
-- Lần đầu chạy trong thư mục trống, exe tự tạo `userdata\` và mở trang Cài đặt để bạn điền khóa.
-- Dữ liệu nằm trong `userdata\` **cạnh exe**. Muốn chuyển máy: chép thư mục đó.
-- Tool tự viết: đặt file `.py` vào `userdata\data\custom_tools\` (xem `_example.py` trong đó), rồi khởi động lại bot.
+- Lần đầu chạy trong thư mục trống, exe tự tạo các thư mục dữ liệu (`src\pylos\...`) cạnh exe và mở trang Cài đặt để bạn điền khóa.
+- Dữ liệu nằm trong `src\pylos\...` **cạnh exe** (secrets, runtime, guest_house\data, residents\pylos\workspace, agent_tools\custom). Muốn chuyển máy: chép các thư mục đó (hoặc dùng gói chuyển máy).
+- Tool tự viết: đặt file `.py` vào `src\pylos\lobby\office\agent_tools\custom\` (xem `_example.py` trong đó), rồi khởi động lại bot.
 
 Exe chưa có chữ ký số, nên **Windows có thể chặn** ("Windows đã bảo vệ PC của bạn" hoặc "An Application Control policy has blocked this file"), nhất là sau mỗi lần build lại. Máy này đang bật **Smart App Control**, cơ chế này chặn exe chưa ký mà không cho bấm "Vẫn chạy". Nếu bị chặn:
 - Thử mở lại bằng cách bấm đúp trong Explorer (Windows tra uy tín trên mạng, đôi khi lần sau cho chạy).
 - Hoặc chạy cùng ứng dụng đó từ mã nguồn (không bị chặn vì `pythonw.exe` đã được ký): `.venv\Scripts\pythonw.exe -m bot gui`.
 - Không nên tắt Smart App Control chỉ vì bot: tắt rồi thì không bật lại được nếu không cài lại Windows.
 
-Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\packaging\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `userdata\config\settings.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
+Build lại exe (sau khi sửa code): `powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\packaging\build-exe.ps1`. Script build kèm bước kiểm tra exe không chứa token/khóa nào trong `src\pylos\management\owner\secrets\settings.env`. Nếu exe đang chạy, thoát nó ở khay trước để script thay được file.
 
 Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gateway status` (kết quả in vào cửa sổ cmd).
 
@@ -156,18 +143,18 @@ Lệnh dòng lệnh vẫn dùng được với exe, ví dụ `ZaloBot.exe gatewa
 Mở http://127.0.0.1:8081. Có hai cách vào:
 
 - **Đăng nhập bằng Google (khuyên dùng).** Bấm **Đăng nhập bằng Google**: trang mở Google ở tab mới, bạn đăng nhập, trang quản lý tự vào (phiên 12 giờ). Chỉ **một Gmail** (`ADMIN_EMAIL`) được vào, PyloS không phân quyền. Dùng OAuth client riêng của PyloS (`ADMIN_GOOGLE_CLIENT_ID`, `ADMIN_GOOGLE_CLIENT_SECRET`), không liên quan tới web bot lịch. Cách tạo client ở [docs/dang-nhap-google.md](docs/dang-nhap-google.md).
-- **Mã truy cập (dự phòng).** `ADMIN_TOKEN` trong `userdata\config\settings.env`; nếu còn trống, lần chạy đầu sẽ tự tạo. Quên mã thì chạy `.venv\Scripts\python.exe -m bot admin --open` để mở và tự đăng nhập.
+- **Mã truy cập (dự phòng).** `ADMIN_TOKEN` trong `src\pylos\management\owner\secrets\settings.env`; nếu còn trống, lần chạy đầu sẽ tự tạo. Quên mã thì chạy `.venv\Scripts\python.exe -m bot admin --open` để mở và tự đăng nhập.
 
 | Trang | Làm được gì |
 |---|---|
 | Tổng quan | Bật / tắt / khởi động lại bot, xem trạng thái, tin và token hôm nay, biểu đồ 14 ngày, cảnh báo |
 | Nhóm | Đặt tên gợi nhớ, cho phép / chặn, đổi chế độ `all` / `default`, xóa lịch sử; có hiệu lực ngay, không cần khởi động lại |
 | Hội thoại | Đọc lịch sử bot dùng làm ngữ cảnh (tắt được bằng `ADMIN_SHOW_HISTORY=false`) |
-| Chỉ dẫn | Sửa `SYSTEM.md` và `MEMORY.md`, tự sao lưu vào `userdata/data/workspace/.backup/` |
+| Chỉ dẫn | Sửa `SYSTEM.md` và `MEMORY.md`, tự sao lưu vào `src/pylos/residential/residents/pylos/workspace/.backup/` |
 | Chat thử | Nói chuyện với trợ lý mà không qua Zalo (token vẫn được tính) |
 | Log | Xem log bot / giao diện, lọc theo mức, theo dõi trực tiếp |
 | Tin lỗi | Gửi lại hoặc bỏ qua tin bot không gửi được |
-| Cài đặt | Đăng nhập acc Zalo cá nhân bằng mã QR; sửa các giá trị trong `userdata\config\settings.env` (có sao lưu `settings.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
+| Cài đặt | Đăng nhập acc Zalo cá nhân bằng mã QR; sửa các giá trị trong `src\pylos\management\owner\secrets\settings.env` (có sao lưu `settings.env.bak`); khóa bí mật chỉ đặt mới, không bao giờ hiện lại |
 
 Bảo mật: giao diện chỉ mở ở `127.0.0.1` (không truy cập được từ máy khác), bắt buộc mã truy cập, chặn yêu cầu từ trang web khác. Đừng đưa cổng 8081 ra Internet.
 
@@ -199,7 +186,7 @@ powershell -ExecutionPolicy Bypass -File src\pylos\gate\side_gate\desktop\window
 
 - Script đăng ký hai Task Scheduler: `ZaloAssistantBot` (bot) và `ZaloAssistantBotAdmin` (giao diện). Chỉ muốn bot thì thêm `-NoAdmin`.
 - Bot tự chạy khi bạn đăng nhập Windows, và tự khởi động lại sau 10 giây nếu thoát.
-- Nếu `settings.env` sai (thiếu biến hoặc token sai), script dừng hẳn thay vì khởi động lại mãi. Xem `userdata/system/logs/supervisor.log`.
+- Nếu `settings.env` sai (thiếu biến hoặc token sai), script dừng hẳn thay vì khởi động lại mãi. Xem `src/pylos/management/owner/runtime/logs/supervisor.log`.
 
 Để bot không ngừng khi máy ngủ, tắt Sleep (khi cắm sạc):
 
@@ -215,7 +202,7 @@ Các lệnh khác:
 
 ## Chuyển sang webhook (khi có domain hoặc VPS)
 
-1. Trong `userdata\config\settings.env`: đặt `RECEIVE_MODE=webhook` và `WEBHOOK_SECRET` (8–256 ký tự ngẫu nhiên).
+1. Trong `src\pylos\management\owner\secrets\settings.env`: đặt `RECEIVE_MODE=webhook` và `WEBHOOK_SECRET` (8–256 ký tự ngẫu nhiên).
 2. Đưa `http://WEBHOOK_HOST:WEBHOOK_PORT` ra Internet qua HTTPS, ví dụ bằng Cloudflare Tunnel hoặc reverse proxy.
 3. Đăng ký webhook:
 
@@ -243,13 +230,13 @@ Thay vì Zalo Bot, bot có thể đăng nhập vào **một acc Zalo cá nhân**
 
 3. Tạo mã QR bằng một trong hai cách sau.
    - **Giao diện quản lý** (khuyên dùng, chạy được cả trên VPS qua SSH tunnel): vào **Cài đặt**, bấm **Đăng nhập bằng mã QR**, mã hiện ngay trên trang.
-   - **Dòng lệnh**: `python -m bot zalo-login`. Ảnh mã QR được lưu vào `userdata/system/zalo_login_qr.png` và tự mở. Trên máy không có màn hình, thêm `--no-open`.
+   - **Dòng lệnh**: `python -m bot zalo-login`. Ảnh mã QR được lưu vào `src/pylos/management/owner/runtime/zalo_login_qr.png` và tự mở. Trên máy không có màn hình, thêm `--no-open`.
 
 4. Trong app Zalo của acc phụ, bấm biểu tượng **quét mã**, quét mã QR, rồi bấm **Đăng nhập** để xác nhận. Mã QR hết hạn sau khoảng 100 giây: dòng lệnh tự tạo mã mới, còn trên giao diện thì bấm tạo lại.
 
 5. Xong bước 4, bot tự làm phần còn lại:
-   - lưu phiên đăng nhập vào `userdata/config/zalo_login_session.json`;
-   - đặt `RECEIVE_MODE=personal` trong `userdata/config/settings.env`;
+   - lưu phiên đăng nhập vào `src/pylos/management/owner/secrets/zalo_login_session.json`;
+   - đặt `RECEIVE_MODE=personal` trong `src/pylos/management/owner/secrets/settings.env`;
    - nếu bot đang chạy thì tự khởi động lại.
 
    Nếu bot chưa chạy, bật bằng `python -m bot run`, `gateway start` hoặc nút Bật bot. `ZALO_BOT_TOKEN` để trống cũng được.
@@ -257,7 +244,7 @@ Thay vì Zalo Bot, bot có thể đăng nhập vào **một acc Zalo cá nhân**
 6. Từ **acc chính** của bạn, nhắn riêng `/id` cho acc phụ, điền `user_id` nhận được vào `OWNER_ZALO_ID`, rồi khởi động lại bot. Sau đó dùng `/allow`, `/mode`... như với Zalo Bot.
 
 Lưu ý:
-- `userdata/config/zalo_login_session.json` là **chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. Thư mục `userdata/` đã nằm trong `.gitignore`. Muốn chuyển bot sang máy khác (VPS...), chép cả file này theo, hoặc quét QR lại trên máy mới.
+- `src/pylos/management/owner/secrets/zalo_login_session.json` là **chìa khoá đăng nhập acc phụ**, giữ kín như mật khẩu. Thư mục `secrets/` đã nằm trong `.gitignore`. Muốn chuyển bot sang máy khác (VPS...), chép cả file này theo, hoặc quét QR lại trên máy mới.
 - Trong app Zalo của acc phụ, mục **Quản lý thiết bị đăng nhập** sẽ hiện một phiên Zalo Web. **Đừng đăng xuất phiên đó**, nếu không bot mất kết nối.
 - **Mỗi acc chỉ nghe được ở một nơi.** Nếu mở chat.zalo.me bằng acc phụ, Zalo đóng kết nối của bot và bot tự thoát. Supervisor (Task Scheduler, systemd) sẽ bật lại bot. Dùng app Zalo trên điện thoại cho acc phụ thì không sao.
 - Tin acc phụ tự gửi (kể cả gửi từ điện thoại) bị bot bỏ qua, nên bot không tự trả lời chính mình.
@@ -268,7 +255,7 @@ Lưu ý:
 - Khi phiên hết hạn, log báo "Đăng nhập Zalo cá nhân thất bại". Lúc đó chỉ cần quét QR lại.
 - Các lệnh `me`, `set-webhook`... và nút "Gửi lại" ở trang Tin lỗi chỉ dùng được với Zalo Bot.
 - Bot nhắn quá nhiều hoặc quá nhanh dễ bị Zalo khoá acc. Nên giữ `USER_RATE_PER_MIN` và `CHAT_RATE_PER_MIN` ở mức thấp.
-- Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `userdata/config/zalo_login_session.json` và điền `ZALO_IMEI` trong `userdata/config/settings.env`.
+- Cũng có thể dùng cookies tự lấy từ trình duyệt thay cho QR: lưu cookies vào `src/pylos/management/owner/secrets/zalo_login_session.json` và điền `ZALO_IMEI` trong `src/pylos/management/owner/secrets/settings.env`.
 
 ## Bộ lọc tin nhóm và memorydata
 
@@ -276,8 +263,8 @@ Mỗi cuộc trò chuyện (nhóm hoặc chat riêng) đã được cho phép c�
 
 | | Nằm ở | Chứa gì | Dùng để |
 |---|---|---|---|
-| **Memorydata** | `userdata/data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
-| **Session** | `userdata/data/session_history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
+| **Memorydata** | `src/pylos/gate/guest_house/data/memorydata/<chat>.txt` | **Mọi** tin, kể cả tin bộ lọc chặn, kèm kết quả lọc. Mỗi dòng một JSON. | Lưu trữ; bot đọc khi cần qua tool `doc_memorydata` |
+| **Session** | `src/pylos/gate/guest_house/data/session_history/<chat>.txt` | Chỉ tin **qua bộ lọc** và câu trả lời của bot | Ngữ cảnh gửi cho Gemini mỗi lần trả lời |
 
 **Bộ lọc** quyết định tin trong nhóm có đang nhờ bot trả lời không (chat riêng thì tin nào cũng qua). Các tầng chạy theo thứ tự:
 1. Tin bắt đầu bằng `/bot`, **@tag acc bot**, hoặc **gọi tên bot** (`BOT_NAMES`, mặc định `bot`, cùng tên acc Zalo của bot; không phân biệt hoa thường hay dấu): qua ngay, không tốn token.
@@ -298,7 +285,7 @@ Nhóm vẫn phải được cho phép trước: gõ `/allow` trong nhóm, hoặc
 PyloS và web bot lịch là **hai hệ thống độc lập**. Giữa hai bên chỉ có **một kết nối**: API giao lịch, dùng một khoá. PyloS **không** nhận cấu hình từ web, **không** gửi nhịp tim hay session lên web, và đăng nhập trang quản lý **không** đi qua web.
 
 1. Trên web, đăng nhập bằng Gmail Owner hoặc Technician, vào **Quản lý bot lịch → Kết nối AI agent → Tạo khoá** và chép khoá.
-2. Trong `userdata\config\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục **Bot lịch** và **Khóa bí mật**):
+2. Trong `src\pylos\management\owner\secrets\settings.env` của bot (hoặc giao diện quản lý → Cài đặt → mục **Bot lịch** và **Khóa bí mật**):
 
    ```
    SCHEDULE_API_URL=https://iforgotmywayhome.vercel.app
@@ -326,7 +313,7 @@ roemnao các lịch đã giao trong nhóm?
 Bot dùng các tool `giao_lich`, `sua_lich`, `huy_lich`, `lich_da_giao`:
 - Người nhận lấy từ **@tag thật** trong tin trước, rồi tới tên khớp (không phân biệt dấu) với danh sách thành viên nhóm. Tên trùng nhiều người thì bot nhờ @tag.
 - Web (bot lịch) ghi lệnh thêm / sửa / xoá vào hàng của từng người; web tự ghi vào Google Lịch của họ. Người bị bỏ khỏi lịch nhận lệnh xoá.
-- Bot trả lời ai đã nhận, ai **chưa liên kết** (kèm link app). Bot nhớ các lịch đã giao trong `userdata\data\assigned_events.txt` để sửa / huỷ "lịch lúc nãy".
+- Bot trả lời ai đã nhận, ai **chưa liên kết** (kèm link app). Bot nhớ các lịch đã giao trong `src\pylos\gate\guest_house\data\assigned_events.txt` để sửa / huỷ "lịch lúc nãy".
 - Ai được nhờ giao lịch: `ASSIGN_ALLOWED=owner` (mặc định, chỉ chủ bot) hoặc `all`.
 
 ### Lịch riêng của chủ web
@@ -421,13 +408,13 @@ Giá trị: `owner` (mặc định, chỉ owner và leader từng nhóm giao l�
 |---|---|---|
 | Trang quản lý PyloS | Cài đặt → nhóm *Bot lịch* → *Ai được giao lịch cho người khác* | Khởi động lại bot (không cần khởi động lại. Cần `SCHEDULE_API_KEY` |
 | Cài đặt của app bot | Trang Cài đặt → nhóm *Bot lịch* → *Ai được giao lịch cho người khác* | Khởi động lại bot |
-| File cấu hình | Thêm dòng `ASSIGN_ALLOWED=all` vào `userdata\config\settings.env` | Khởi động lại bot (`PY -m bot gateway restart`) |
+| File cấu hình | Thêm dòng `ASSIGN_ALLOWED=all` vào `src\pylos\management\owner\secrets\settings.env` | Khởi động lại bot (`PY -m bot gateway restart`) |
 
 Giá trị đặt trên web ghi đè giá trị trong `settings.env` khi bot đang nối với web. Đi cùng là `SCHEDULE_OWNER_ONLY=true|false` (lịch riêng của chủ web), đặt ở cùng các chỗ trên.
 
 ## Thêm tool cho trợ lý
 
-1. Sao chép `userdata\data\custom_tools\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
+1. Sao chép `src\pylos\lobby\office\agent_tools\custom\_example.py` thành một file mới (trong cùng thư mục) không có dấu `_` ở đầu tên.
 2. Sửa hàm và mô tả trong file đó, rồi khởi động lại bot.
 
 (Tool có sẵn của bot nằm trong `src/pylos/lobby/office/agent_tools/`. Tool tự viết vẫn `from bot.agent.tools import Tool, ToolContext` như cũ.)
@@ -436,18 +423,18 @@ Tool chỉ dành cho chủ bot thì đặt `owner_only=True`.
 
 ## Dữ liệu
 
-Mọi dữ liệu của bạn nằm trong `userdata\` (xem mục [Thư mục](#thư-mục)). Thư mục này nằm trong `.gitignore`, nên không bao giờ lên GitHub. Muốn chuyển máy, chép cả `userdata\` sang là đủ.
+Mọi dữ liệu của bạn nằm trong Thành, ở các thư mục `secrets`, `runtime`, `guest_house\data`, `workspace`, `custom` (xem mục [Thư mục](#thư-mục)). Các thư mục này nằm trong `.gitignore`, nên không bao giờ lên GitHub. Muốn chuyển máy, chép chúng sang (hoặc dùng gói chuyển máy).
 
 | Ở đâu | Nội dung |
 |---|---|
-| `userdata/config/settings.env` | Khoá API và mọi cài đặt. |
-| `userdata/config/zalo_login_session.json` | Phiên đăng nhập acc Zalo cá nhân. |
-| `userdata/data/group_settings.txt` | Nhóm được phép, chế độ, nhãn. |
-| `userdata/data/daily_stats.txt`, `token_usage.txt` | Số liệu theo ngày, token đã dùng. |
-| `userdata/data/failed_replies.txt` | Câu trả lời gửi lỗi (trang Tin lỗi). |
-| `userdata/data/assigned_events.txt` | Lịch bot đã giao cho người khác qua web iforgotmywayhome (mã lịch, người nhận). |
-| `userdata/data/session_history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
-| `userdata/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
-| `userdata/data/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
-| `userdata/data/workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
-| `userdata/system/logs/` | `bot.log` (xoay vòng 5 × 1 MB), `admin.log`, `gui.log`, `supervisor.log`. |
+| `src/pylos/management/owner/secrets/settings.env` | Khoá API và mọi cài đặt. |
+| `src/pylos/management/owner/secrets/zalo_login_session.json` | Phiên đăng nhập acc Zalo cá nhân. |
+| `src/pylos/gate/guest_house/data/group_settings.txt` | Nhóm được phép, chế độ, nhãn. |
+| `src/pylos/gate/guest_house/data/daily_stats.txt`, `token_usage.txt` | Số liệu theo ngày, token đã dùng. |
+| `src/pylos/gate/guest_house/data/failed_replies.txt` | Câu trả lời gửi lỗi (trang Tin lỗi). |
+| `src/pylos/gate/guest_house/data/assigned_events.txt` | Lịch bot đã giao cho người khác qua web iforgotmywayhome (mã lịch, người nhận). |
+| `src/pylos/gate/guest_house/data/session_history/` | Session của từng cuộc trò chuyện: tin qua bộ lọc và câu trả lời của bot. |
+| `src/pylos/gate/guest_house/data/memorydata/` | Mọi tin của từng cuộc trò chuyện, kèm kết quả bộ lọc. |
+| `src/pylos/residential/residents/pylos/workspace/SYSTEM.md` | Tính cách của trợ lý. Sửa xong bot tự nạp lại. |
+| `src/pylos/residential/residents/pylos/workspace/MEMORY.md` | Điều trợ lý cần nhớ lâu dài. |
+| `src/pylos/management/owner/runtime/logs/` | `bot.log` (xoay vòng 5 × 1 MB), `admin.log`, `gui.log`, `supervisor.log`. |

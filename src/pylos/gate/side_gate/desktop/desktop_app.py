@@ -434,7 +434,7 @@ def update_flag_file(settings: Settings) -> Path:
 def run_gui(tray_only: bool = False, start_bot: bool = False, after_update: bool = False) -> int:
     from pylos.lobby.dispatch.shared import userdata_paths
 
-    # Vừa cập nhật và chuyển dữ liệu sang userdata/: bot cũ đã tắt trong lúc chuyển, bật lại luôn.
+    # Vừa cập nhật và chuyển dữ liệu vào Thành: bot cũ đã tắt trong lúc chuyển, bật lại luôn.
     start_bot = start_bot or (after_update and bool(userdata_paths.LAST_MIGRATED))
     try:
         ensure_home()

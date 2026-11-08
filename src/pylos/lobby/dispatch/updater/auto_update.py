@@ -19,7 +19,7 @@ from pylos.lobby.dispatch.shared.config import PROJECT_ROOT, is_frozen
 
 log = logging.getLogger(__name__)
 
-LAST_GOOD_FILE = "last_good_commit.txt"   # commit mà giao diện đã chạy ổn định (trong userdata/system)
+LAST_GOOD_FILE = "last_good_commit.txt"   # commit mà giao diện đã chạy ổn định (trong management/owner/runtime)
 ROLLBACK_FILE = "rollback_state.json"     # có file này = đang giữ ở bản tốt, không tự cập nhật nữa
 HOLD_BRANCH = "rollback-hold"
 # Thư viện của ứng dụng quản lý + chế độ acc Zalo cá nhân (xem pyproject.toml)

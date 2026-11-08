@@ -69,8 +69,9 @@ def test_settings_read_migrated_env(tmp_path, monkeypatch):
     env = dict(line.split("=", 1) for line in (home / "userdata" / "config" / "settings.env").read_text(
         encoding="utf-8").splitlines() if "=" in line and not line.startswith("#"))
     s = Settings.from_env(env, base_dir=home)
-    assert s.data_dir == home / "userdata" / "data" and s.workspace_dir == home / "userdata" / "data" / "workspace"
-    assert (s.workspace_dir / "SYSTEM.md").is_file() and s.zalo_session_file.is_file()
+    city = home / "src" / "pylos"
+    assert s.data_dir == city / "gate" / "guest_house" / "data" and s.workspace_dir == city / "residential" / "residents" / "pylos" / "workspace"
+    assert s.zalo_session_file == city / "management" / "owner" / "secrets" / "zalo_login_session.json"
 
 
 def test_skips_while_old_version_still_running(tmp_path):
@@ -107,3 +108,78 @@ def test_restores_git_tracked_defaults(tmp_path):
     userdata_paths.migrate_legacy(home)
     assert (home / "userdata" / "data" / "workspace" / "SYSTEM.md").read_text(encoding="utf-8") == "tính cách tôi đã sửa"
     assert (home / "workspace" / "SYSTEM.md").read_text(encoding="utf-8") == "bản gốc trong git"
+
+
+# ---------- userdata/ -> trong Thành ----------
+
+def userdata_home(tmp_path):
+    home = tmp_path / "home"
+    u = home / "userdata"
+    (u / "config").mkdir(parents=True)
+    (u / "data" / "memorydata").mkdir(parents=True)
+    (u / "data" / "workspace").mkdir()
+    (u / "data" / "custom_tools").mkdir()
+    (u / "system" / "logs").mkdir(parents=True)
+    (u / "system" / "app_window_profile").mkdir()
+    (u / "config" / "settings.env").write_text("GEMINI_API_KEY=k\n", encoding="utf-8")
+    (u / "config" / "zalo_login_session.json").write_text("{}", encoding="utf-8")
+    (u / "data" / "memorydata" / "g1.txt").write_text("{}\n", encoding="utf-8")
+    (u / "data" / "group_settings.txt").write_text("{}", encoding="utf-8")
+    (u / "data" / "workspace" / "SYSTEM.md").write_text("tính cách cũ", encoding="utf-8")
+    (u / "data" / "workspace" / "MEMORY.md").write_text("ghi nhớ cũ", encoding="utf-8")
+    (u / "data" / "custom_tools" / "thoi_tiet.py").write_text("TOOLS = []", encoding="utf-8")
+    (u / "system" / "bot_status.txt").write_text("{}", encoding="utf-8")
+    (u / "system" / "logs" / "bot.log").write_text("log", encoding="utf-8")
+    (u / "system" / "app_window_profile" / "cache").write_text("x" * 10, encoding="utf-8")
+    (u / "system" / "bot.lock").write_text("", encoding="utf-8")
+    (u / "system" / "bot.pid").write_text("1", encoding="utf-8")
+    return home
+
+
+def test_migrates_userdata_into_the_city_with_a_backup_and_drops_the_old_workspace(tmp_path):
+    import zipfile
+
+    home = userdata_home(tmp_path)
+    assert userdata_paths.needs_city_migration(home) and userdata_paths.pending_migration(home)
+    moved = userdata_paths.migrate_to_city(home)
+    assert moved and not userdata_paths.pending_migration(home)
+
+    city = home / "src" / "pylos"
+    for rel in ("management/owner/secrets/settings.env", "management/owner/secrets/zalo_login_session.json",
+                "gate/guest_house/data/memorydata/g1.txt", "gate/guest_house/data/group_settings.txt",
+                "lobby/office/agent_tools/custom/thoi_tiet.py", "management/owner/runtime/bot_status.txt",
+                "management/owner/runtime/logs/bot.log", "management/owner/runtime/app_window_profile/cache"):
+        assert (city / rel).exists(), rel
+    assert not (home / "userdata").exists()  # kể cả khoá và pid thừa đã dọn
+    assert not (city / "residential" / "residents" / "pylos" / "workspace").exists()  # workspace cũ bị xoá, bot tạo lại từ file mẫu
+    assert not (city / "gate" / "guest_house" / "data" / "workspace").exists()
+
+    zips = list(home.glob("userdata_backup_*.zip"))
+    assert len(zips) == 1
+    names = zipfile.ZipFile(zips[0]).namelist()
+    assert "data/workspace/SYSTEM.md" in names and "config/settings.env" in names
+    assert not any("app_window_profile" in n or n.endswith((".lock", ".pid")) for n in names)
+
+    assert userdata_paths.migrate_to_city(home) == []  # lần hai không làm gì, không thêm bản sao lưu
+    assert len(list(home.glob("userdata_backup_*.zip"))) == 1
+
+
+def test_city_migration_keeps_what_is_already_in_the_new_place(tmp_path):
+    home = userdata_home(tmp_path)
+    existing = home / "src" / "pylos" / "management" / "owner" / "secrets" / "settings.env"
+    existing.parent.mkdir(parents=True)
+    existing.write_text("GEMINI_API_KEY=moi\n", encoding="utf-8")
+    userdata_paths.migrate_to_city(home)
+    assert existing.read_text(encoding="utf-8") == "GEMINI_API_KEY=moi\n"
+    assert (home / "userdata" / "config" / "settings.env").is_file()  # bản cũ còn lại, không mất
+
+
+def test_city_migration_waits_for_the_old_version(tmp_path):
+    home = userdata_home(tmp_path)
+    held = InstanceLock(home / "userdata" / "system" / "bot.lock")
+    held.acquire()
+    try:
+        assert userdata_paths.migrate_to_city(home) == []
+        assert userdata_paths.needs_city_migration(home) and not list(home.glob("userdata_backup_*.zip"))
+    finally:
+        held.release()

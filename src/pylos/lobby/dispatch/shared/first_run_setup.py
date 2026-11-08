@@ -1,4 +1,4 @@
-"""Chuẩn bị userdata/ ở lần chạy đầu: tạo thư mục và file mẫu còn thiếu, không ghi đè (xem bot/userdata_paths.py)."""
+"""Chuẩn bị các thư mục dữ liệu trong Thành ở lần chạy đầu: tạo thư mục và file mẫu còn thiếu, không ghi đè (xem bot/userdata_paths.py)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ _FILES = (
 
 
 def ensure_home(home: Path = APP_HOME) -> list[str]:
-    """Tạo userdata/config, data, system... và các file mẫu còn thiếu. Trả về danh sách file vừa tạo."""
+    """Tạo secrets, data, workspace, runtime... và các file mẫu còn thiếu. Trả về danh sách file vừa tạo."""
     created: list[str] = []
     for directory in _DIRS:
         (home / directory).mkdir(parents=True, exist_ok=True)

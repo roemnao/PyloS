@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/tests.yml": {
-    "mtime": 1793936717.112216,
-    "seen": 1793936838.2997136,
-    "ast_hash": "e8e19cca79ecb1ef64d171a874130ae4",
+    "mtime": 1793942164.375512,
+    "seen": 1793942218.3451548,
+    "ast_hash": "9e5a0b021ebc70cef17f52b254abbe05",
     "semantic_hash": ""
   },
   "src/pylos/__init__.py": {

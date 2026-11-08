@@ -1,13 +1,16 @@
-"""Thư mục của ứng dụng. Mọi thứ của riêng người dùng nằm trong APP_HOME/userdata/:
+"""Thư mục của ứng dụng. Dữ liệu của người dùng và của bot nằm ngay trong Thành (APP_HOME/src/pylos/...), không còn userdata/:
 
-    userdata/config/   (1) khoá & thông số người dùng nhập: settings.env, zalo_login_session.json
-    userdata/data/     (2) dữ liệu bot: memorydata/, session_history/, workspace/, custom_tools/, *.txt
-    userdata/system/   (3) bot tự quản lý: logs/, *.lock, *.pid, bot_status.txt, processed_message_ids.txt...
+    management/owner/secrets/   khoá & thông số người dùng nhập: settings.env, zalo_login_session.json
+    management/owner/runtime/   bot tự quản lý: logs/, *.lock, *.pid, bot_status.txt, standby, handover_backups/...
+    gate/guest_house/data/      dữ liệu theo người / nhóm chat: memorydata/, session_history/, *.txt
+    residential/residents/pylos/workspace/   SYSTEM.md (bot là ai, trả lời thế nào), MEMORY.md (ghi nhớ), tạo từ file mẫu
+    lobby/office/agent_tools/custom/         tool người dùng tự viết (.py)
 
-Tên từng file và ý nghĩa: xem các hằng số bên dưới (GROUP_SETTINGS_FILE, ...).
+Git bỏ qua mọi nội dung các thư mục này (.gitignore). Tên từng file và ý nghĩa: xem các hằng số bên dưới.
 
-Chuyển máy chỉ cần chép userdata/. Bản cũ để .env, data/, logs/, workspace/, tools/ ngay ở APP_HOME:
-migrate_legacy() chuyển sang bố cục này ở lần chạy đầu.
+Chuyển máy chỉ cần chép các thư mục đó (hoặc dùng gói chuyển máy). Hai lần chuyển bố cục, đều tự chạy ở lần khởi động đầu:
+  migrate_legacy():   bản cũ nhất (.env, data/, logs/, workspace/, tools/ ngay ở APP_HOME) -> userdata/
+  migrate_to_city():  userdata/ -> trong Thành (sao lưu zip trước; workspace cũ bị xoá, bot tạo lại từ file mẫu)
 """
 
 from __future__ import annotations
@@ -24,17 +27,31 @@ log = logging.getLogger(__name__)
 APP_NAME = "ZaloAssistantBot"
 
 # Đường dẫn tương đối tính từ APP_HOME (biến DATA_DIR, LOG_DIR... trong settings.env vẫn ghi đè được).
-USERDATA = "userdata"
-CONFIG_REL = "userdata/config"
-ENV_REL = "userdata/config/settings.env"            # khoá API và mọi cài đặt (trang Cài đặt ghi vào đây)
-SESSION_REL = "userdata/config/zalo_login_session.json"  # phiên đăng nhập acc Zalo cá nhân (quét QR)
-DATA_REL = "userdata/data"
-WORKSPACE_REL = "userdata/data/workspace"           # SYSTEM.md (tính cách), MEMORY.md (ghi nhớ)
-TOOLS_REL = "userdata/data/custom_tools"            # tool người dùng tự viết (.py)
-SYSTEM_REL = "userdata/system"
-LOGS_REL = "userdata/system/logs"
+CITY = "src/pylos"
+SECRETS_REL = f"{CITY}/management/owner/secrets"
+CONFIG_REL = SECRETS_REL
+ENV_REL = f"{SECRETS_REL}/settings.env"                      # khoá API và mọi cài đặt (trang Cài đặt ghi vào đây)
+SESSION_REL = f"{SECRETS_REL}/zalo_login_session.json"       # phiên đăng nhập acc Zalo cá nhân (quét QR)
+DATA_REL = f"{CITY}/gate/guest_house/data"
+WORKSPACE_REL = f"{CITY}/residential/residents/pylos/workspace"   # SYSTEM.md (bot là ai), MEMORY.md (ghi nhớ)
+TOOLS_REL = f"{CITY}/lobby/office/agent_tools/custom"        # tool người dùng tự viết (.py)
+SYSTEM_REL = f"{CITY}/management/owner/runtime"
+LOGS_REL = f"{SYSTEM_REL}/logs"
+# Thư mục dữ liệu chạy máy nằm trong cây mã nguồn (không phải gói Python, git bỏ qua): test khung Thành bỏ qua chúng.
+RUNTIME_DIRS = (SECRETS_REL, DATA_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
 
-# ---------- tên file/thư mục bên trong userdata/data (Settings.data_dir) ----------
+# Bố cục trung gian (userdata/), chỉ còn dùng để chuyển sang Thành.
+USERDATA = "userdata"
+OLD_CONFIG_REL = "userdata/config"
+OLD_ENV_REL = "userdata/config/settings.env"
+OLD_SESSION_REL = "userdata/config/zalo_login_session.json"
+OLD_DATA_REL = "userdata/data"
+OLD_WORKSPACE_REL = "userdata/data/workspace"
+OLD_TOOLS_REL = "userdata/data/custom_tools"
+OLD_SYSTEM_REL = "userdata/system"
+OLD_LOGS_REL = "userdata/system/logs"
+
+# ---------- tên file/thư mục bên trong gate/guest_house/data (Settings.data_dir) ----------
 GROUP_SETTINGS_FILE = "group_settings.txt"    # nhóm nào được phép, chế độ all/default, nhãn tự đặt
 CHAT_ACTIVITY_FILE = "chat_activity.txt"      # lần nhắn cuối của từng cuộc trò chuyện (để nhận ra nhóm)
 DAILY_STATS_FILE = "daily_stats.txt"          # số tin nhận/trả lời/lỗi/token theo ngày (trang Tổng quan)
@@ -45,7 +62,7 @@ MEMORYDATA_DIR = "memorydata"                 # mọi tin của từng cuộc tr
 SESSION_HISTORY_DIR = "session_history"       # session: tin qua bộ lọc + câu trả lời (gửi cho Gemini)
 CONSOLE_TEST_DIR = "console_test"             # dữ liệu riêng của chế độ chat thử `python -m bot console`
 
-# ---------- tên file/thư mục bên trong userdata/system (Settings.system_dir) ----------
+# ---------- tên file/thư mục bên trong management/owner/runtime (Settings.system_dir) ----------
 BOT_STATUS_FILE = "bot_status.txt"                 # lúc khởi động, lần nhận tin cuối (để biết bot còn sống)
 PROCESSED_IDS_FILE = "processed_message_ids.txt"   # id tin đã xử lý, chống trả lời trùng
 PENDING_UPDATES_FILE = "pending_updates.txt"       # số thay đổi mới trên GitHub chưa cập nhật
@@ -108,29 +125,29 @@ def done_file(name: str) -> str:
 
 # (đường dẫn cũ so với APP_HOME, đường dẫn mới, chép thay vì chuyển)
 _LEGACY_MOVES: tuple[tuple[str, str, bool], ...] = (
-    (".env", ENV_REL, False),
-    (".env.bak", ENV_REL + ".bak", False),
-    ("data/zalo_session.json", SESSION_REL, False),
-    ("data/zalo_cookies.json", SESSION_REL, False),
-    ("data/memorydata", f"{DATA_REL}/{MEMORYDATA_DIR}", False),
-    ("data/history", f"{DATA_REL}/{SESSION_HISTORY_DIR}", False),
-    ("data/console", f"{DATA_REL}/{CONSOLE_TEST_DIR}", False),
-    ("data/groups.txt", f"{DATA_REL}/{GROUP_SETTINGS_FILE}", False),
-    ("data/stats.txt", f"{DATA_REL}/{DAILY_STATS_FILE}", False),
-    ("data/usage.txt", f"{DATA_REL}/{TOKEN_USAGE_FILE}", False),
-    ("data/failed.txt", f"{DATA_REL}/{FAILED_REPLIES_FILE}", False),
-    ("data/failed_done.txt", f"{DATA_REL}/{done_file(FAILED_REPLIES_FILE)}", False),
-    ("data/activity.txt", f"{DATA_REL}/{CHAT_ACTIVITY_FILE}", False),
-    ("data/state.txt", f"{SYSTEM_REL}/{BOT_STATUS_FILE}", False),
-    ("data/seen.txt", f"{SYSTEM_REL}/{PROCESSED_IDS_FILE}", False),
-    ("data/webview", f"{SYSTEM_REL}/{APP_WINDOW_PROFILE_DIR}", False),
-    ("data/update.txt", f"{SYSTEM_REL}/{PENDING_UPDATES_FILE}", False),
-    ("logs", LOGS_REL, False),
-    ("workspace/MEMORY.md", WORKSPACE_REL + "/MEMORY.md", False),
-    ("workspace/notes", WORKSPACE_REL + "/notes", False),
-    ("workspace/.backup", WORKSPACE_REL + "/.backup", False),
+    (".env", OLD_ENV_REL, False),
+    (".env.bak", OLD_ENV_REL + ".bak", False),
+    ("data/zalo_session.json", OLD_SESSION_REL, False),
+    ("data/zalo_cookies.json", OLD_SESSION_REL, False),
+    ("data/memorydata", f"{OLD_DATA_REL}/{MEMORYDATA_DIR}", False),
+    ("data/history", f"{OLD_DATA_REL}/{SESSION_HISTORY_DIR}", False),
+    ("data/console", f"{OLD_DATA_REL}/{CONSOLE_TEST_DIR}", False),
+    ("data/groups.txt", f"{OLD_DATA_REL}/{GROUP_SETTINGS_FILE}", False),
+    ("data/stats.txt", f"{OLD_DATA_REL}/{DAILY_STATS_FILE}", False),
+    ("data/usage.txt", f"{OLD_DATA_REL}/{TOKEN_USAGE_FILE}", False),
+    ("data/failed.txt", f"{OLD_DATA_REL}/{FAILED_REPLIES_FILE}", False),
+    ("data/failed_done.txt", f"{OLD_DATA_REL}/{done_file(FAILED_REPLIES_FILE)}", False),
+    ("data/activity.txt", f"{OLD_DATA_REL}/{CHAT_ACTIVITY_FILE}", False),
+    ("data/state.txt", f"{OLD_SYSTEM_REL}/{BOT_STATUS_FILE}", False),
+    ("data/seen.txt", f"{OLD_SYSTEM_REL}/{PROCESSED_IDS_FILE}", False),
+    ("data/webview", f"{OLD_SYSTEM_REL}/{APP_WINDOW_PROFILE_DIR}", False),
+    ("data/update.txt", f"{OLD_SYSTEM_REL}/{PENDING_UPDATES_FILE}", False),
+    ("logs", OLD_LOGS_REL, False),
+    ("workspace/MEMORY.md", OLD_WORKSPACE_REL + "/MEMORY.md", False),
+    ("workspace/notes", OLD_WORKSPACE_REL + "/notes", False),
+    ("workspace/.backup", OLD_WORKSPACE_REL + "/.backup", False),
     # SYSTEM.md và tools/_example.py có trong git: chép (giữ bản người dùng đã sửa) rồi trả file gốc về cho git.
-    ("workspace/SYSTEM.md", WORKSPACE_REL + "/SYSTEM.md", True),
+    ("workspace/SYSTEM.md", OLD_WORKSPACE_REL + "/SYSTEM.md", True),
 )
 # Biến trong .env cũ trỏ vào chỗ cũ (giá trị mặc định của bản cũ): bỏ đi để dùng chỗ mới.
 _LEGACY_ENV_DEFAULTS = {"DATA_DIR": "data", "WORKSPACE_DIR": "workspace", "LOG_DIR": "logs",
@@ -141,7 +158,7 @@ _GIT_TRACKED_DEFAULTS = ("workspace/SYSTEM.md", "tools/_example.py")
 
 def needs_migration(home: Path = APP_HOME) -> bool:
     """Chưa có userdata/ mà còn dữ liệu kiểu cũ (.env hoặc data/ ngay ở APP_HOME)."""
-    return not (home / USERDATA).exists() and ((home / ".env").is_file() or (home / "data").is_dir())
+    return not (home / USERDATA).exists() and not (home / ENV_REL).exists() and ((home / ".env").is_file() or (home / "data").is_dir())
 
 
 def _old_version_running(home: Path) -> bool:
@@ -240,13 +257,13 @@ def migrate_legacy(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
             for path in tools.glob("*.py"):
                 if path.name != "_example.py":
                     try:
-                        if _move(path, home / TOOLS_REL / path.name, False):
-                            moved.append(f"tools/{path.name} -> {TOOLS_REL}/{path.name}")
+                        if _move(path, home / OLD_TOOLS_REL / path.name, False):
+                            moved.append(f"tools/{path.name} -> {OLD_TOOLS_REL}/{path.name}")
                     except OSError as exc:
                         log.warning("Không chuyển được %s: %s", path, exc)
-        (home / CONFIG_REL).mkdir(parents=True, exist_ok=True)  # đánh dấu đã chuyển (userdata/ tồn tại)
-        if (home / ENV_REL).is_file():
-            _clean_env(home / ENV_REL)
+        (home / OLD_CONFIG_REL).mkdir(parents=True, exist_ok=True)  # đánh dấu đã chuyển (userdata/ tồn tại)
+        if (home / OLD_ENV_REL).is_file():
+            _clean_env(home / OLD_ENV_REL)
         _restore_git_defaults(home)
         # data/ cũ chỉ còn lock/pid (tự tạo lại ở chỗ mới): dọn nếu được, không thì để đó.
         for leftover in (home / "data",):
@@ -259,3 +276,125 @@ def migrate_legacy(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
     finally:
         guard.release()
         (home / ".migrate.lock").unlink(missing_ok=True)
+
+
+# ---------- chuyển từ userdata/ vào Thành ----------
+
+_CITY_LOCKS = ("bot.lock", "admin.lock", "gui.lock")
+
+
+def needs_city_migration(home: Path = APP_HOME) -> bool:
+    return (home / USERDATA).is_dir()
+
+
+def _city_old_running(home: Path) -> bool:
+    from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+
+    for name in _CITY_LOCKS:
+        path = home / OLD_SYSTEM_REL / name
+        if not path.exists():
+            continue
+        lock = InstanceLock(path)
+        try:
+            lock.acquire()
+        except AlreadyRunning:
+            return True
+        lock.release()
+    return False
+
+
+def _backup_userdata(home: Path) -> Path | None:
+    """Nén userdata/ (trừ bộ nhớ đệm cửa sổ và file khoá) trước khi chuyển. Lỗi thì ném ra để không chuyển gì cả."""
+    import zipfile
+
+    old = home / USERDATA
+    files = [p for p in sorted(old.rglob("*"))
+             if p.is_file() and p.relative_to(old).parts[:2] != ("system", "app_window_profile") and p.suffix not in (".lock", ".pid")]
+    if not files:
+        return None
+    target = home / f"userdata_backup_{time.strftime('%Y%m%d-%H%M%S')}.zip"
+    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in files:
+            zf.write(path, path.relative_to(old).as_posix())
+    return target
+
+
+def _move_children(src: Path, dst: Path, skip: tuple[str, ...] = ()) -> list[str]:
+    moved: list[str] = []
+    if not src.is_dir():
+        return moved
+    for child in sorted(src.iterdir()):
+        if child.name in skip or child.suffix in (".lock", ".pid"):
+            continue
+        if _move(child, dst / child.name, False):
+            moved.append(f"{src.name}/{child.name}")
+    return moved
+
+
+def migrate_to_city(home: Path = APP_HOME, wait_old: float = 0.0) -> list[str]:
+    """userdata/ -> trong Thành. Sao lưu zip trước; workspace cũ bị xoá (bot tạo lại SYSTEM.md, MEMORY.md từ file mẫu);
+    chạy lại bao nhiêu lần cũng được (chỗ mới đã có thì giữ bản ở chỗ mới)."""
+    if not needs_city_migration(home):
+        return []
+    from pylos.lobby.dispatch.lifecycle.process_lock import AlreadyRunning, InstanceLock
+
+    guard = InstanceLock(home / ".migrate.lock")
+    try:
+        guard.acquire(wait=30.0)
+    except AlreadyRunning:
+        return []
+    try:
+        if not needs_city_migration(home):
+            return []
+        deadline = time.monotonic() + wait_old
+        while _city_old_running(home):
+            if time.monotonic() >= deadline:
+                log.warning("Bản cũ của bot/ứng dụng vẫn đang chạy: tạm chưa chuyển userdata/ vào Thành.")
+                return []
+            time.sleep(0.5)
+        backup = _backup_userdata(home)
+        old = home / USERDATA
+        moved: list[str] = []
+        pairs = (
+            (old / "config", home / CONFIG_REL, ()),
+            (old / "data" / "custom_tools", home / TOOLS_REL, ()),
+            (old / "data", home / DATA_REL, ("workspace", "custom_tools")),
+            (old / "system", home / SYSTEM_REL, ()),
+        )
+        for src, dst, skip in pairs:
+            try:
+                moved += _move_children(src, dst, skip)
+            except OSError as exc:
+                log.warning("Không chuyển được %s: %s", src, exc)
+        shutil.rmtree(old / "data" / "workspace", ignore_errors=True)  # chủ dự án chọn xoá; bản sao lưu nằm trong zip
+        for stale in list(old.rglob("*.lock")) + list(old.rglob("*.pid")):  # bản cũ đã tắt (kiểm ở trên): khoá và pid thừa
+            try:
+                stale.unlink()
+            except OSError:
+                pass
+        for path in sorted(old.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+            if path.is_dir():
+                try:
+                    path.rmdir()
+                except OSError:
+                    pass
+        try:
+            old.rmdir()
+        except OSError:
+            log.warning("userdata/ còn file chưa chuyển (chỗ mới đã có bản khác): giữ lại, xem %s", backup.name if backup else "(không có)")
+        log.info("Đã chuyển userdata/ vào Thành (sao lưu: %s): %d mục", backup.name if backup else "không cần", len(moved))
+        LAST_MIGRATED.extend(moved)
+        return moved
+    finally:
+        guard.release()
+        (home / ".migrate.lock").unlink(missing_ok=True)
+
+
+def migrate_all(wait_old: float = 0.0) -> None:
+    """Hai lần chuyển nối nhau: bố cục cũ nhất -> userdata/ -> Thành."""
+    migrate_legacy(wait_old=wait_old)
+    migrate_to_city(wait_old=wait_old)
+
+
+def pending_migration(home: Path = APP_HOME) -> bool:
+    return needs_migration(home) or needs_city_migration(home)
