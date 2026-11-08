@@ -106,7 +106,7 @@ Where bots live: work when called, run scheduled activities or wait when not.
 
 | Building | Vietnamese | Holds |
 |---|---|---|
-| `residents` | Toà nhà dân | one apartment per bot |
+| `residents` | Toà nhà dân | one apartment per bot: `pylos` (the chat bot) and `filter` (the filter bot: decides which group messages are asking for the bot; its `workspace/SOUL.md` is its instruction, tracked by git; the hard rules stay in `gate/fence/speech_limit`) |
 
 Inside a bot's apartment:
 

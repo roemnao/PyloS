@@ -42,7 +42,8 @@ TOOLS_REL = f"{CITY}/lobby/office/agent_tools/custom"        # tool người dù
 SYSTEM_REL = f"{CITY}/management/owner/runtime"
 LOGS_REL = f"{SYSTEM_REL}/logs"
 # Thư mục dữ liệu nằm trong cây mã nguồn (không phải gói Python; git bỏ qua trừ workspace): test khung Thành bỏ qua chúng.
-RUNTIME_DIRS = (SECRETS_REL, DATA_REL, HUTS_REL, WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
+FILTER_WORKSPACE_REL = f"{CITY}/residential/residents/filter/workspace"   # căn hộ của bot lọc: SOUL.md = chỉ dẫn cho bộ lọc (git theo dõi)
+RUNTIME_DIRS = (SECRETS_REL, DATA_REL, HUTS_REL, WORKSPACE_REL, FILTER_WORKSPACE_REL, TOOLS_REL, SYSTEM_REL)
 
 # Bố cục trung gian (userdata/), chỉ còn dùng để chuyển sang Thành.
 USERDATA = "userdata"

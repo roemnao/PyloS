@@ -65,8 +65,11 @@ def is_chatter(text: str) -> bool:
 
 
 class MessageFilter:
-    def __init__(self, settings: Settings, agent: Any, identity: Callable[[], tuple[str, str]]) -> None:
+    def __init__(self, settings: Settings, agent: Any, identity: Callable[[], tuple[str, str]],
+                 instructions: Callable[[str], str] | None = None) -> None:
+        """`instructions(names)`: chỉ dẫn của bot lọc lấy từ căn hộ của nó; rỗng hoặc None thì dùng FILTER_SYSTEM."""
         self.settings = settings
+        self.instructions = instructions
         self.agent = agent
         self.identity = identity  # () -> (id, tên) của acc bot; rỗng nếu chạy Zalo Bot
 
@@ -140,9 +143,8 @@ class MessageFilter:
         context = "\n".join(lines) or "(chưa có)"
         user = f"Ngữ cảnh gần đây trong nhóm:\n{context}\n\nTIN MỚI từ {msg.from_name}:\n{text[:1500]}"
         try:
-            data, tokens = await self.agent.classify(
-                FILTER_SYSTEM.format(names=names), user, model=self.settings.filter_model or None,
-            )
+            system = (self.instructions(names) if self.instructions else "") or FILTER_SYSTEM.format(names=names)
+            data, tokens = await self.agent.classify(system, user, model=self.settings.filter_model or None)
         except Exception as exc:  # noqa: BLE001 - lỗi bộ lọc không được làm sập bot: coi như không gọi bot
             detail = f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__
             log.warning("Bộ lọc AI lỗi ở chat %s: %s", msg.chat_id, detail)

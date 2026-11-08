@@ -8,6 +8,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from pylos.residential.residents.filter.instructions import FilterInstructions
 from pylos.residential.residents.pylos import Agent, PromptBuilder, ToolContext, Turn
 from pylos.gate.side_gate.owner_commands.owner_commands import CommandHandler, parse_command
 from pylos.lobby.dispatch.permissions.roles import LEADER, OWNER, role_of
@@ -80,7 +81,7 @@ class Bot:
         self.stats = StatsStore(data / DAILY_STATS_FILE)
         self.activity = ActivityStore(data / CHAT_ACTIVITY_FILE)
         self.memory = MemoryDataStore(settings.huts_dir, keep=settings.memorydata_keep)
-        self.filter = MessageFilter(settings, agent, self._self_identity)
+        self.filter = MessageFilter(settings, agent, self._self_identity, FilterInstructions(settings.filter_workspace_dir).text)
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
             allow_all=settings.allow_all_chats,
