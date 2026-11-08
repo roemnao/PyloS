@@ -16,7 +16,7 @@ from pylos.gate.fence.speech_limit.message_filter import Decision, MessageFilter
 from pylos.gate.main_gate.zalo.mention_tags import add_tags
 from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
 from pylos.lobby.dispatch.shared.storage import MODE_ALL, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
-from pylos.gate.main_gate.zalo.reply_formatting import split_message, to_plain_text
+from pylos.gate.main_gate.zalo.reply_formatting import split_message, split_reply, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, parse_updates
 from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PROCESSED_IDS_FILE, TOKEN_USAGE_FILE
@@ -94,6 +94,7 @@ class Bot:
         self._workers: dict[str, asyncio.Task[None]] = {}
         self._warned_no_owner: set[str] = set()
         self._hinted: set[str] = set()
+        self._send_locks: dict[str, asyncio.Lock] = {}  # hai câu trả lời cùng chat không xen kẽ
 
     def apply_settings(self, settings: Settings) -> None:
         """Áp cấu hình mới khi đang chạy (đổi trong trang quản lý), không cần khởi động lại."""
@@ -168,7 +169,7 @@ class Bot:
                 role = self._role(msg, is_owner)
                 reply = self.commands.handle(cmd, msg, role, members, self._self_identity()[0])
                 if reply:
-                    await self._send(msg.chat_id, reply)
+                    await self._send(msg.chat_id, reply, split=False)  # trả lời lệnh (danh sách, trợ giúp) đi một khối
             else:
                 log.info("Bỏ qua lệnh /%s ở chat chưa được phép (%s)", cmd.name, msg.from_id)
             return
@@ -367,17 +368,33 @@ class Bot:
 
     # ---------- gửi tin ----------
 
-    async def _send(self, chat_id: str, text: str) -> None:
-        for chunk in split_message(text):
-            await self._send_chunk(chat_id, chunk)
+    async def _send(self, chat_id: str, text: str, split: bool = True) -> None:
+        s = self.settings
+        parts = split_reply(text, s.reply_split, s.reply_max_parts) if split else split_message(text)
+        async with self._send_locks.setdefault(chat_id, asyncio.Lock()):
+            for index, part in enumerate(parts):
+                if index:
+                    await self._pause_between_parts(chat_id)
+                if not await self._send_chunk(chat_id, part):
+                    rest = parts[index + 1:]
+                    if rest:  # mảnh trước lỗi thì không gửi tiếp (sẽ lệch thứ tự), lưu phần còn lại để gửi lại
+                        self.failed.add(chat_id, "\n".join(rest),"bỏ dở vì mảnh trước gửi lỗi")
+                    return
 
-    async def _send_chunk(self, chat_id: str, text: str) -> None:
+    async def _pause_between_parts(self, chat_id: str) -> None:
+        try:
+            await self.zalo.send_chat_action(chat_id, "typing")
+        except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
+            log.debug("sendChatAction lỗi: %s", exc)
+        await asyncio.sleep(self.settings.reply_part_delay_ms / 1000)
+
+    async def _send_chunk(self, chat_id: str, text: str) -> bool:
         delay = self.retry_delay
         last_error = ""
         for attempt in range(1, self.send_retries + 1):
             try:
                 await self.zalo.send_message(chat_id, text)
-                return
+                return True
             except ZaloError as exc:
                 last_error = str(exc)
                 log.warning("Gửi tin lỗi (lần %d/%d) chat=%s: %s", attempt, self.send_retries, chat_id, exc)
@@ -387,6 +404,7 @@ class Bot:
         self.failed.add(chat_id, text, last_error)
         self.stats.incr("errors")
         log.error("Bỏ cuộc gửi tin tới chat %s, đã lưu vào failed.txt", chat_id)
+        return False
 
 
 def strip_name_prefix(text: str, names: set[str]) -> str:

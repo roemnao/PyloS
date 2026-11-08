@@ -57,7 +57,7 @@ Receives data from Zalo and outer-city bots; sends data out.
 
 | Building | Vietnamese | Holds |
 |---|---|---|
-| `main_gate` | Cổng chính | `zalo` (personal account, Bot Platform, QR login, polling, webhook), `external_apps`, `external_bots`, `sessions`, `logs` |
+| `main_gate` | Cổng chính | `zalo` (personal account, Bot Platform, QR login, polling, webhook, `reply_formatting`: cut a long or multi-line reply into several messages), `external_apps`, `external_bots`, `sessions`, `logs` |
 | `fence` | Hàng rào | `token_limit`, `speech_limit`, `ethics` — the rules **and** the code that enforces them |
 | `side_gate` | Cổng phụ | `vps`, `mcp`, `owner_commands`, `shell`, `emergency`, `desktop` — technical entry: receives commands from the owner, the VPS and MCP |
 | `guest_house` | Toà khách | one **hut** per person (Zalo uid) or per Zalo group |

@@ -69,6 +69,7 @@ def make_settings(tmp_path: Path, **overrides: str) -> Settings:
         "USER_RATE_PER_MIN": "0",
         "CHAT_RATE_PER_MIN": "0",
         "DAILY_TOKEN_BUDGET": "0",
+        "REPLY_PART_DELAY_MS": "0",
     }
     env.update(overrides)
     return Settings.from_env(env, base_dir=tmp_path)

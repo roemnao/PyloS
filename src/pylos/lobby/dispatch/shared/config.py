@@ -95,6 +95,10 @@ class Settings:
     schedule_api_key: str = ""
     # Ai được giao lịch cho người khác qua bot lịch: "owner" (owner và leader từng nhóm) hoặc "all"
     assign_allowed: str = "owner"
+    # Câu trả lời nhiều dòng: off (một tin) | line (mỗi dòng một tin) | paragraph (mỗi đoạn một tin); tối đa N tin, nghỉ giữa các tin
+    reply_split: str = "line"
+    reply_max_parts: int = 6
+    reply_part_delay_ms: int = 700
     zalo_session_file: Path = Path(SESSION_REL)
     # Thư mục hệ thống tự quản lý: log, khoá tiến trình, trạng thái (xem bot/userdata_paths.py)
     system_dir: Path = Path(SYSTEM_REL)
@@ -140,6 +144,9 @@ class Settings:
                 f"RECEIVE_MODE phải là 'polling', 'webhook' hoặc 'personal', đang là {receive_mode!r}"
             )
 
+        reply_split = env.get("REPLY_SPLIT", "").strip().lower() or "line"
+        if reply_split not in ("off", "line", "paragraph"):  # khớp SPLIT_MODES ở gate/main_gate/zalo/reply_formatting.py
+            raise ConfigError(f"REPLY_SPLIT phải là off, line hoặc paragraph, đang là {reply_split!r}")
         assign_allowed = env.get("ASSIGN_ALLOWED", "").strip().lower() or "owner"
         if assign_allowed not in ("owner", "all"):
             raise ConfigError(f"ASSIGN_ALLOWED phải là 'owner' hoặc 'all', đang là {assign_allowed!r}")
@@ -192,6 +199,9 @@ class Settings:
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
             assign_allowed=assign_allowed,
+            reply_split=reply_split,
+            reply_max_parts=_int(env, "REPLY_MAX_PARTS", 6, minimum=1),
+            reply_part_delay_ms=_int(env, "REPLY_PART_DELAY_MS", 700),
             zalo_session_file=path("ZALO_SESSION_FILE", SESSION_REL),
             bot_supervisor=bot_supervisor,
             remote_url=(env.get("REMOTE_URL", "").strip() or DEFAULT_REMOTE_URL).rstrip("/"),

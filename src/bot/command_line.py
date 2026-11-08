@@ -184,6 +184,7 @@ class ConsoleZalo:
 
 async def _console(settings: Settings, chat_id: str, user_id: str, name: str, group: bool) -> None:
     agent, tools = _build_agent(settings, allow_echo=True)
+    settings = dataclasses.replace(settings, reply_part_delay_ms=0)  # chat thử: không cần nghỉ giữa các tin
     bot = Bot(settings, ConsoleZalo(), agent, PromptBuilder(settings.workspace_dir, settings.system_file), tools.names())
     kind = "GROUP" if group else "PRIVATE"
     print(
