@@ -27,6 +27,7 @@ userdata/
 src/pylos/management/owner/secrets/
 src/pylos/management/owner/runtime/
 src/pylos/gate/guest_house/data/
+src/pylos/gate/guest_house/huts/
 src/pylos/residential/residents/pylos/workspace/.backup/
 src/pylos/lobby/office/agent_tools/custom/
 /userdata_backup_*.zip
