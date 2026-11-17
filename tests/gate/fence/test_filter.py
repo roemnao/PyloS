@@ -194,3 +194,61 @@ async def test_filter_logs_error_type_even_without_message(make_filter, agent, c
     with caplog.at_level(logging.WARNING):
         d = await decide(make_filter(), msg("ai biết cách nấu phở?"), mode="all")
     assert d.stage == "error" and "TimeoutError" in d.reason and "TimeoutError" in caplog.text
+
+
+# ---------- phân loại việc để đổi model / thinking (MODEL_SHIFT) ----------
+
+async def test_ai_stage_returns_profile_in_same_call(make_filter, agent):
+    f = make_filter(MODEL_SHIFT="true")
+    agent.filter_reply, agent.filter_profile = True, "coding"
+    d = await decide(f, msg("sao hàm này báo lỗi nhỉ?"), mode="all")
+    assert (d.passed, d.stage, d.profile) == (True, "ai", "coding")
+    assert len(agent.classify_calls) == 1  # không tốn thêm lần gọi
+    assert '"profile"' in agent.classify_systems[-1]
+    assert d.as_record()["profile"] == "coding"
+
+    agent.filter_profile = "không-có-loại-này"
+    assert (await decide(f, msg("hỏi gì đó nữa"), mode="all")).profile == ""
+
+
+async def test_direct_calls_ask_profile_separately(make_filter, agent):
+    f = make_filter(identity=("me-1", "Mèo Ú"), MODEL_SHIFT="true")
+    agent.filter_profile = "reflective"
+    for m, stage in ((msg("bạn nghĩ sao về tự do ý chí?", group=False), "private"), (msg("/bot ý nghĩa cuộc sống?"), "rule")):
+        d = await decide(f, m)
+        assert (d.passed, d.stage, d.profile) == (True, stage, "reflective")
+    assert len(agent.classify_calls) == 2
+
+
+async def test_profile_uses_model_shift_doc_and_survives_errors(make_filter, agent):
+    f = make_filter(MODEL_SHIFT="true")
+    f.shift_instructions = lambda: "GUIDE FROM modelShift.md"
+    agent.filter_profile = "routine"
+    await decide(f, msg("mai họp mấy giờ?", group=False))
+    assert "GUIDE FROM modelShift.md" in agent.classify_systems[-1]
+
+    agent.filter_error = RuntimeError("down")
+    d = await decide(f, msg("viết hàm sort", group=False))
+    assert (d.passed, d.profile, d.prompt) == (True, "", "viết hàm sort")  # lỗi phân loại không chặn bot trả lời
+
+
+async def test_model_shift_off_means_no_profile_and_no_extra_call(make_filter, agent):
+    f = make_filter(MODEL_SHIFT="false")
+    agent.filter_reply, agent.filter_profile = True, "coding"
+    assert (await decide(f, msg("ok", group=False))).profile == ""
+    assert (await decide(f, msg("sao hàm này lỗi?"), mode="all")).profile == ""
+    assert len(agent.classify_calls) == 1  # chỉ lần hỏi AI của nhóm all
+
+
+def test_shift_profile_settings(tmp_path):
+    from pylos.lobby.dispatch.shared.config import ConfigError
+
+    s = make_settings(tmp_path, MODEL_SHIFT="true")
+    assert s.shift_profile("routine") == ("gemini-3.2-flash-lite", "low")
+    assert s.shift_profile("reflective") == ("gemini-3.2-flash-lite", "medium")
+    assert s.shift_profile("coding") == ("gemini-4-hydrogen", "medium")
+    assert s.shift_profile("lạ") is None
+    assert make_settings(tmp_path, SHIFT_CODING="gemini-x:HIGH").shift_profile("coding") == ("gemini-x", "high")
+    for bad in ("gemini-x", "gemini-x:ultra", ":low"):
+        with pytest.raises(ConfigError):
+            make_settings(tmp_path, SHIFT_CODING=bad)

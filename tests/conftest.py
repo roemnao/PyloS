@@ -42,20 +42,31 @@ class FakeAgent:
         self.tokens = tokens
         self.calls: list[tuple[str, list[Turn], ToolContext]] = []
         self.classify_calls: list[str] = []
+        self.classify_systems: list[str] = []
+        self.overrides: list[dict[str, Any]] = []
 
-    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
+    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext, **overrides: Any) -> AgentReply:
         self.calls.append((system, turns, ctx))
+        self.overrides.append(overrides)  # model / thinking_level ghi đè của từng lượt
+        if overrides and self.reply_error_on_override is not None:
+            raise self.reply_error_on_override
         return AgentReply(self.reply_text, self.tokens)
 
     # Bộ lọc AI giả: mặc định "không nhờ bot"; test đặt filter_reply/filter_error để đổi kịch bản.
     filter_reply = False
     filter_error: Exception | None = None
+    filter_profile = ""  # loại việc bộ lọc trả về (routine | reflective | coding)
+    reply_error_on_override: Exception | None = None
 
     async def classify(self, system: str, text: str, **kwargs: Any) -> tuple[dict[str, Any], int]:
         self.classify_calls.append(text)
+        self.classify_systems.append(system)
         if self.filter_error is not None:
             raise self.filter_error
-        return {"reply": self.filter_reply, "reason": "giả lập"}, 5
+        data: dict[str, Any] = {"reply": self.filter_reply, "reason": "giả lập"}
+        if self.filter_profile:
+            data["profile"] = self.filter_profile
+        return data, 5
 
 
 def make_settings(tmp_path: Path, **overrides: str) -> Settings:
@@ -70,6 +81,7 @@ def make_settings(tmp_path: Path, **overrides: str) -> Settings:
         "CHAT_RATE_PER_MIN": "0",
         "DAILY_TOKEN_BUDGET": "0",
         "REPLY_PART_DELAY_MS": "0",
+        "MODEL_SHIFT": "false",  # test cũ không có bước phân loại việc; test của chức năng này bật lại
     }
     env.update(overrides)
     return Settings.from_env(env, base_dir=tmp_path)

@@ -38,6 +38,7 @@ BUDGET_NOTICE = (
 # Tin riêng chỉ gồm mã 6 số (hoặc "/lienket 123456"): liên kết Zalo với tài khoản trên web app.
 LINK_CODE = re.compile(r"^\s*(?:/?li[eê]n\s*k[eế]t\s*:?\s*)?(\d{6})\s*$", re.IGNORECASE)
 LINK_OFFLINE = "Chưa liên kết được vì không kết nối được máy chủ. Bạn thử gửi lại mã sau ít phút nhé."
+SHIFT_DOC = "modelShift.md"  # trong căn hộ bot lọc: cách nhận biết loại việc
 # Tool gửi lệnh cho bot lịch trên web: ghi thêm bước "bot lịch" vào session.
 
 
@@ -81,7 +82,9 @@ class Bot:
         self.stats = StatsStore(data / DAILY_STATS_FILE)
         self.activity = ActivityStore(data / CHAT_ACTIVITY_FILE)
         self.memory = MemoryDataStore(settings.huts_dir, keep=settings.memorydata_keep)
-        self.filter = MessageFilter(settings, agent, self._self_identity, FilterInstructions(settings.filter_workspace_dir).text)
+        instructions = FilterInstructions(settings.filter_workspace_dir)
+        self.filter = MessageFilter(settings, agent, self._self_identity, instructions.text,
+                                    lambda: instructions.doc(SHIFT_DOC))
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
             allow_all=settings.allow_all_chats,
@@ -286,7 +289,23 @@ class Bot:
         if not self.user_limiter.allow(f"{msg.chat_id}:{msg.from_id}") or not self.chat_limiter.allow(msg.chat_id):
             log.warning("Vượt giới hạn tần suất: chat=%s user=%s", msg.chat_id, msg.from_id)
             return
-        await self._reply(msg, prompt)
+        await self._reply(msg, prompt, decision.profile)
+
+    def _shift(self, msg: IncomingMessage, profile: str) -> dict[str, str]:
+        """Model / thinking của hồ sơ nếu khác cấu hình chung; rỗng nghĩa là giữ nguyên (không cần đổi)."""
+        chosen = self.settings.shift_profile(profile) if profile and self.settings.model_shift else None
+        if chosen is None:
+            return {}
+        model, level = chosen
+        shift: dict[str, str] = {}
+        if model != self.settings.gemini_model:
+            shift["model"] = model
+        if level != self.settings.thinking_level:
+            shift["thinking_level"] = level
+        if shift:
+            log.info("Đổi theo việc %s ở chat %s: model %s -> %s, thinking %s -> %s", profile, msg.chat_id,
+                     self.settings.gemini_model, model, self.settings.thinking_level, level)
+        return shift
 
     async def _decide(self, msg: IncomingMessage) -> Decision:
         try:
@@ -321,7 +340,7 @@ class Bot:
         self.memory.add_model(chat_id, text)
         await self._send(chat_id, text)
 
-    async def _reply(self, msg: IncomingMessage, prompt: str) -> None:
+    async def _reply(self, msg: IncomingMessage, prompt: str, profile: str = "") -> None:
         try:
             await self.zalo.send_chat_action(msg.chat_id, "typing")
         except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
@@ -346,8 +365,16 @@ class Bot:
                                     sender_role=role, team_names=team_names)
 
         was_over = self._over_budget()
+        shift = self._shift(msg, profile)
         try:
-            reply = await self.agent.reply(system, turns, ctx)
+            try:
+                reply = await self.agent.reply(system, turns, ctx, **shift)
+            except Exception:
+                if not shift:
+                    raise
+                # Model của hồ sơ lỗi (sai tên, hết giờ...): trả lời lại bằng model chung thay vì báo lỗi.
+                log.warning("Model của hồ sơ %s lỗi ở chat %s, thử lại bằng model chung", profile, msg.chat_id, exc_info=True)
+                reply = await self.agent.reply(system, turns, ctx)
         except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
             self.stats.incr("errors")

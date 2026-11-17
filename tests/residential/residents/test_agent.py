@@ -138,7 +138,7 @@ async def test_reply_drops_thinking_when_model_rejects_it():
     agent = GeminiAgent("k", "m", ToolRegistry(), client=SimpleNamespace(aio=SimpleNamespace(models=models)))
     assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == "ok"
     assert len(models.requests) == 2 and models.requests[1][2].thinking_config is None
-    assert agent._reply_thinking is False
+    assert agent._no_thinking == {"m"}
 
 
 async def test_empty_reply_falls_back():

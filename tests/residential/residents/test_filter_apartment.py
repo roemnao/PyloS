@@ -72,5 +72,15 @@ async def test_filter_uses_apartment_instructions_else_default(tmp_path):
 
 
 def test_shipped_soul_matches_default_prompt():
-    soul = FilterInstructions(PROJECT_ROOT / "src/pylos/residential/residents/filter/workspace").text("bot")
+    workspace = FilterInstructions(PROJECT_ROOT / "src/pylos/residential/residents/filter/workspace")
+    soul = workspace.doc("SOUL.md").replace("{names}", "bot")
     assert soul == FILTER_SYSTEM.format(names="bot")  # file mẫu giữ đúng chỉ dẫn mặc định
+
+
+def test_shipped_model_shift_guide_covers_every_profile():
+    from pylos.lobby.dispatch.shared.config import SHIFT_PROFILES
+
+    workspace = FilterInstructions(PROJECT_ROOT / "src/pylos/residential/residents/filter/workspace")
+    guide = workspace.doc("modelShift.md")
+    assert all(f"`{name}`" in guide for name in SHIFT_PROFILES)
+    assert "SOUL.md" in workspace.text("bot") and "modelShift.md" in workspace.text("bot")  # bot lọc đọc cả hai

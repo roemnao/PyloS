@@ -52,6 +52,15 @@ class FilterInstructions:
             found.append((rel.as_posix(), text))
         return found
 
+    def doc(self, name: str) -> str:
+        """Nội dung một file trong căn hộ (ví dụ modelShift.md); rỗng nếu thiếu hoặc không đọc được."""
+        path = self._workspace / name
+        try:
+            return self._read(path) if path.is_file() else ""
+        except OSError as exc:
+            log.warning("Không đọc được %s của bot lọc: %s", name, exc)
+            return ""
+
     def text(self, names: str) -> str:
         docs = self.docs()
         body = docs[0][1] if len(docs) == 1 else "\n\n".join(f"## {name}\n{text}" for name, text in docs)

@@ -54,6 +54,14 @@ FIELDS: tuple[FieldSpec, ...] = (
               "low (thấp): nhanh, rẻ, ít hết giờ. medium (vừa): cân bằng. high (cao): kỹ nhất nhưng chậm, tốn token. "
               "Model không hỗ trợ thì tự bỏ qua.",
               kind="choice", choices=("low", "medium", "high"), group="Gemini"),
+    FieldSpec("MODEL_SHIFT", "Tự đổi model theo loại việc",
+              "Bật: bot lọc phân loại tin (việc thường / triết lý, cảm nhận / code) rồi trả lời bằng model và mức suy nghĩ "
+              "của hồ sơ tương ứng bên dưới. Cách nhận biết viết trong căn hộ bot lọc (modelShift.md). "
+              "Tắt: luôn dùng model và mức suy nghĩ chung ở trên.", kind="bool", group="Gemini"),
+    FieldSpec("SHIFT_ROUTINE", "Hồ sơ: việc thường", "Dạng model:mức, ví dụ gemini-3.2-flash-lite:low.", group="Gemini"),
+    FieldSpec("SHIFT_REFLECTIVE", "Hồ sơ: triết lý, cảm nhận", "Dạng model:mức, ví dụ gemini-3.2-flash-lite:medium.",
+              group="Gemini"),
+    FieldSpec("SHIFT_CODING", "Hồ sơ: code", "Dạng model:mức, ví dụ gemini-4-hydrogen:medium.", group="Gemini"),
     FieldSpec("HISTORY_TURNS", "Số lượt hội thoại đưa vào prompt", kind="int", group="Gemini"),
     FieldSpec("REPLY_SPLIT", "Tách câu trả lời nhiều dòng",
               "line: mỗi dòng một tin. paragraph: mỗi đoạn một tin. off: gửi một tin.",

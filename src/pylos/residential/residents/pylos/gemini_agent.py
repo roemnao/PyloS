@@ -44,7 +44,8 @@ class AgentReply:
 
 
 class Agent(Protocol):
-    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply: ...
+    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext, *,
+                    model: str | None = None, thinking_level: str | None = None) -> AgentReply: ...
 
 
 def _usage_tokens(response: Any) -> int:
@@ -96,7 +97,7 @@ class GeminiAgent:
         self._timeout = timeout_seconds
         self._classify_thinking = True  # tắt khi model báo không nhận thinking_level
         self._thinking_level = thinking_level  # mức suy nghĩ khi trả lời: low | medium | high ("" = để model tự quyết)
-        self._reply_thinking = True  # tắt khi model báo không nhận thinking_level
+        self._no_thinking: set[str] = set()  # các model đã báo không nhận thinking_level khi trả lời
 
     def configure(self, *, model: str, max_tool_rounds: int, max_output_tokens: int, timeout_seconds: int,
                   thinking_level: str | None = None) -> None:
@@ -104,10 +105,8 @@ class GeminiAgent:
         if model != self._model:
             log.info("Đổi model của agent: %s -> %s", self._model, model)
             self._classify_thinking = True
-            self._reply_thinking = True
-        if thinking_level is not None and thinking_level != self._thinking_level:
+        if thinking_level is not None:
             self._thinking_level = thinking_level
-            self._reply_thinking = True
         self._model = model
         self._max_rounds = max_tool_rounds
         self._max_output_tokens = max_output_tokens
@@ -154,23 +153,26 @@ class GeminiAgent:
                 log.warning("Gemini lỗi tạm thời (lần %d), thử lại: %s", failures, type(exc).__name__)
                 await asyncio.sleep(self.retry_delay * failures)
 
-    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
+    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext, *,
+                    model: str | None = None, thinking_level: str | None = None) -> AgentReply:
+        """`model` / `thinking_level`: ghi đè cho riêng lượt này (đổi theo loại việc), không đổi cấu hình chung."""
         types = self._types
         declarations = self._tools.declarations()
+        model = model or self._model
+        level = self._thinking_level if thinking_level is None else thinking_level
         config = types.GenerateContentConfig(
             system_instruction=system,
             max_output_tokens=self._max_output_tokens,
             tools=[types.Tool(function_declarations=declarations)] if declarations else None,
             # Tự chạy vòng lặp để kiểm soát số vòng và quyền của từng tool.
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-            thinking_config=(types.ThinkingConfig(thinking_level=self._thinking_level)
-                             if self._thinking_level and self._reply_thinking else None),
+            thinking_config=(types.ThinkingConfig(thinking_level=level)
+                             if level and model not in self._no_thinking else None),
         )
         contents = self._contents(turns)
         tokens = 0
         steps: list[ToolStep] = []
         started = time.monotonic()
-        model = self._model
 
         def done(text: str) -> AgentReply:
             return AgentReply(text, tokens, tuple(steps), model, int((time.monotonic() - started) * 1000))
@@ -184,7 +186,7 @@ class GeminiAgent:
                     if config.thinking_config is None or not _rejects_thinking(exc):
                         raise
                     log.info("Model không nhận thinking_level, gọi lại không có tham số này: %s", exc)
-                    self._reply_thinking = False
+                    self._no_thinking.add(model)
                     config.thinking_config = None
             tokens += _usage_tokens(response)
             calls = response.function_calls or []
@@ -256,6 +258,6 @@ class EchoAgent:
     async def classify(self, system: str, text: str, **_: Any) -> tuple[dict[str, Any], int]:
         return {"reply": False, "reason": "chưa có GEMINI_API_KEY nên bộ lọc AI không chạy"}, 0
 
-    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
+    async def reply(self, system: str, turns: list[Turn], ctx: ToolContext, **_: Any) -> AgentReply:
         last = turns[-1].text if turns else ""
         return AgentReply(f"(echo, chưa có GEMINI_API_KEY) {last}", 0)

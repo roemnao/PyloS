@@ -480,3 +480,26 @@ async def test_tool_context_carries_role_and_teams(make_bot, zalo, agent):
         await send(bot, event("/bot giao lịch", from_id=sender))
         ctx = agent.calls[-1][2]
         assert (ctx.role, ctx.can_assign, ctx.teams) == (role, role != "basic", {"thiet ke": ["u-an"]}), sender
+
+
+async def test_profile_overrides_model_and_thinking_only_when_different(make_bot, agent):
+    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.2-flash-lite", THINKING_LEVEL="low")
+    chat = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
+    for profile in ("routine", "reflective", "coding", ""):
+        agent.filter_profile = profile
+        await send(bot, event("hỏi gì đó", **chat))
+    assert agent.overrides == [
+        {},  # routine = cấu hình chung: không cần đổi
+        {"thinking_level": "medium"},
+        {"model": "gemini-4-hydrogen", "thinking_level": "medium"},
+        {},  # không phân loại được: dùng cấu hình chung
+    ]
+
+
+async def test_failed_shift_model_falls_back_to_default(make_bot, zalo, agent):
+    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.2-flash-lite", THINKING_LEVEL="low")
+    agent.filter_profile = "coding"
+    agent.reply_error_on_override = RuntimeError("404 model not found")
+    await send(bot, event("sửa giúp hàm này", chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE"))
+    assert agent.overrides == [{"model": "gemini-4-hydrogen", "thinking_level": "medium"}, {}]
+    assert zalo.texts(OWNER) == ["trả lời"]  # người dùng vẫn nhận được câu trả lời, không phải ERROR_REPLY

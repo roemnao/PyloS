@@ -56,6 +56,19 @@ def _bool(env: dict[str, str], name: str, default: bool) -> bool:
     raise ConfigError(f"{name} phải là true hoặc false, đang là {raw!r}")
 
 
+THINKING_LEVELS = ("low", "medium", "high")
+SHIFT_PROFILES = ("routine", "reflective", "coding")  # khớp modelShift.md
+
+
+def _shift_profile(env: dict[str, str], name: str, default: str) -> str:
+    """Hồ sơ "model:mức" (ví dụ gemini-4-hydrogen:medium), kiểm tra dạng ngay khi đọc cấu hình."""
+    raw = env.get(name, "").strip() or default
+    model, _, level = raw.rpartition(":")
+    if not model.strip() or level.strip().lower() not in THINKING_LEVELS:
+        raise ConfigError(f"{name} phải có dạng model:mức (mức là low, medium hoặc high), đang là {raw!r}")
+    return f"{model.strip()}:{level.strip().lower()}"
+
+
 @dataclass(frozen=True)
 class Settings:
     zalo_bot_token: str
@@ -81,6 +94,11 @@ class Settings:
     daily_token_budget: int
     # Mức "suy nghĩ" của Gemini khi trả lời: low (nhanh, rẻ) | medium | high (kỹ nhưng chậm, dễ hết giờ)
     thinking_level: str = "low"
+    # Đổi model + thinking theo loại việc (xem căn hộ bot lọc: modelShift.md). Mỗi hồ sơ có dạng "model:mức".
+    model_shift: bool = True
+    shift_routine: str = "gemini-3.2-flash-lite:low"
+    shift_reflective: str = "gemini-3.2-flash-lite:medium"
+    shift_coding: str = "gemini-4-hydrogen:medium"
     admin_token: str = ""
     admin_port: int = 8081
     admin_show_history: bool = True
@@ -122,6 +140,13 @@ class Settings:
     admin_google_client_id: str = ""
     admin_google_client_secret: str = ""
     admin_email: str = ""
+
+    def shift_profile(self, name: str) -> tuple[str, str] | None:
+        """(model, mức thinking) của hồ sơ routine | reflective | coding; None nếu tên lạ."""
+        if name not in SHIFT_PROFILES:
+            return None
+        model, _, level = getattr(self, f"shift_{name}").rpartition(":")
+        return model, level
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -196,6 +221,10 @@ class Settings:
             chat_rate_per_min=_int(env, "CHAT_RATE_PER_MIN", 20),
             daily_token_budget=_int(env, "DAILY_TOKEN_BUDGET", 200000),
             thinking_level=thinking_level,
+            model_shift=_bool(env, "MODEL_SHIFT", True),
+            shift_routine=_shift_profile(env, "SHIFT_ROUTINE", "gemini-3.2-flash-lite:low"),
+            shift_reflective=_shift_profile(env, "SHIFT_REFLECTIVE", "gemini-3.2-flash-lite:medium"),
+            shift_coding=_shift_profile(env, "SHIFT_CODING", "gemini-4-hydrogen:medium"),
             admin_token=env.get("ADMIN_TOKEN", "").strip(),
             admin_port=_int(env, "ADMIN_PORT", 8081, minimum=1),
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
