@@ -838,7 +838,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             agent: Any = GeminiAgent(
                 settings.gemini_api_key, settings.gemini_model, tools,
                 max_tool_rounds=settings.max_tool_rounds, max_output_tokens=settings.max_output_tokens,
-                timeout_seconds=settings.llm_timeout_seconds,
+                timeout_seconds=settings.llm_timeout_seconds, thinking_level=settings.thinking_level,
             )
         else:
             agent = EchoAgent()

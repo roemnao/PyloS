@@ -88,6 +88,59 @@ async def test_transient_errors_are_retried_but_others_are_not():
         await agent.reply("s", [Turn("user", "x")], CTX)
 
 
+async def test_reply_retries_once_on_timeout():
+    import asyncio
+
+    class Slow(FakeModels):
+        async def generate_content(self, *, model, contents, config):
+            if not self.requests:
+                self.requests.append((model, list(contents), config))
+                await asyncio.sleep(1)
+            return await super().generate_content(model=model, contents=contents, config=config)
+
+    models = Slow([response("ok")])
+    agent = GeminiAgent("k", "m", ToolRegistry(), timeout_seconds=0.05,
+                        client=SimpleNamespace(aio=SimpleNamespace(models=models)))
+    assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == "ok"
+    assert len(models.requests) == 2
+
+    class AlwaysSlow:
+        async def generate_content(self, *, model, contents, config):
+            await asyncio.sleep(1)
+
+    agent = GeminiAgent("k", "m", ToolRegistry(), timeout_seconds=0.05,
+                        client=SimpleNamespace(aio=SimpleNamespace(models=AlwaysSlow())))
+    with pytest.raises(TimeoutError, match="không trả lời sau"):
+        await agent.reply("s", [Turn("user", "x")], CTX)
+
+
+@pytest.mark.parametrize("level", ["low", "medium", "high"])
+async def test_reply_sends_thinking_level(level):
+    agent, models = make_agent([response("ok")])
+    agent.configure(model="gemini-test", max_tool_rounds=4, max_output_tokens=1024, timeout_seconds=60,
+                    thinking_level=level)
+    await agent.reply("s", [Turn("user", "x")], CTX)
+    thinking = models.requests[0][2].thinking_config
+    assert str(thinking.thinking_level.value).lower() == level
+
+
+async def test_reply_drops_thinking_when_model_rejects_it():
+    class Rejects(FakeModels):
+        async def generate_content(self, *, model, contents, config):
+            if config.thinking_config is not None:
+                self.requests.append((model, list(contents), config))
+                error = RuntimeError("Thinking level is not supported")
+                error.code = 400
+                raise error
+            return await super().generate_content(model=model, contents=contents, config=config)
+
+    models = Rejects([response("ok")])
+    agent = GeminiAgent("k", "m", ToolRegistry(), client=SimpleNamespace(aio=SimpleNamespace(models=models)))
+    assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == "ok"
+    assert len(models.requests) == 2 and models.requests[1][2].thinking_config is None
+    assert agent._reply_thinking is False
+
+
 async def test_empty_reply_falls_back():
     agent, _ = make_agent([response(None)])
     assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == EMPTY_REPLY

@@ -113,7 +113,8 @@ class Bot:
         configure = getattr(self.agent, "configure", None)
         if configure is not None:
             configure(model=settings.gemini_model, max_tool_rounds=settings.max_tool_rounds,
-                      max_output_tokens=settings.max_output_tokens, timeout_seconds=settings.llm_timeout_seconds)
+                      max_output_tokens=settings.max_output_tokens, timeout_seconds=settings.llm_timeout_seconds,
+                      thinking_level=settings.thinking_level)
 
     def _chat_name(self, msg: IncomingMessage) -> str:
         label = self.groups.get(msg.chat_id).label
