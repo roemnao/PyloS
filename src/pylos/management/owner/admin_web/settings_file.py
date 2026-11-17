@@ -50,6 +50,10 @@ FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec("GEMINI_MODEL", "Model Gemini", "Ví dụ gemini-3.1-flash-lite.", group="Gemini"),
     FieldSpec("MAX_OUTPUT_TOKENS", "Token tối đa mỗi câu trả lời", kind="int", group="Gemini"),
     FieldSpec("LLM_TIMEOUT_SECONDS", "Thời gian chờ Gemini (giây)", kind="int", group="Gemini"),
+    FieldSpec("THINKING_LEVEL", "Mức suy nghĩ của Gemini",
+              "low (thấp): nhanh, rẻ, ít hết giờ. medium (vừa): cân bằng. high (cao): kỹ nhất nhưng chậm, tốn token. "
+              "Model không hỗ trợ thì tự bỏ qua.",
+              kind="choice", choices=("low", "medium", "high"), group="Gemini"),
     FieldSpec("HISTORY_TURNS", "Số lượt hội thoại đưa vào prompt", kind="int", group="Gemini"),
     FieldSpec("REPLY_SPLIT", "Tách câu trả lời nhiều dòng",
               "line: mỗi dòng một tin. paragraph: mỗi đoạn một tin. off: gửi một tin.",

@@ -54,6 +54,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
         max_tool_rounds=settings.max_tool_rounds,
         max_output_tokens=settings.max_output_tokens,
         timeout_seconds=settings.llm_timeout_seconds,
+        thinking_level=settings.thinking_level,
     )
     return agent, tools
 

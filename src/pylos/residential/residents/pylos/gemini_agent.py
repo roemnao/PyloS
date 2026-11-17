@@ -69,6 +69,7 @@ def _is_transient(exc: BaseException) -> bool:
 
 class GeminiAgent:
     RETRIES = 2
+    TIMEOUT_RETRIES = 1  # hết giờ thì chỉ thử thêm 1 lần: mỗi lần chờ đã lâu
     retry_delay = 1.0
 
     def __init__(
@@ -80,6 +81,7 @@ class GeminiAgent:
         max_tool_rounds: int = 4,
         max_output_tokens: int = 1024,
         timeout_seconds: int = 60,
+        thinking_level: str = "low",
         client: Any = None,
     ) -> None:
         from google import genai
@@ -93,12 +95,19 @@ class GeminiAgent:
         self._max_output_tokens = max_output_tokens
         self._timeout = timeout_seconds
         self._classify_thinking = True  # tắt khi model báo không nhận thinking_level
+        self._thinking_level = thinking_level  # mức suy nghĩ khi trả lời: low | medium | high ("" = để model tự quyết)
+        self._reply_thinking = True  # tắt khi model báo không nhận thinking_level
 
-    def configure(self, *, model: str, max_tool_rounds: int, max_output_tokens: int, timeout_seconds: int) -> None:
+    def configure(self, *, model: str, max_tool_rounds: int, max_output_tokens: int, timeout_seconds: int,
+                  thinking_level: str | None = None) -> None:
         """Đổi model / giới hạn khi bot đang chạy (cấu hình mới từ web), không cần khởi động lại."""
         if model != self._model:
             log.info("Đổi model của agent: %s -> %s", self._model, model)
             self._classify_thinking = True
+            self._reply_thinking = True
+        if thinking_level is not None and thinking_level != self._thinking_level:
+            self._thinking_level = thinking_level
+            self._reply_thinking = True
         self._model = model
         self._max_rounds = max_tool_rounds
         self._max_output_tokens = max_output_tokens
@@ -115,20 +124,35 @@ class GeminiAgent:
                 contents.append(types.Content(role="user", parts=[types.Part.from_text(text=text)]))
         return contents
 
-    async def _generate(self, contents: Any, config: Any, model: str | None = None, timeout: float | None = None) -> Any:
-        """Gọi Gemini, thử lại tối đa 2 lần nếu lỗi mạng tạm thời hoặc lỗi 5xx của Google."""
-        for attempt in range(1, self.RETRIES + 2):
+    async def _generate(self, contents: Any, config: Any, model: str | None = None, timeout: float | None = None,
+                        *, retry_timeout: bool = True) -> Any:
+        """Gọi Gemini, thử lại tối đa 2 lần nếu lỗi mạng tạm thời hoặc lỗi 5xx của Google.
+
+        Hết giờ (Gemini quá tải hay suy nghĩ lâu) thì thử thêm 1 lần; `retry_timeout=False` để bên gọi tự xử lý.
+        """
+        name = model or self._model
+        seconds = timeout or self._timeout
+        failures = timeouts = 0
+        while True:
             try:
                 return await asyncio.wait_for(
-                    self._client.aio.models.generate_content(model=model or self._model, contents=contents, config=config),
-                    timeout=timeout or self._timeout,
+                    self._client.aio.models.generate_content(model=name, contents=contents, config=config),
+                    timeout=seconds,
                 )
-            except Exception as exc:  # noqa: BLE001 - lọc lỗi tạm thời bên dưới
-                if attempt > self.RETRIES or not _is_transient(exc):
+            except asyncio.TimeoutError:
+                if not retry_timeout:
                     raise
-                log.warning("Gemini lỗi tạm thời (lần %d), thử lại: %s", attempt, type(exc).__name__)
-                await asyncio.sleep(self.retry_delay * attempt)
-        raise AssertionError("unreachable")
+                timeouts += 1
+                if timeouts > self.TIMEOUT_RETRIES:
+                    raise TimeoutError(
+                        f"Gemini ({name}) không trả lời sau {seconds:.0f} giây (đã thử {timeouts} lần)") from None
+                log.warning("Gemini (%s) chưa trả lời sau %.0f giây, thử lại", name, seconds)
+            except Exception as exc:  # noqa: BLE001 - lọc lỗi tạm thời bên dưới
+                failures += 1
+                if failures > self.RETRIES or not _is_transient(exc):
+                    raise
+                log.warning("Gemini lỗi tạm thời (lần %d), thử lại: %s", failures, type(exc).__name__)
+                await asyncio.sleep(self.retry_delay * failures)
 
     async def reply(self, system: str, turns: list[Turn], ctx: ToolContext) -> AgentReply:
         types = self._types
@@ -139,6 +163,8 @@ class GeminiAgent:
             tools=[types.Tool(function_declarations=declarations)] if declarations else None,
             # Tự chạy vòng lặp để kiểm soát số vòng và quyền của từng tool.
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            thinking_config=(types.ThinkingConfig(thinking_level=self._thinking_level)
+                             if self._thinking_level and self._reply_thinking else None),
         )
         contents = self._contents(turns)
         tokens = 0
@@ -150,7 +176,16 @@ class GeminiAgent:
             return AgentReply(text, tokens, tuple(steps), model, int((time.monotonic() - started) * 1000))
 
         for round_number in range(self._max_rounds + 1):
-            response = await self._generate(contents, config, model=model)
+            while True:
+                try:
+                    response = await self._generate(contents, config, model=model)
+                    break
+                except Exception as exc:  # noqa: BLE001 - chỉ xử lý riêng lỗi do tham số thinking
+                    if config.thinking_config is None or not _rejects_thinking(exc):
+                        raise
+                    log.info("Model không nhận thinking_level, gọi lại không có tham số này: %s", exc)
+                    self._reply_thinking = False
+                    config.thinking_config = None
             tokens += _usage_tokens(response)
             calls = response.function_calls or []
             if not calls:
@@ -191,7 +226,7 @@ class GeminiAgent:
                 thinking_config=self._types.ThinkingConfig(thinking_level="low") if self._classify_thinking else None,
             )
             try:
-                response = await self._generate(text, config, model=model, timeout=timeout)
+                response = await self._generate(text, config, model=model, timeout=timeout, retry_timeout=False)
                 break
             except asyncio.TimeoutError:
                 if attempts >= 2:

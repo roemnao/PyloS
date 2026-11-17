@@ -79,6 +79,8 @@ class Settings:
     user_rate_per_min: int
     chat_rate_per_min: int
     daily_token_budget: int
+    # Mức "suy nghĩ" của Gemini khi trả lời: low (nhanh, rẻ) | medium | high (kỹ nhưng chậm, dễ hết giờ)
+    thinking_level: str = "low"
     admin_token: str = ""
     admin_port: int = 8081
     admin_show_history: bool = True
@@ -153,6 +155,10 @@ class Settings:
         if assign_allowed not in ("owner", "all"):
             raise ConfigError(f"ASSIGN_ALLOWED phải là 'owner' hoặc 'all', đang là {assign_allowed!r}")
 
+        thinking_level = env.get("THINKING_LEVEL", "").strip().lower() or "low"
+        if thinking_level not in ("low", "medium", "high"):
+            raise ConfigError(f"THINKING_LEVEL phải là low, medium hoặc high, đang là {thinking_level!r}")
+
         bot_supervisor = env.get("BOT_SUPERVISOR", "").strip().lower() or "process"
         if bot_supervisor not in ("process", "systemd"):
             raise ConfigError(f"BOT_SUPERVISOR phải là 'process' hoặc 'systemd', đang là {bot_supervisor!r}")
@@ -189,6 +195,7 @@ class Settings:
             user_rate_per_min=_int(env, "USER_RATE_PER_MIN", 6),
             chat_rate_per_min=_int(env, "CHAT_RATE_PER_MIN", 20),
             daily_token_budget=_int(env, "DAILY_TOKEN_BUDGET", 200000),
+            thinking_level=thinking_level,
             admin_token=env.get("ADMIN_TOKEN", "").strip(),
             admin_port=_int(env, "ADMIN_PORT", 8081, minimum=1),
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
