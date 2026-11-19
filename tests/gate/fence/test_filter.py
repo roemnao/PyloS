@@ -244,8 +244,8 @@ def test_shift_profile_settings(tmp_path):
     from pylos.lobby.dispatch.shared.config import ConfigError
 
     s = make_settings(tmp_path, MODEL_SHIFT="true")
-    assert s.shift_profile("routine") == ("gemini-3.2-flash-lite", "low")
-    assert s.shift_profile("reflective") == ("gemini-3.2-flash-lite", "medium")
+    assert s.shift_profile("routine") == ("gemini-3.5-flash-lite", "low")
+    assert s.shift_profile("reflective") == ("gemini-3.5-flash-lite", "medium")
     assert s.shift_profile("coding") == ("gemini-4-hydrogen", "medium")
     assert s.shift_profile("lạ") is None
     assert make_settings(tmp_path, SHIFT_CODING="gemini-x:HIGH").shift_profile("coding") == ("gemini-x", "high")

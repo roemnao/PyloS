@@ -58,8 +58,8 @@ FIELDS: tuple[FieldSpec, ...] = (
               "Bật: bot lọc phân loại tin (việc thường / triết lý, cảm nhận / code) rồi trả lời bằng model và mức suy nghĩ "
               "của hồ sơ tương ứng bên dưới. Cách nhận biết viết trong căn hộ bot lọc (modelShift.md). "
               "Tắt: luôn dùng model và mức suy nghĩ chung ở trên.", kind="bool", group="Gemini"),
-    FieldSpec("SHIFT_ROUTINE", "Hồ sơ: việc thường", "Dạng model:mức, ví dụ gemini-3.2-flash-lite:low.", group="Gemini"),
-    FieldSpec("SHIFT_REFLECTIVE", "Hồ sơ: triết lý, cảm nhận", "Dạng model:mức, ví dụ gemini-3.2-flash-lite:medium.",
+    FieldSpec("SHIFT_ROUTINE", "Hồ sơ: việc thường", "Dạng model:mức, ví dụ gemini-3.5-flash-lite:low.", group="Gemini"),
+    FieldSpec("SHIFT_REFLECTIVE", "Hồ sơ: triết lý, cảm nhận", "Dạng model:mức, ví dụ gemini-3.5-flash-lite:medium.",
               group="Gemini"),
     FieldSpec("SHIFT_CODING", "Hồ sơ: code", "Dạng model:mức, ví dụ gemini-4-hydrogen:medium.", group="Gemini"),
     FieldSpec("HISTORY_TURNS", "Số lượt hội thoại đưa vào prompt", kind="int", group="Gemini"),

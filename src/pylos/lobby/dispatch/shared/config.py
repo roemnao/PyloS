@@ -96,8 +96,8 @@ class Settings:
     thinking_level: str = "low"
     # Đổi model + thinking theo loại việc (xem căn hộ bot lọc: modelShift.md). Mỗi hồ sơ có dạng "model:mức".
     model_shift: bool = True
-    shift_routine: str = "gemini-3.2-flash-lite:low"
-    shift_reflective: str = "gemini-3.2-flash-lite:medium"
+    shift_routine: str = "gemini-3.5-flash-lite:low"
+    shift_reflective: str = "gemini-3.5-flash-lite:medium"
     shift_coding: str = "gemini-4-hydrogen:medium"
     admin_token: str = ""
     admin_port: int = 8081
@@ -222,8 +222,8 @@ class Settings:
             daily_token_budget=_int(env, "DAILY_TOKEN_BUDGET", 200000),
             thinking_level=thinking_level,
             model_shift=_bool(env, "MODEL_SHIFT", True),
-            shift_routine=_shift_profile(env, "SHIFT_ROUTINE", "gemini-3.2-flash-lite:low"),
-            shift_reflective=_shift_profile(env, "SHIFT_REFLECTIVE", "gemini-3.2-flash-lite:medium"),
+            shift_routine=_shift_profile(env, "SHIFT_ROUTINE", "gemini-3.5-flash-lite:low"),
+            shift_reflective=_shift_profile(env, "SHIFT_REFLECTIVE", "gemini-3.5-flash-lite:medium"),
             shift_coding=_shift_profile(env, "SHIFT_CODING", "gemini-4-hydrogen:medium"),
             admin_token=env.get("ADMIN_TOKEN", "").strip(),
             admin_port=_int(env, "ADMIN_PORT", 8081, minimum=1),
