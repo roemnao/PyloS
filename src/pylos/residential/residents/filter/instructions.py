@@ -10,7 +10,7 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 SHIFT_DOC = "modelShift.md"  # trong căn hộ: bảng hồ sơ (profile -> model, thinking, dự phòng) và cách nhận biết loại việc
-PROFILE_NAMES = ("routine", "reflective", "coding")
+PROFILE_NAMES = ("routine", "reflective", "coding", "documents")
 THINKING_LEVELS = ("low", "medium", "high")
 
 
@@ -27,6 +27,7 @@ DEFAULT_PROFILES: dict[str, Profile] = {
     "routine": Profile("routine", "gemini-3.1-flash-lite", "low", ("gemini-3.5-flash-lite",)),
     "reflective": Profile("reflective", "gemini-3.1-flash-lite", "medium", ("gemini-3.5-flash-lite",)),
     "coding": Profile("coding", "gemini-4-hydrogen", "medium", ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")),
+    "documents": Profile("documents", "gemini-3.5-flash-lite", "medium", ("gemini-3.1-flash-lite",)),
 }
 
 

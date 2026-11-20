@@ -164,3 +164,48 @@ async def test_file_send_failure_is_dead_lettered_and_the_user_is_told(tmp_path)
     assert [e[1] for e in zalo.events] == [bot.FILE_FAILED.format(name="ghi-chu.md"), "xong"]
     assert "(tệp) ghi-chu.md" in (tmp_path / "data" / "failed_replies.txt").read_text(encoding="utf-8")
     assert "(đã gửi" not in bot.history.recent(OWNER, 5)[-1]["text"]
+
+
+def test_model_faked_file_note_is_stripped_from_the_reply():
+    from pylos.residential.residents.pylos.message_handler import strip_fake_notes
+
+    assert strip_fake_notes("Xong rồi.\n(đã gửi tệp: a.docx)") == "Xong rồi."
+    assert strip_fake_notes("(đã gửi 2 ảnh)\nOk") == "Ok"
+    assert strip_fake_notes("Tệp (đã gửi tệp: x) giữa câu") == "Tệp (đã gửi tệp: x) giữa câu"
+
+
+
+class FakingAgent(RecordingAgent):
+    """Lần đầu bắt chước ghi chú lịch sử mà không gọi tool; sau lời nhắc mới tạo tệp thật."""
+
+    def __init__(self, path):
+        super().__init__([])
+        self.path = path
+
+    async def reply(self, system, turns, ctx, **overrides):
+        self.prompts.append(turns[-1].text)
+        if len(self.prompts) == 1:
+            return AgentReply("Xong.\n(đã gửi tệp: a.docx)", 4)
+        ctx.outbox.append(OutgoingFile(self.path, ""))
+        return AgentReply("Đây.", 4)
+
+
+async def test_faked_sent_note_without_a_tool_call_is_retried_once(tmp_path):
+    path = docs(tmp_path) / "a.docx"
+    path.parent.mkdir(parents=True)
+    writer.markdown_to_docx("# a", path)
+    zalo = DocZalo()
+    agent = FakingAgent(path)
+    bot = make(tmp_path, zalo, agent)
+    await bot.handle_payload(event("tạo file", chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE"))
+    await bot.drain()
+    assert len(agent.prompts) == 2 and agent.prompts[1].startswith("[Hệ thống]")
+    assert zalo.events == [("file", "a.docx"), ("text", "Đây.")]
+
+
+async def test_faked_note_that_stays_faked_tells_the_truth(tmp_path):
+    zalo = DocZalo()
+    bot = make(tmp_path, zalo, RecordingAgent([], reply="Xong.\n(đã gửi tệp: a.docx)"))
+    await bot.handle_payload(event("tạo file", chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE"))
+    await bot.drain()
+    assert zalo.events == [("text", "Xong."), ("text", "Mình chưa tạo được tệp lần này, bạn nhờ lại giúp mình nhé.")]
