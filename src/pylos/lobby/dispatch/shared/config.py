@@ -60,7 +60,7 @@ def _bool(env: dict[str, str], name: str, default: bool) -> bool:
 
 
 THINKING_LEVELS = ("low", "medium", "high")
-SHIFT_PROFILES = ("routine", "reflective", "coding")  # khớp modelShift.md
+SHIFT_PROFILES = ("routine", "reflective", "coding", "documents")  # khớp modelShift.md
 
 
 @dataclass(frozen=True)

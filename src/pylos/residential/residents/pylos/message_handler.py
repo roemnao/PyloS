@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 import re
 import time
@@ -583,6 +584,12 @@ class Bot:
         overrides = self._model_for(msg, decision) if decision is not None else {}
         try:
             reply = await self.agent.reply(system, turns, ctx, **overrides)
+            if FAKE_NOTE.search(reply.text or "") and not ctx.outbox:
+                # model viết "(đã gửi ...)" mà chưa gọi tool nào (bắt chước ghi chú lịch sử): nhắc một lần rồi cho làm lại
+                log.warning("Chat %s: model nói đã gửi tệp/ảnh nhưng không gọi tool, thử lại một lần", msg.chat_id)
+                again = await self.agent.reply(system, [*turns, Turn("model", reply.text), Turn("user", RETRY_NUDGE)],
+                                               ctx, **overrides)
+                reply = dataclasses.replace(again, tokens=again.tokens + reply.tokens)
             self._save_file_uris(msg.chat_id, turns)
         except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
@@ -598,6 +605,10 @@ class Bot:
         self._record_model(msg, reply, overrides)
         names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
         text = strip_name_prefix(to_plain_text(reply.text), names)
+        faked = bool(FAKE_NOTE.search(text)) and not images and not documents_out
+        text = strip_fake_notes(text)
+        if faked:  # model nói đã gửi tệp nhưng không gọi tool: báo thật thay vì để người dùng chờ tệp không bao giờ tới
+            text = (text + "\n\n" + FILE_NOT_MADE).strip()
         if members:
             text = add_tags(text, prompt, members)  # model hay quên "@" trước tên người cần tag
         sent_images = await self._send_images(msg.chat_id, images)
@@ -744,6 +755,18 @@ class Bot:
         self.stats.incr("errors")
         log.error("Bỏ cuộc gửi tin tới chat %s, đã lưu vào failed.txt", chat_id)
         return False
+
+
+RETRY_NUDGE = ("[Hệ thống] Bạn vừa viết \"(đã gửi ...)\" nhưng chưa gọi tool nào nên chưa có tệp hay ảnh nào được gửi. "
+               "Dòng đó do hệ thống tự thêm, bạn đừng tự viết. Hãy gọi đúng tool (tao_tai_lieu, sua_tai_lieu hoặc tao_anh) "
+               "rồi trả lời ngắn gọn.")
+FILE_NOT_MADE ="Mình chưa tạo được tệp lần này, bạn nhờ lại giúp mình nhé."
+FAKE_NOTE = re.compile(r"^[ \t]*\((?:đã gửi tệp:[^)\n]*|đã gửi \d+ ảnh)\)[ \t]*$", re.IGNORECASE | re.MULTILINE)
+
+
+def strip_fake_notes(text: str) -> str:
+    """Bỏ dòng "(đã gửi tệp: ...)" do model tự viết bắt chước ghi chú lịch sử (ghi chú thật do code thêm, không gửi đi)."""
+    return FAKE_NOTE.sub("", text).strip()
 
 
 def strip_name_prefix(text: str, names: set[str]) -> str:
