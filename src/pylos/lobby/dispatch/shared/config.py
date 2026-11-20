@@ -164,6 +164,12 @@ class Settings:
     image_steps: int = 4
     image_per_day: int = 50
     user_images_per_hour: int = 5
+    # Tài liệu .docx / .md (tool tao_tai_lieu, sua_tai_lieu, doc_tai_lieu): file nằm ở huts/<chat>/docs/
+    doc_tools: bool = True
+    docs_per_day: int = 100
+    user_docs_per_hour: int = 10
+    doc_max_mb: int = 10  # cỡ tối đa một tệp người dùng gửi vào
+    doc_keep_days: int = 30  # tệp không đụng tới quá số ngày này thì xoá; 0 = giữ mãi
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -292,6 +298,11 @@ class Settings:
             image_steps=_int(env, "IMAGE_STEPS", 4, minimum=1),
             image_per_day=_int(env, "IMAGE_PER_DAY", 50),
             user_images_per_hour=_int(env, "USER_IMAGES_PER_HOUR", 5),
+            doc_tools=_bool(env, "DOC_TOOLS", True),
+            docs_per_day=_int(env, "DOCS_PER_DAY", 100),
+            user_docs_per_hour=_int(env, "USER_DOCS_PER_HOUR", 10),
+            doc_max_mb=_int(env, "DOC_MAX_MB", 10, minimum=1),
+            doc_keep_days=_int(env, "DOC_KEEP_DAYS", 30),
         )
 
     @property

@@ -19,6 +19,8 @@ TEXT_EVENT = "message.text.received"
 
 # Loại tin (IncomingMessage.kind). Chỉ ảnh, video, tin thoại được gửi cho Gemini xem/nghe.
 MEDIA_KINDS = ("photo", "video", "voice")
+# Tệp tài liệu bot đọc được (khớp lobby/office/documents/files.py ALLOWED); tải riêng, không gửi cho Gemini như media.
+DOC_EXTENSIONS = (".docx", ".md", ".txt")
 
 
 @dataclass(frozen=True)
@@ -58,6 +60,20 @@ class IncomingMessage:
     @property
     def has_media(self) -> bool:
         return self.kind in MEDIA_KINDS and any(a.url for a in self.attachments)
+
+    @property
+    def document_attachment(self) -> Attachment | None:
+        """Tệp tài liệu (.docx, .md, .txt) người dùng gửi; None nếu tin không phải tệp hoặc đuôi không hỗ trợ."""
+        if self.kind != "file":
+            return None
+        for att in self.attachments:
+            if att.url and (att.name or att.title).lower().endswith(DOC_EXTENSIONS):
+                return att
+        return None
+
+    @property
+    def has_document(self) -> bool:
+        return self.document_attachment is not None
 
     @property
     def is_group(self) -> bool:

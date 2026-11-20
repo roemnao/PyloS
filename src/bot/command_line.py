@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, discover
-from pylos.lobby.office.agent_tools import create_image, web_reader
+from pylos.lobby.office.agent_tools import create_image, documents, web_reader
 from pylos.residential.residents.filter.instructions import FilterInstructions
 from pylos.lobby.office.model_calls import ModelCalls, settings_lookup
 from pylos.residential.residents.pylos.message_handler import Bot
@@ -59,6 +59,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
         return task.model, task.fallbacks
 
     create_image.configure(settings, model_calls=model_calls, task=image_task)  # tool tao_anh ẩn nếu thiếu key
+    documents.configure(settings)  # tool ds_tai_lieu, doc_tai_lieu, tao_tai_lieu, sua_tai_lieu ẩn khi DOC_TOOLS tắt
     agent = GeminiAgent(
         settings.gemini_api_key,
         settings.gemini_model,

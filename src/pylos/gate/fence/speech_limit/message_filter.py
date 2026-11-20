@@ -71,6 +71,7 @@ MEDIA_PROMPTS = {
     "photo": "(gửi một ảnh)",
     "video": "(gửi một video)",
     "voice": "(gửi tin nhắn thoại: hãy nghe và trả lời như tin chữ)",
+    "file": "(gửi một tệp tài liệu)",
 }
 MEDIA_CALL_WINDOW_MS = 2 * 60 * 1000  # trong nhóm: gọi bot rồi gửi tệp trong 2 phút thì bot nhận tệp
 
@@ -158,6 +159,8 @@ class MessageFilter:
                       recent: list[dict[str, Any]], current_profile: str = "", want: bool = False) -> Decision:
         text = (msg.text or "").strip()
         if msg.has_media and self.settings.media_input:
+            return self._decide_media(msg, text, recent, want)
+        if msg.has_document and self.settings.doc_tools:
             return self._decide_media(msg, text, recent, want)
         if not msg.is_group:
             if not msg.is_text:
