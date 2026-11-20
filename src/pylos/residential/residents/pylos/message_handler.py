@@ -96,6 +96,7 @@ class Bot:
         self.state.update(started_at=self.started_at_ms)
         self._queues: dict[str, asyncio.Queue[Job]] = {}
         self._workers: dict[str, asyncio.Task[None]] = {}
+        self._bad_shift_models: set[str] = set()  # model của hồ sơ đã báo 404, không thử lại tới khi đổi cài đặt
         self._warned_no_owner: set[str] = set()
         self._hinted: set[str] = set()
         self._send_locks: dict[str, asyncio.Lock] = {}  # hai câu trả lời cùng chat không xen kẽ
@@ -103,6 +104,7 @@ class Bot:
     def apply_settings(self, settings: Settings) -> None:
         """Áp cấu hình mới khi đang chạy (đổi trong trang quản lý), không cần khởi động lại."""
         self.settings = settings
+        self._bad_shift_models.clear()  # cài đặt đổi: cho thử lại các model đã báo lỗi
         self.filter.settings = settings
         self.memory.keep = settings.memorydata_keep
         self.history.keep = max(200, settings.history_turns * 4)
@@ -289,22 +291,32 @@ class Bot:
         if not self.user_limiter.allow(f"{msg.chat_id}:{msg.from_id}") or not self.chat_limiter.allow(msg.chat_id):
             log.warning("Vượt giới hạn tần suất: chat=%s user=%s", msg.chat_id, msg.from_id)
             return
-        await self._reply(msg, prompt, decision.profile)
+        await self._reply(msg, prompt, decision)
 
-    def _shift(self, msg: IncomingMessage, profile: str) -> dict[str, str]:
-        """Model / thinking của hồ sơ nếu khác cấu hình chung; rỗng nghĩa là giữ nguyên (không cần đổi)."""
+    def _shift(self, msg: IncomingMessage, decision: Decision) -> dict[str, str]:
+        """Model / thinking của hồ sơ nếu khác cấu hình chung; rỗng nghĩa là giữ nguyên (không cần đổi).
+
+        Mỗi lần bộ lọc chọn hồ sơ đều ghi log: chuyển model (từ -> sang) hoặc giữ nguyên, kèm tầng lọc và lý do."""
+        profile = decision.profile
         chosen = self.settings.shift_profile(profile) if profile and self.settings.model_shift else None
         if chosen is None:
             return {}
         model, level = chosen
+        now, now_level = self.settings.gemini_model, self.settings.thinking_level
         shift: dict[str, str] = {}
-        if model != self.settings.gemini_model:
-            shift["model"] = model
-        if level != self.settings.thinking_level:
+        if model != now:
+            if model in self._bad_shift_models:
+                log.info("Bỏ qua đổi sang model %s (đã báo lỗi không dùng được) ở chat %s", model, msg.chat_id)
+            else:
+                shift["model"] = model
+        if level != now_level:
             shift["thinking_level"] = level
         if shift:
-            log.info("Đổi theo việc %s ở chat %s: model %s -> %s, thinking %s -> %s", profile, msg.chat_id,
-                     self.settings.gemini_model, model, self.settings.thinking_level, level)
+            log.info("Chuyển model ở chat %s: việc=%s model %s -> %s, thinking %s -> %s (tầng lọc=%s, lý do=%s)",
+                     msg.chat_id, profile, now, shift.get("model", now), now_level, shift.get("thinking_level", now_level),
+                     decision.stage, decision.reason)
+        else:
+            log.info("Giữ nguyên model ở chat %s: việc=%s đã đúng model %s, thinking %s", msg.chat_id, profile, now, now_level)
         return shift
 
     async def _decide(self, msg: IncomingMessage) -> Decision:
@@ -340,7 +352,7 @@ class Bot:
         self.memory.add_model(chat_id, text)
         await self._send(chat_id, text)
 
-    async def _reply(self, msg: IncomingMessage, prompt: str, profile: str = "") -> None:
+    async def _reply(self, msg: IncomingMessage, prompt: str, decision: Decision | None = None) -> None:
         try:
             await self.zalo.send_chat_action(msg.chat_id, "typing")
         except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
@@ -365,15 +377,22 @@ class Bot:
                                     sender_role=role, team_names=team_names)
 
         was_over = self._over_budget()
-        shift = self._shift(msg, profile)
+        shift = self._shift(msg, decision) if decision is not None else {}
         try:
             try:
                 reply = await self.agent.reply(system, turns, ctx, **shift)
-            except Exception:
+            except Exception as exc:
                 if not shift:
                     raise
-                # Model của hồ sơ lỗi (sai tên, hết giờ...): trả lời lại bằng model chung thay vì báo lỗi.
-                log.warning("Model của hồ sơ %s lỗi ở chat %s, thử lại bằng model chung", profile, msg.chat_id, exc_info=True)
+                # Model của hồ sơ lỗi (sai tên, hết hạn mức, quá tải, hết giờ...): trả lời lại bằng model chung.
+                bad = shift.get("model", "")
+                if bad and getattr(exc, "code", None) == 404:
+                    self._bad_shift_models.add(bad)  # không tồn tại: đừng thử lại ở mỗi tin, tới khi đổi cài đặt
+                    log.warning("Model %s không tồn tại (404): bỏ qua đổi sang model này cho tới khi đổi cài đặt. "
+                                "Sửa SHIFT_* ở trang Cài đặt.", bad)
+                log.warning("Chuyển model thất bại ở chat %s (model=%s, thinking=%s): %s: %s. Trả lời lại bằng model chung %s",
+                            msg.chat_id, bad or self.settings.gemini_model, shift.get("thinking_level", "giữ nguyên"),
+                            type(exc).__name__, str(exc)[:200], self.settings.gemini_model)
                 reply = await self.agent.reply(system, turns, ctx)
         except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)

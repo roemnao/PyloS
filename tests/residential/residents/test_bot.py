@@ -483,7 +483,7 @@ async def test_tool_context_carries_role_and_teams(make_bot, zalo, agent):
 
 
 async def test_profile_overrides_model_and_thinking_only_when_different(make_bot, agent):
-    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.2-flash-lite", THINKING_LEVEL="low")
+    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.5-flash-lite", THINKING_LEVEL="low")
     chat = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
     for profile in ("routine", "reflective", "coding", ""):
         agent.filter_profile = profile
@@ -497,9 +497,41 @@ async def test_profile_overrides_model_and_thinking_only_when_different(make_bot
 
 
 async def test_failed_shift_model_falls_back_to_default(make_bot, zalo, agent):
-    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.2-flash-lite", THINKING_LEVEL="low")
+    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.5-flash-lite", THINKING_LEVEL="low")
     agent.filter_profile = "coding"
     agent.reply_error_on_override = RuntimeError("404 model not found")
     await send(bot, event("sửa giúp hàm này", chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE"))
     assert agent.overrides == [{"model": "gemini-4-hydrogen", "thinking_level": "medium"}, {}]
     assert zalo.texts(OWNER) == ["trả lời"]  # người dùng vẫn nhận được câu trả lời, không phải ERROR_REPLY
+
+
+async def test_every_shift_is_logged_and_unknown_model_is_skipped_next_time(make_bot, zalo, agent, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO)
+    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.1-flash-lite", THINKING_LEVEL="low")
+    chat = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
+
+    agent.filter_profile = "reflective"
+    await send(bot, event("nghĩ sao về cuộc sống", **chat))
+    assert "Chuyển model" in caplog.text and "việc=reflective" in caplog.text
+    assert "gemini-3.1-flash-lite -> gemini-3.5-flash-lite" in caplog.text and "thinking low -> medium" in caplog.text
+
+    caplog.clear()
+    agent.filter_profile = "routine"
+    await send(bot, event("mai họp mấy giờ", **chat))
+    assert "Giữ nguyên model" not in caplog.text  # routine đổi sang model khác nên vẫn là một lần chuyển
+    assert "Chuyển model" in caplog.text
+
+    # Model của hồ sơ không tồn tại (404): trả lời bằng model chung, ghi log, các tin sau không thử lại model đó.
+    caplog.clear()
+    missing = RuntimeError("404 NOT_FOUND")
+    missing.code = 404
+    agent.reply_error_on_override, agent.filter_profile = missing, "coding"
+    await send(bot, event("sửa hàm này", **chat))
+    assert "không tồn tại (404)" in caplog.text and "Chuyển model thất bại" in caplog.text
+    assert zalo.texts(OWNER)[-1] == "trả lời"
+    agent.reply_error_on_override = None
+    await send(bot, event("sửa hàm khác", **chat))
+    assert agent.overrides[-1] == {"thinking_level": "medium"}  # model bị bỏ qua, vẫn đổi thinking
+    assert "Bỏ qua đổi sang model gemini-4-hydrogen" in caplog.text
