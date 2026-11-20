@@ -482,56 +482,108 @@ async def test_tool_context_carries_role_and_teams(make_bot, zalo, agent):
         assert (ctx.role, ctx.can_assign, ctx.teams) == (role, role != "basic", {"thiet ke": ["u-an"]}), sender
 
 
-async def test_profile_overrides_model_and_thinking_only_when_different(make_bot, agent):
-    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.5-flash-lite", THINKING_LEVEL="low")
-    chat = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
-    for profile in ("routine", "reflective", "coding", ""):
+def shift_bot(make_bot, **env):
+    return make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.1-flash-lite", THINKING_LEVEL="low", **env)
+
+
+PRIVATE = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
+
+
+async def test_chat_holds_model_until_filter_switches(make_bot, agent):
+    bot = shift_bot(make_bot)
+    answers = []
+    for profile in ("coding", "", "coding", "reflective", "routine"):  # "" = bộ lọc không phân loại được
         agent.filter_profile = profile
-        await send(bot, event("hỏi gì đó", **chat))
-    assert agent.overrides == [
-        {},  # routine = cấu hình chung: không cần đổi
-        {"thinking_level": "medium"},
-        {"model": "gemini-4-hydrogen", "thinking_level": "medium"},
-        {},  # không phân loại được: dùng cấu hình chung
+        await send(bot, event("hỏi gì đó", **PRIVATE))
+        answers.append(agent.overrides[-1])
+    coding = {"model": "gemini-4-hydrogen", "thinking_level": "medium",
+              "fallbacks": ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")}
+    assert answers == [
+        coding,
+        coding,  # phân loại lỗi: giữ nguyên hồ sơ đang giữ, không nhảy về model chính
+        coding,
+        {"model": "gemini-3.1-flash-lite", "thinking_level": "medium", "fallbacks": ("gemini-3.5-flash-lite",)},
+        {"model": "gemini-3.1-flash-lite", "thinking_level": "low", "fallbacks": ("gemini-3.5-flash-lite",)},
     ]
+    assert bot.active_models.get(OWNER)["profile"] == "routine"
 
 
-async def test_failed_shift_model_falls_back_to_default(make_bot, zalo, agent):
-    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.5-flash-lite", THINKING_LEVEL="low")
+async def test_chats_hold_models_separately_and_filter_sees_held_profile(make_bot, agent):
+    bot = shift_bot(make_bot)
     agent.filter_profile = "coding"
-    agent.reply_error_on_override = RuntimeError("404 model not found")
-    await send(bot, event("sửa giúp hàm này", chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE"))
-    assert agent.overrides == [{"model": "gemini-4-hydrogen", "thinking_level": "medium"}, {}]
-    assert zalo.texts(OWNER) == ["trả lời"]  # người dùng vẫn nhận được câu trả lời, không phải ERROR_REPLY
+    await send(bot, event("sửa hàm", **PRIVATE))
+    agent.filter_profile = ""
+    other = dict(chat_id="u2", from_id="u2", chat_type="PRIVATE")
+    await bot.handle_payload(event("chào", **other))
+    await bot.drain()
+    assert bot.active_models.get(OWNER)["profile"] == "coding" and bot.active_models.get("u2") == {}
+    assert "Hồ sơ đang giữ của cuộc trò chuyện: chưa có" in agent.classify_calls[-1]
 
 
-async def test_every_shift_is_logged_and_unknown_model_is_skipped_next_time(make_bot, zalo, agent, caplog):
+async def test_every_switch_is_logged_with_only_what_changed(make_bot, agent, caplog):
     import logging
 
     caplog.set_level(logging.INFO)
-    bot = make_bot(MODEL_SHIFT="true", GEMINI_MODEL="gemini-3.1-flash-lite", THINKING_LEVEL="low")
-    chat = dict(chat_id=OWNER, from_id=OWNER, chat_type="PRIVATE")
-
+    bot = shift_bot(make_bot)
     agent.filter_profile = "reflective"
-    await send(bot, event("nghĩ sao về cuộc sống", **chat))
-    assert "Chuyển model" in caplog.text and "việc=reflective" in caplog.text
-    assert "gemini-3.1-flash-lite -> gemini-3.5-flash-lite" in caplog.text and "thinking low -> medium" in caplog.text
+    await send(bot, event("nghĩ sao về cuộc sống", **PRIVATE))
+    assert "Chuyển model ở chat" in caplog.text
+    assert "hồ sơ chưa có -> reflective" in caplog.text and "thinking low -> medium" in caplog.text
+    assert "model gemini-3.1-flash-lite ->" not in caplog.text  # model không đổi nên không in
 
     caplog.clear()
+    agent.filter_profile = "coding"
+    await send(bot, event("sửa hàm này", **PRIVATE))
+    assert "hồ sơ reflective -> coding" in caplog.text
+    assert "model gemini-3.1-flash-lite -> gemini-4-hydrogen" in caplog.text
+
+    caplog.clear()
+    await send(bot, event("tiếp đi", **PRIVATE))  # cùng hồ sơ: không có dòng chuyển
+    assert "Chuyển model ở chat" not in caplog.text
+
+
+async def test_model_command_fixed_stops_switching_and_flexible_resumes(make_bot, zalo, agent):
+    bot = shift_bot(make_bot)
+    agent.filter_profile = "coding"
+    await send(bot, event("sửa hàm", **PRIVATE))
+    classify_before = len(agent.classify_calls)
+
+    await send(bot, event("/model fixed", **PRIVATE))
+    assert "fixed" in zalo.texts(OWNER)[-1] and "gemini-4-hydrogen" in zalo.texts(OWNER)[-1]
     agent.filter_profile = "routine"
-    await send(bot, event("mai họp mấy giờ", **chat))
-    assert "Giữ nguyên model" not in caplog.text  # routine đổi sang model khác nên vẫn là một lần chuyển
-    assert "Chuyển model" in caplog.text
+    await send(bot, event("mai họp mấy giờ", **PRIVATE))
+    assert agent.overrides[-1]["model"] == "gemini-4-hydrogen"  # giữ nguyên model đang dùng
+    assert len(agent.classify_calls) == classify_before  # chat khóa: không tốn lượt phân loại
 
-    # Model của hồ sơ không tồn tại (404): trả lời bằng model chung, ghi log, các tin sau không thử lại model đó.
-    caplog.clear()
-    missing = RuntimeError("404 NOT_FOUND")
-    missing.code = 404
-    agent.reply_error_on_override, agent.filter_profile = missing, "coding"
-    await send(bot, event("sửa hàm này", **chat))
-    assert "không tồn tại (404)" in caplog.text and "Chuyển model thất bại" in caplog.text
-    assert zalo.texts(OWNER)[-1] == "trả lời"
-    agent.reply_error_on_override = None
-    await send(bot, event("sửa hàm khác", **chat))
-    assert agent.overrides[-1] == {"thinking_level": "medium"}  # model bị bỏ qua, vẫn đổi thinking
-    assert "Bỏ qua đổi sang model gemini-4-hydrogen" in caplog.text
+    await send(bot, event("/model flexible", **PRIVATE))
+    await send(bot, event("mai họp mấy giờ", **PRIVATE))
+    assert agent.overrides[-1]["thinking_level"] == "low" and agent.overrides[-1]["model"] == "gemini-3.1-flash-lite"
+    await send(bot, event("/model", **PRIVATE))
+    assert "flexible" in zalo.texts(OWNER)[-1]
+
+
+async def test_model_command_is_owner_only_and_validates(make_bot, zalo, agent):
+    bot = shift_bot(make_bot)
+    await send(bot, event("/allow", from_id=OWNER))
+    await send(bot, event("/model fixed", from_id="user-1"))
+    assert "quyền" in zalo.texts(GROUP)[-1] and bot.groups.get(GROUP).model_mode == "flexible"
+    await send(bot, event("/model lung tung", from_id=OWNER))
+    assert "flexible" in zalo.texts(GROUP)[-1] and bot.groups.get(GROUP).model_mode == "flexible"
+
+
+async def test_model_shift_off_ignores_profiles_and_records_model(make_bot, agent):
+    bot = make_bot(MODEL_SHIFT="false", GEMINI_MODEL="gemini-3.1-flash-lite")
+    agent.filter_profile = "coding"
+    await send(bot, event("sửa hàm", **PRIVATE))
+    assert agent.overrides == [{}] and bot.active_models.get(OWNER) == {}
+
+
+async def test_status_records_last_model_and_flags_fallback(make_bot, agent):
+    from pylos.gate.side_gate.vps import bot_process
+
+    bot = shift_bot(make_bot)
+    agent.filter_profile = "coding"
+    await send(bot, event("sửa hàm", **PRIVATE))
+    info = bot_process.status_info(bot.settings)
+    assert info["last_model"] == "gemini-4-hydrogen" and info["last_profile"] == "coding"
+    assert info["last_chat"] == OWNER and info["fallback_models"] == ["gemini-3.5-flash-lite"]

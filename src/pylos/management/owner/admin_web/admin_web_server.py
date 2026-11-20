@@ -36,7 +36,7 @@ from pylos.management.owner.admin_web.admin_sessions import AdminDevices, AdminS
 from pylos.management.owner.admin_web import settings_file
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from pylos.lobby.dispatch.shared.config import ConfigError, Settings
-from pylos.lobby.dispatch.shared.storage import MODES, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, StatsStore, UsageStore, atomic_write_text
+from pylos.lobby.dispatch.shared.storage import MODEL_FLEXIBLE, MODEL_MODES, MODES, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, StatsStore, UsageStore, atomic_write_text
 from pylos.gate.main_gate.zalo.reply_formatting import split_message
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms, now_vn
 from pylos.gate.main_gate.zalo import ZaloClient, ZaloError
@@ -468,6 +468,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 "allowed": store.is_allowed(chat_id, settings.allow_all_chats),
                 "blocked": bool(g and g.blocked),
                 "mode": g.mode if g else "default",
+                "model_mode": g.model_mode if g else MODEL_FLEXIBLE,
+                "active_model": ActiveModelStore(settings.huts_dir).get(chat_id),
                 "leaders": list(g.leaders) if g else [],
                 "leaders_all": bool(g and g.leaders_all),
                 "teams": [{"name": t["name"], "members": len(t["members"])} for t in g.teams.values()] if g else [],
@@ -476,7 +478,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 "owner_private": chat_type == "PRIVATE" and chat_id == settings.owner_zalo_id,
             })
         rows.sort(key=lambda r: -(r["last_seen"] or 0))
-        return {"groups": rows, "modes": list(MODES), "allow_all": settings.allow_all_chats}
+        return {"groups": rows, "modes": list(MODES), "model_modes": list(MODEL_MODES),
+                "model_shift": settings.model_shift, "allow_all": settings.allow_all_chats}
 
     @app.patch("/api/groups/{chat_id}")
     def update_group(chat_id: str, body: dict[str, Any] = Body(...)) -> dict[str, Any]:
@@ -490,10 +493,15 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             if body["mode"] not in MODES:
                 raise HTTPException(400, "Chế độ phải là all hoặc default")
             store.set_mode(chat_id, body["mode"])
+        if "model_mode" in body:
+            if body["model_mode"] not in MODEL_MODES:
+                raise HTTPException(400, "Chế độ model phải là flexible hoặc fixed")
+            store.set_model_mode(chat_id, body["model_mode"])
         if "label" in body:
             store.set_label(chat_id, str(body["label"]))
         state = store.get(chat_id)
-        return {"chat_id": chat_id, "allowed": state.allowed, "mode": state.mode, "label": state.label}
+        return {"chat_id": chat_id, "allowed": state.allowed, "mode": state.mode, "model_mode": state.model_mode,
+                "label": state.label}
 
     @app.delete("/api/groups/{chat_id}/history")
     def clear_history(chat_id: str) -> dict[str, Any]:
@@ -573,6 +581,22 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
             "FILTER_CONTEXT_LINES": str(settings.filter_context_lines),
             "MEMORYDATA_KEEP": str(settings.memorydata_keep),
             "ASSIGN_ALLOWED": settings.assign_allowed,
+            "MEDIA_INPUT": "true" if settings.media_input else "false",
+            "MEDIA_MAX_MB_PHOTO": str(settings.media_max_mb_photo),
+            "MEDIA_MAX_MB_AUDIO": str(settings.media_max_mb_audio),
+            "MEDIA_MAX_MB_VIDEO": str(settings.media_max_mb_video),
+            "MEDIA_INLINE_MAX_MB": str(settings.media_inline_max_mb),
+            "MEDIA_UPLOAD_TIMEOUT": str(settings.media_upload_timeout),
+            "MEDIA_KEEP_HOURS": str(settings.media_keep_hours),
+            "MEDIA_FOLLOWUP_TURNS": str(settings.media_followup_turns),
+            "MEDIA_FOLLOWUP_MINUTES": str(settings.media_followup_minutes),
+            "USER_MEDIA_PER_HOUR": str(settings.user_media_per_hour),
+            "WEB_TOOLS": "true" if settings.web_tools else "false",
+            "WEB_SEARCH": "true" if settings.web_search else "false",
+            "WEB_SEARCH_PROVIDER": settings.web_search_provider,
+            "WEB_SEARCH_PER_DAY": str(settings.web_search_per_day),
+            "WEB_MAX_CHARS": str(settings.web_max_chars),
+            "WEB_FETCH_TIMEOUT": str(settings.web_fetch_timeout),
         }
         return {
             "fields": [
@@ -839,6 +863,8 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 settings.gemini_api_key, settings.gemini_model, tools,
                 max_tool_rounds=settings.max_tool_rounds, max_output_tokens=settings.max_output_tokens,
                 timeout_seconds=settings.llm_timeout_seconds, thinking_level=settings.thinking_level,
+                fallback_models=settings.fallback_models, media_inline_max_mb=settings.media_inline_max_mb,
+                media_upload_timeout=settings.media_upload_timeout,
             )
         else:
             agent = EchoAgent()

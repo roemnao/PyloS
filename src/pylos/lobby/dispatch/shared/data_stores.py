@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from pylos.lobby.dispatch.shared.userdata_paths import MEMORYDATA_FILE, SESSION_HISTORY_FILE, done_file
+from pylos.lobby.dispatch.shared.userdata_paths import ACTIVE_MODEL_FILE, MEMORYDATA_FILE, SESSION_HISTORY_FILE, done_file
 from pylos.lobby.dispatch.shared.text_files import JsonLinesFile, JsonObjectFile
 from pylos.gate.fence.speech_limit.text_fold import fold
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms, today_vn
@@ -22,6 +22,10 @@ from pylos.lobby.dispatch.clock.vietnam_time import now_ms, today_vn
 MODE_ALL = "all"
 MODE_DEFAULT = "default"
 MODES = (MODE_ALL, MODE_DEFAULT)
+# /model flexible: bot lọc được đổi model cho cuộc trò chuyện (mặc định); /model fixed: giữ nguyên model đang dùng
+MODEL_FLEXIBLE = "flexible"
+MODEL_FIXED = "fixed"
+MODEL_MODES = (MODEL_FLEXIBLE, MODEL_FIXED)
 
 
 @dataclass
@@ -35,6 +39,7 @@ class GroupState:
     leaders_all: bool = False  # /leader all: ai trong nhóm cũng giao lịch được
     leader_added_by: dict[str, str] = field(default_factory=dict)  # {leader: người đã thêm}
     teams: dict[str, dict[str, Any]] = field(default_factory=dict)  # {tên đội đã fold: {"name": tên hiển thị, "members": [uid]}}
+    model_mode: str = MODEL_FLEXIBLE  # flexible | fixed (lệnh /model)
 
 
 def _clean_map(value: Any) -> dict[str, str]:
@@ -88,6 +93,7 @@ class GroupStore:
                 chat_id, bool(record.get("allowed")), mode, str(record.get("label") or ""), bool(record.get("blocked")),
                 [str(x) for x in leaders if x] if isinstance(leaders, list) else [], bool(record.get("leaders_all")),
                 _clean_map(record.get("leader_added_by")), _clean_teams(record.get("teams")),
+                record.get("model_mode") if record.get("model_mode") in MODEL_MODES else MODEL_FLEXIBLE,
             )
         self._groups = groups
         self._loaded_mtime = _mtime(self._file.path)
@@ -112,7 +118,7 @@ class GroupStore:
         self._file.rewrite([
             {"chat_id": g.chat_id, "allowed": g.allowed, "mode": g.mode, "label": g.label, "blocked": g.blocked,
              "leaders": g.leaders, "leaders_all": g.leaders_all,
-             "leader_added_by": g.leader_added_by, "teams": g.teams, "updated_at": stamp}
+             "leader_added_by": g.leader_added_by, "teams": g.teams, "model_mode": g.model_mode, "updated_at": stamp}
             for g in self._groups.values()
         ])
         self._loaded_mtime = _mtime(self._file.path)
@@ -134,6 +140,12 @@ class GroupStore:
         if mode not in MODES:
             raise ValueError(mode)
         self._update([chat_id], lambda s: setattr(s, "mode", mode))
+        return self._groups[chat_id]
+
+    def set_model_mode(self, chat_id: str, model_mode: str) -> GroupState:
+        if model_mode not in MODEL_MODES:
+            raise ValueError(model_mode)
+        self._update([chat_id], lambda s: setattr(s, "model_mode", model_mode))
         return self._groups[chat_id]
 
     def set_label(self, chat_id: str, label: str) -> GroupState:
@@ -245,9 +257,14 @@ class HistoryStore:
     def _file(self, chat_id: str) -> JsonLinesFile:
         return JsonLinesFile(hut_file(self._dir, chat_id, SESSION_HISTORY_FILE))
 
-    def append(self, chat_id: str, role: str, text: str, uid: str = "", name: str = "") -> None:
+    def append(self, chat_id: str, role: str, text: str, uid: str = "", name: str = "",
+               media: list[str] | None = None) -> None:
+        """`media`: msg_id của tệp ảnh/video/tin thoại đính kèm lượt này (xem gate/main_gate/media)."""
         f = self._file(chat_id)
-        f.append({"role": role, "uid": uid, "name": name, "text": text, "t": now_ms()})
+        record: dict[str, Any] = {"role": role, "uid": uid, "name": name, "text": text, "t": now_ms()}
+        if media:
+            record["media"] = media
+        f.append(record)
         if f.count_lines() > self.keep * 2:
             f.trim(self.keep)
 
@@ -281,10 +298,12 @@ class MemoryDataStore:
             f.trim(self.keep)
 
     def add_user(self, chat_id: str, *, msg_id: str | None, uid: str, name: str, text: str | None,
-                 is_text: bool, decision: dict[str, Any]) -> None:
+                 is_text: bool, decision: dict[str, Any], kind: str = "") -> None:
+        """`kind`: photo | video | voice ... cho tin không phải chữ (rỗng: "other")."""
         self._append(chat_id, {
             "t": now_ms(), "role": "user", "msg_id": msg_id, "uid": uid, "name": name,
-            "type": "text" if is_text else "other", "text": text or "", "filter": decision,
+            "type": "text" if is_text else (kind if kind and kind != "text" else "other"),
+            "text": text or "", "filter": decision,
         })
 
     def add_model(self, chat_id: str, text: str) -> None:
@@ -292,6 +311,33 @@ class MemoryDataStore:
 
     def recent(self, chat_id: str, n: int) -> list[dict[str, Any]]:
         return JsonLinesFile(self.path(chat_id)).tail(n) if n > 0 else []
+
+
+class ActiveModelStore:
+    """huts/<chat_id>/active_model.txt: hồ sơ + model + thinking bot lọc đang giữ cho cuộc trò chuyện này.
+
+    {"profile", "model", "thinking", "fallbacks": [...], "since"}. Giữ cho tới khi bot lọc đổi lần sau.
+    Đọc lại file mỗi lần (bot và trang quản lý là hai tiến trình)."""
+
+    def __init__(self, huts_dir: Path) -> None:
+        self._dir = huts_dir
+
+    def _file(self, chat_id: str) -> JsonObjectFile:
+        return JsonObjectFile(hut_file(self._dir, chat_id, ACTIVE_MODEL_FILE))
+
+    def get(self, chat_id: str) -> dict[str, Any]:
+        data = self._file(chat_id).read()
+        if not data.get("model"):
+            return {}
+        fallbacks = data.get("fallbacks")
+        return {"profile": str(data.get("profile") or ""), "model": str(data["model"]),
+                "thinking": str(data.get("thinking") or ""),
+                "fallbacks": [str(f) for f in fallbacks if f] if isinstance(fallbacks, list) else [],
+                "since": data.get("since")}
+
+    def set(self, chat_id: str, *, profile: str, model: str, thinking: str, fallbacks: tuple[str, ...] = ()) -> None:
+        self._file(chat_id).write({"profile": profile, "model": model, "thinking": thinking,
+                                   "fallbacks": list(fallbacks), "since": now_ms()})
 
 
 class StateStore:
@@ -339,6 +385,24 @@ class UsageStore:
         data["notified"].append(chat_id)
         self._file.write(data)
         return True
+
+
+class DailyCounter:
+    """web_search_usage.txt: bộ đếm theo ngày Việt Nam (lượt tim_web trong ngày, có giới hạn WEB_SEARCH_PER_DAY).
+
+    Đọc/ghi file mỗi lần, như UsageStore, để bot và trang "Chat thử" cùng đếm."""
+
+    def __init__(self, path: Path) -> None:
+        self._file = JsonObjectFile(path)
+
+    def today(self) -> int:
+        data = self._file.read()
+        return int(data.get("count") or 0) if data.get("day") == today_vn() else 0
+
+    def incr(self, amount: int = 1) -> int:
+        count = self.today() + max(0, amount)
+        self._file.write({"day": today_vn(), "count": count})
+        return count
 
 
 class StatsStore:

@@ -8,8 +8,9 @@ from typing import Callable
 
 
 class RateLimiter:
-    def __init__(self, per_minute: int, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(self, per_minute: int, clock: Callable[[], float] = time.monotonic, window: float = 60) -> None:
         self.per_minute = per_minute
+        self.window = window
         self._clock = clock
         self._hits: dict[str, deque[float]] = defaultdict(deque)
 
@@ -19,7 +20,7 @@ class RateLimiter:
             return True
         now = self._clock()
         hits = self._hits[key]
-        while hits and now - hits[0] >= 60:
+        while hits and now - hits[0] >= self.window:
             hits.popleft()
         if len(hits) >= self.per_minute:
             return False

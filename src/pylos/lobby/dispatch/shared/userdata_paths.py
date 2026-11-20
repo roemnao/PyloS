@@ -61,6 +61,7 @@ GROUP_SETTINGS_FILE = "group_settings.txt"    # nhóm nào được phép, chế
 CHAT_ACTIVITY_FILE = "chat_activity.txt"      # lần nhắn cuối của từng cuộc trò chuyện (để nhận ra nhóm)
 DAILY_STATS_FILE = "daily_stats.txt"          # số tin nhận/trả lời/lỗi/token theo ngày (trang Tổng quan)
 TOKEN_USAGE_FILE = "token_usage.txt"          # token Gemini đã dùng mỗi ngày (hạn mức ngày)
+WEB_SEARCH_USAGE_FILE = "web_search_usage.txt"  # số lượt tim_web (tìm Google qua Gemini) trong ngày
 FAILED_REPLIES_FILE = "failed_replies.txt"    # câu trả lời gửi lên Zalo thất bại (trang Tin lỗi)
 ASSIGNED_EVENTS_FILE = "assigned_events.txt"  # lịch bot đã giao cho người khác (để sửa / huỷ "việc lúc nãy")
 MEMORYDATA_DIR = "memorydata"                 # (bố cục cũ) thư mục chứa mọi tin; nay mỗi túp lều có memorydata.txt
@@ -68,6 +69,7 @@ SESSION_HISTORY_DIR = "session_history"       # (bố cục cũ) thư mục sess
 # ---------- tên file bên trong một túp lều (HUTS_REL/<chat_id>/) ----------
 MEMORYDATA_FILE = "memorydata.txt"            # mọi tin của hội thoại, kèm kết quả bộ lọc
 SESSION_HISTORY_FILE = "session_history.txt"  # session: tin qua bộ lọc + câu trả lời (gửi cho Gemini)
+ACTIVE_MODEL_FILE = "active_model.txt"        # model + thinking + hồ sơ mà bot lọc đang giữ cho cuộc trò chuyện này
 CONSOLE_TEST_DIR = "console_test"             # dữ liệu riêng của chế độ chat thử `python -m bot console`
 
 # ---------- tên file/thư mục bên trong management/owner/runtime (Settings.system_dir) ----------

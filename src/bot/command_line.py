@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, discover
+from pylos.lobby.office.agent_tools import web_reader
 from pylos.residential.residents.pylos.message_handler import Bot
 from pylos.lobby.dispatch.shared.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
 from pylos.gate.main_gate.logs.log_files import setup_logging
@@ -45,6 +46,7 @@ EXIT_ALREADY_RUNNING = 3
 
 def _build_agent(settings: Settings, allow_echo: bool = False):
     tools = discover()
+    web_reader.configure(settings)  # tool web bật/tắt theo cài đặt (ẩn khỏi tools.names())
     if not settings.gemini_api_key and allow_echo:
         return EchoAgent(), tools
     agent = GeminiAgent(
@@ -55,6 +57,9 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
         max_output_tokens=settings.max_output_tokens,
         timeout_seconds=settings.llm_timeout_seconds,
         thinking_level=settings.thinking_level,
+        fallback_models=settings.fallback_models,
+        media_inline_max_mb=settings.media_inline_max_mb,
+        media_upload_timeout=settings.media_upload_timeout,
     )
     return agent, tools
 

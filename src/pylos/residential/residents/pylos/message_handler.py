@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from pylos.residential.residents.filter.instructions import FilterInstructions
+from pylos.residential.residents.filter.instructions import SHIFT_DOC, FilterInstructions, Profile
 from pylos.residential.residents.pylos import Agent, PromptBuilder, ToolContext, Turn
 from pylos.gate.side_gate.owner_commands.owner_commands import CommandHandler, parse_command
 from pylos.lobby.dispatch.permissions.roles import LEADER, OWNER, role_of
@@ -16,16 +17,25 @@ from pylos.lobby.dispatch.shared.config import Settings
 from pylos.gate.fence.speech_limit.message_filter import Decision, MessageFilter
 from pylos.gate.main_gate.zalo.mention_tags import add_tags
 from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
-from pylos.lobby.dispatch.shared.storage import MODE_ALL, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
+from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODEL_FIXED, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
+from pylos.gate.main_gate.media.media_fetch import Limits, MediaError, MediaFile, fetch_attachment
+from pylos.gate.main_gate.media.media_store import MediaStore
+from pylos.lobby.office.agent_tools import web_reader
+from pylos.residential.residents.pylos.gemini_agent import MediaRef
 from pylos.gate.main_gate.zalo.reply_formatting import split_message, split_reply, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, parse_updates
-from pylos.lobby.dispatch.shared.userdata_paths import BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PROCESSED_IDS_FILE, TOKEN_USAGE_FILE
+from pylos.lobby.dispatch.shared.data_stores import DailyCounter
+from pylos.lobby.dispatch.shared.userdata_paths import WEB_SEARCH_USAGE_FILE, BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PROCESSED_IDS_FILE, TOKEN_USAGE_FILE
 
 log = logging.getLogger(__name__)
 
 ERROR_REPLY = "Xin lỗi, mình đang gặp lỗi, bạn thử lại sau nhé."
 NON_TEXT_REPLY = "Hiện mình chỉ đọc được tin nhắn chữ."
+MEDIA_TOO_LARGE_REPLY = "File quá lớn (tối đa {mb} MB), bạn gửi bản nhỏ hơn giúp mình nhé."
+MEDIA_UNSUPPORTED_REPLY = "Mình chưa xem được loại tệp này."
+MEDIA_FAILED_REPLY = "Mình không tải được file, bạn gửi lại giúp mình nhé."
+MEDIA_LABELS = {"photo": "ảnh", "video": "video", "voice": "ghi âm"}
 EMPTY_PROMPT_REPLY = "Bạn cần mình giúp gì?"
 NO_OWNER_HINT = (
     "Bot chưa có chủ. Nếu bạn là người cài bot, hãy điền OWNER_ZALO_ID={user_id} "
@@ -38,7 +48,6 @@ BUDGET_NOTICE = (
 # Tin riêng chỉ gồm mã 6 số (hoặc "/lienket 123456"): liên kết Zalo với tài khoản trên web app.
 LINK_CODE = re.compile(r"^\s*(?:/?li[eê]n\s*k[eế]t\s*:?\s*)?(\d{6})\s*$", re.IGNORECASE)
 LINK_OFFLINE = "Chưa liên kết được vì không kết nối được máy chủ. Bạn thử gửi lại mã sau ít phút nhé."
-SHIFT_DOC = "modelShift.md"  # trong căn hộ bot lọc: cách nhận biết loại việc
 # Tool gửi lệnh cho bot lịch trên web: ghi thêm bước "bot lịch" vào session.
 
 
@@ -82,21 +91,30 @@ class Bot:
         self.stats = StatsStore(data / DAILY_STATS_FILE)
         self.activity = ActivityStore(data / CHAT_ACTIVITY_FILE)
         self.memory = MemoryDataStore(settings.huts_dir, keep=settings.memorydata_keep)
-        instructions = FilterInstructions(settings.filter_workspace_dir)
-        self.filter = MessageFilter(settings, agent, self._self_identity, instructions.text,
-                                    lambda: instructions.doc(SHIFT_DOC))
+        self.instructions = FilterInstructions(settings.filter_workspace_dir)
+        self.filter = MessageFilter(settings, agent, self._self_identity, self.instructions.text,
+                                    lambda: self.instructions.doc(SHIFT_DOC))
+        self.active_models = ActiveModelStore(settings.huts_dir)
         self.commands = CommandHandler(
             self.groups, self.history, self.usage, settings.bot_triggers, settings.daily_token_budget,
-            allow_all=settings.allow_all_chats,
+            allow_all=settings.allow_all_chats, active_models=self.active_models,
         )
         self.user_limiter = RateLimiter(settings.user_rate_per_min)
+        self.media = MediaStore(settings.huts_dir, settings.media_keep_hours)
+        self.web_searches = DailyCounter(data / WEB_SEARCH_USAGE_FILE)
+        self._grounding_off_until = 0.0  # monotonic: trước mốc này không gọi Google Search của Gemini
+        web_reader.configure(settings)
+        self.media_limiter = RateLimiter(settings.user_media_per_hour, window=3600)
+        try:
+            self.media.prune()  # dọn tệp quá hạn của lần chạy trước
+        except OSError as exc:
+            log.warning("Không dọn được thư mục media: %s", exc)
         self.chat_limiter = RateLimiter(settings.chat_rate_per_min)
 
         self.started_at_ms = now_ms()
         self.state.update(started_at=self.started_at_ms)
         self._queues: dict[str, asyncio.Queue[Job]] = {}
         self._workers: dict[str, asyncio.Task[None]] = {}
-        self._bad_shift_models: set[str] = set()  # model của hồ sơ đã báo 404, không thử lại tới khi đổi cài đặt
         self._warned_no_owner: set[str] = set()
         self._hinted: set[str] = set()
         self._send_locks: dict[str, asyncio.Lock] = {}  # hai câu trả lời cùng chat không xen kẽ
@@ -104,7 +122,6 @@ class Bot:
     def apply_settings(self, settings: Settings) -> None:
         """Áp cấu hình mới khi đang chạy (đổi trong trang quản lý), không cần khởi động lại."""
         self.settings = settings
-        self._bad_shift_models.clear()  # cài đặt đổi: cho thử lại các model đã báo lỗi
         self.filter.settings = settings
         self.memory.keep = settings.memorydata_keep
         self.history.keep = max(200, settings.history_turns * 4)
@@ -112,6 +129,9 @@ class Bot:
         self.commands.daily_budget = settings.daily_token_budget
         self.commands.allow_all = settings.allow_all_chats
         self.user_limiter.per_minute = settings.user_rate_per_min
+        self.media.keep_seconds = settings.media_keep_hours * 3600
+        web_reader.configure(settings)
+        self.media_limiter.per_minute = settings.user_media_per_hour
         self.chat_limiter.per_minute = settings.chat_rate_per_min
         if settings.allowed_chat_ids:
             self.groups.allow_seed(settings.allowed_chat_ids)
@@ -119,7 +139,7 @@ class Bot:
         if configure is not None:
             configure(model=settings.gemini_model, max_tool_rounds=settings.max_tool_rounds,
                       max_output_tokens=settings.max_output_tokens, timeout_seconds=settings.llm_timeout_seconds,
-                      thinking_level=settings.thinking_level)
+                      thinking_level=settings.thinking_level, fallback_models=settings.fallback_models)
 
     def _chat_name(self, msg: IncomingMessage) -> str:
         label = self.groups.get(msg.chat_id).label
@@ -275,7 +295,7 @@ class Bot:
         msg = job.msg
         decision = await self._decide(msg)
         self.memory.add_user(msg.chat_id, msg_id=msg.message_id, uid=msg.from_id, name=msg.from_name,
-                             text=msg.text, is_text=msg.is_text, decision=decision.as_record())
+                             text=msg.text, is_text=msg.is_text, decision=decision.as_record(), kind=msg.kind)
         if msg.is_group:
             self.stats.incr("filter_pass" if decision.passed else "filter_block")
         log.debug("Lọc tin chat=%s: %s (%s) %s", msg.chat_id, decision.passed, decision.stage, decision.reason)
@@ -291,33 +311,171 @@ class Bot:
         if not self.user_limiter.allow(f"{msg.chat_id}:{msg.from_id}") or not self.chat_limiter.allow(msg.chat_id):
             log.warning("Vượt giới hạn tần suất: chat=%s user=%s", msg.chat_id, msg.from_id)
             return
-        await self._reply(msg, prompt, decision)
+        media: MediaFile | None = None
+        if msg.has_media:
+            if not self.media_limiter.allow(f"{msg.chat_id}:{msg.from_id}"):
+                log.warning("Vượt giới hạn số tệp mỗi giờ: chat=%s user=%s", msg.chat_id, msg.from_id)
+                return
+            media = await self._fetch_media(msg)
+            if media is None:
+                return
+        await self._reply(msg, prompt, decision, media)
 
-    def _shift(self, msg: IncomingMessage, decision: Decision) -> dict[str, str]:
-        """Model / thinking của hồ sơ nếu khác cấu hình chung; rỗng nghĩa là giữ nguyên (không cần đổi).
+    async def _fetch_media(self, msg: IncomingMessage) -> MediaFile | None:
+        """Tải tệp của tin đã qua lọc vào túp lều. Lỗi: báo ngắn ở chat riêng (nhóm im lặng) rồi trả None."""
+        settings = self.settings
+        limits = Limits(settings.media_max_mb_photo, settings.media_max_mb_audio, settings.media_max_mb_video)
+        att = msg.attachments[0]
+        name = (msg.message_id or f"{msg.date_ms or now_ms()}").replace("/", "_")
+        result = await fetch_attachment(att, self.media.dir_for(msg.chat_id), name, limits)
+        if isinstance(result, MediaError):
+            log.warning("Không lấy được tệp %s ở chat %s: %s %s", att.kind, msg.chat_id, result.reason, result.detail)
+            if not msg.is_group:
+                if result.reason == "too_large":
+                    mb = int(limits.max_bytes(att.kind) / 1024 / 1024)
+                    await self._say(msg.chat_id, MEDIA_TOO_LARGE_REPLY.format(mb=mb))
+                else:
+                    await self._say(msg.chat_id, MEDIA_UNSUPPORTED_REPLY if result.reason == "unsupported"
+                                    else MEDIA_FAILED_REPLY)
+            return None
+        self.media.save(msg.chat_id, name, result, uid=msg.from_id, caption=msg.text or "")
+        return result
 
-        Mỗi lần bộ lọc chọn hồ sơ đều ghi log: chuyển model (từ -> sang) hoặc giữ nguyên, kèm tầng lọc và lý do."""
+    GROUNDING_COOLDOWN = 3600  # Gemini báo hết hạn mức Google Search (429): nghỉ 1 giờ rồi mới thử lại
+
+    def _web_search(self) -> Any:
+        """Hàm tìm web cho tool tim_web (ToolContext.web_search); None nếu không có nguồn tìm nào hoặc đang tắt.
+
+        Nguồn (WEB_SEARCH_PROVIDER): gemini = Google Search của Gemini; tavily = Tavily (TAVILY_API_KEY);
+        brave = Brave Search API (BRAVE_API_KEY); auto = Gemini trước, Gemini lỗi hoặc hết hạn mức (429) thì lần lượt
+        Tavily rồi Brave (nguồn nào có khoá), và nghỉ Gemini 1 giờ sau lỗi 429."""
+        settings = self.settings
+        if not settings.web_tools or not settings.web_search:
+            return None
+        provider = settings.web_search_provider
+        gemini = getattr(self.agent, "search", None) if provider in ("auto", "gemini") else None
+        backups = [(name, func, key) for name, func, key in (
+            ("Tavily", web_reader.tavily_search, settings.tavily_api_key),
+            ("Brave Search", web_reader.brave_search, settings.brave_api_key),
+        ) if key and provider in ("auto", name.split()[0].lower())]
+        if gemini is None and not backups:
+            return None
+
+        async def run(query: str) -> dict[str, Any]:
+            limit = self.settings.web_search_per_day
+            if limit > 0 and self.web_searches.today() >= limit:
+                return {"error": "Hôm nay đã dùng hết lượt tìm web, mai thử lại nhé."}
+            problems = []
+            if gemini is not None and time.monotonic() >= self._grounding_off_until:
+                try:
+                    result, tokens = await gemini(query)
+                except Exception as exc:  # noqa: BLE001 - lỗi tìm kiếm báo cho model, không làm sập lượt trả lời
+                    if getattr(exc, "code", None) == 429:
+                        self._grounding_off_until = time.monotonic() + self.GROUNDING_COOLDOWN
+                        log.warning("Gemini Google Search hết hạn mức (429): nghỉ %d phút%s", self.GROUNDING_COOLDOWN // 60,
+                                    ", dùng " + "/".join(b[0] for b in backups) if backups
+                                    else "; thêm TAVILY_API_KEY để có nguồn tìm dự phòng")
+                        problems.append("Google Search của Gemini hết hạn mức")
+                    else:
+                        log.warning("Gemini Google Search lỗi: %s: %s", type(exc).__name__, str(exc)[:150])
+                        problems.append("Google Search của Gemini đang lỗi")
+                else:
+                    self.web_searches.incr()
+                    self.usage.add(tokens)  # tìm web cũng tốn token: tính vào hạn mức ngày
+                    self.stats.incr("tokens", tokens)
+                    return result
+            elif gemini is not None:
+                problems.append("Google Search của Gemini đang tạm nghỉ do hết hạn mức")
+            for name, func, key in backups:
+                try:
+                    result = await func(query, key)
+                except web_reader.SearchError as exc:
+                    log.warning("%s lỗi: %s", name, exc)
+                    problems.append(str(exc))
+                else:
+                    self.web_searches.incr()
+                    return result
+            return {"error": "Chưa tìm web được (" + "; ".join(problems or ["không có nguồn tìm"]) + "). "
+                             "Hãy nói thật với người dùng là chưa tìm được; nếu họ có link thì nhờ gửi link để đọc."}
+
+        return run
+
+    def _video_reader(self) -> Any:
+        """Hàm cho Gemini xem video YouTube (ToolContext.video_reader); None nếu agent không xem được hoặc tool web tắt."""
+        watch = getattr(self.agent, "watch_video", None)
+        if watch is None or not self.settings.web_tools:
+            return None
+
+        async def run(url: str, question: str) -> dict[str, Any]:
+            try:
+                result, tokens = await watch(url, question)
+            except Exception as exc:  # noqa: BLE001 - video riêng tư, quá dài, hết hạn mức...
+                log.warning("Xem video %s lỗi: %s: %s", url, type(exc).__name__, str(exc)[:150])
+                return {"error": "Không xem được video (có thể video riêng tư, bị giới hạn tuổi hoặc quá dài)."}
+            self.usage.add(tokens)
+            self.stats.incr("tokens", tokens)
+            return result
+
+        return run
+
+    def _turns(self, chat_id: str, records: list[dict[str, Any]]) -> list[Turn]:
+        """Lịch sử thành Turn. Tệp của vài lượt gần nhất (còn hạn, còn trên đĩa) được đính kèm lại để hỏi tiếp được."""
+        settings = self.settings
+        user_rows = [i for i, r in enumerate(records) if r.get("role", "user") == "user"]
+        recent_rows = set(user_rows[-settings.media_followup_turns:]) if settings.media_followup_turns > 0 else set()
+        max_age = settings.media_followup_minutes * 60
+        cutoff_ms = now_ms() - settings.media_followup_minutes * 60_000
+        turns = []
+        for i, r in enumerate(records):
+            text, refs = str(r.get("text", "")), ()
+            ids = [str(m) for m in r.get("media") or []]
+            if ids:
+                if i in recent_rows and int(r.get("t") or 0) >= cutoff_ms:
+                    found = self.media.recent(chat_id, ids, max_age)
+                    refs = tuple(MediaRef(row["full_path"], row["mime"], row["kind"], row["msg_id"],
+                                          row.get("file_uri", ""), float(row.get("file_uri_expires") or 0))
+                                 for row in found)
+                if not refs:
+                    text = f"[tệp đính kèm đã hết hạn lưu] {text}"
+            turns.append(Turn(r.get("role", "user"), text, str(r.get("name", "")), refs))
+        return turns
+
+    def _save_file_uris(self, chat_id: str, turns: list[Turn]) -> None:
+        """Lưu file_uri vừa tải lên Files API để lần hỏi tiếp không tải lại."""
+        for turn in turns:
+            for ref in turn.media:
+                if ref.file_uri and ref.msg_id:
+                    self.media.set_file_uri(chat_id, ref.msg_id, ref.file_uri, ref.file_uri_expires)
+
+    def _shift_allowed(self, chat_id: str) -> bool:
+        """Bot lọc được đổi model cho chat này: MODEL_SHIFT bật và chat không đặt /model fixed."""
+        return self.settings.model_shift and self.groups.get(chat_id).model_mode != MODEL_FIXED
+
+    def _model_for(self, msg: IncomingMessage, decision: Decision) -> dict[str, Any]:
+        """Model, thinking và dự phòng cho lượt trả lời này (rỗng = dùng cấu hình chung).
+
+        Chat giữ hồ sơ bot lọc chọn lần gần nhất cho tới khi bot lọc đổi. Mỗi lần đổi ghi log INFO: hồ sơ, model và
+        thinking từ -> sang (chỉ phần thật sự đổi), tầng lọc và lý do. Phân loại lỗi hoặc /model fixed thì giữ nguyên."""
+        chat_id = msg.chat_id
+        held = self.active_models.get(chat_id)
         profile = decision.profile
-        chosen = self.settings.shift_profile(profile) if profile and self.settings.model_shift else None
-        if chosen is None:
+        if profile and self._shift_allowed(chat_id) and profile != held.get("profile"):
+            chosen: Profile = self.instructions.profiles()[profile]
+            now_model = held.get("model") or self.settings.gemini_model
+            now_thinking = held.get("thinking") or self.settings.thinking_level
+            parts = [f"hồ sơ {held.get('profile') or 'chưa có'} -> {profile}"]
+            if chosen.model != now_model:
+                parts.append(f"model {now_model} -> {chosen.model}")
+            if chosen.thinking != now_thinking:
+                parts.append(f"thinking {now_thinking} -> {chosen.thinking}")
+            log.info("Chuyển model ở chat %s: %s (tầng lọc=%s, lý do=%s)", chat_id, ", ".join(parts), decision.stage,
+                     decision.reason)
+            self.active_models.set(chat_id, profile=profile, model=chosen.model, thinking=chosen.thinking,
+                                   fallbacks=chosen.fallbacks)
+            held = self.active_models.get(chat_id)
+        if not held:
             return {}
-        model, level = chosen
-        now, now_level = self.settings.gemini_model, self.settings.thinking_level
-        shift: dict[str, str] = {}
-        if model != now:
-            if model in self._bad_shift_models:
-                log.info("Bỏ qua đổi sang model %s (đã báo lỗi không dùng được) ở chat %s", model, msg.chat_id)
-            else:
-                shift["model"] = model
-        if level != now_level:
-            shift["thinking_level"] = level
-        if shift:
-            log.info("Chuyển model ở chat %s: việc=%s model %s -> %s, thinking %s -> %s (tầng lọc=%s, lý do=%s)",
-                     msg.chat_id, profile, now, shift.get("model", now), now_level, shift.get("thinking_level", now_level),
-                     decision.stage, decision.reason)
-        else:
-            log.info("Giữ nguyên model ở chat %s: việc=%s đã đúng model %s, thinking %s", msg.chat_id, profile, now, now_level)
-        return shift
+        return {"model": held["model"], "thinking_level": held["thinking"], "fallbacks": tuple(held["fallbacks"])}
 
     async def _decide(self, msg: IncomingMessage) -> Decision:
         try:
@@ -327,6 +485,8 @@ class Bot:
                 over_budget=self._over_budget(),
                 # Đọc trước khi ghi tin mới: ngữ cảnh là các tin TRƯỚC tin đang xét.
                 recent=self.memory.recent(msg.chat_id, self.settings.filter_context_lines),
+                current_profile=self.active_models.get(msg.chat_id).get("profile", ""),
+                shift=self._shift_allowed(msg.chat_id),
             )
         except Exception as exc:  # noqa: BLE001 - lỗi bộ lọc: ghi lại, coi như không gọi bot
             log.exception("Bộ lọc lỗi ở chat %s", msg.chat_id)
@@ -352,15 +512,17 @@ class Bot:
         self.memory.add_model(chat_id, text)
         await self._send(chat_id, text)
 
-    async def _reply(self, msg: IncomingMessage, prompt: str, decision: Decision | None = None) -> None:
+    async def _reply(self, msg: IncomingMessage, prompt: str, decision: Decision | None = None,
+                     media: MediaFile | None = None) -> None:
         try:
             await self.zalo.send_chat_action(msg.chat_id, "typing")
         except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
             log.debug("sendChatAction lỗi: %s", exc)
 
-        self.history.append(msg.chat_id, "user", prompt, uid=msg.from_id, name=msg.from_name)
+        media_ids = [media.path.stem] if media is not None else None
+        self.history.append(msg.chat_id, "user", prompt, uid=msg.from_id, name=msg.from_name, media=media_ids)
         records = self.history.recent(msg.chat_id, self.settings.history_turns)
-        turns = [Turn(r.get("role", "user"), str(r.get("text", "")), str(r.get("name", ""))) for r in records]
+        turns = self._turns(msg.chat_id, records)
         members = await self._members(msg.chat_id) if msg.is_group else {}
         is_owner = self._is_owner(msg.from_id)
         role = self._role(msg, is_owner)
@@ -369,7 +531,8 @@ class Bot:
             msg.chat_id, msg.from_id, msg.from_name, is_owner, self.settings.data_dir, self.settings.huts_dir,
             is_group=msg.is_group, chat_name=self._chat_name(msg), message_id=msg.message_id,
             mentions=tuple(m for m in msg.mentions if m != self_id), members=members, self_id=self_id,
-            can_assign=role in (LEADER, OWNER), role=role,
+            can_assign=role in (LEADER, OWNER), role=role, web_search=self._web_search(),
+            video_reader=self._video_reader(),
             teams=({k: list(t["members"]) for k, t in self.groups.get(msg.chat_id).teams.items()} if msg.is_group else {}),
         )
         team_names = [t["name"] for t in self.groups.get(msg.chat_id).teams.values()] if msg.is_group else []
@@ -377,23 +540,10 @@ class Bot:
                                     sender_role=role, team_names=team_names)
 
         was_over = self._over_budget()
-        shift = self._shift(msg, decision) if decision is not None else {}
+        overrides = self._model_for(msg, decision) if decision is not None else {}
         try:
-            try:
-                reply = await self.agent.reply(system, turns, ctx, **shift)
-            except Exception as exc:
-                if not shift:
-                    raise
-                # Model của hồ sơ lỗi (sai tên, hết hạn mức, quá tải, hết giờ...): trả lời lại bằng model chung.
-                bad = shift.get("model", "")
-                if bad and getattr(exc, "code", None) == 404:
-                    self._bad_shift_models.add(bad)  # không tồn tại: đừng thử lại ở mỗi tin, tới khi đổi cài đặt
-                    log.warning("Model %s không tồn tại (404): bỏ qua đổi sang model này cho tới khi đổi cài đặt. "
-                                "Sửa SHIFT_* ở trang Cài đặt.", bad)
-                log.warning("Chuyển model thất bại ở chat %s (model=%s, thinking=%s): %s: %s. Trả lời lại bằng model chung %s",
-                            msg.chat_id, bad or self.settings.gemini_model, shift.get("thinking_level", "giữ nguyên"),
-                            type(exc).__name__, str(exc)[:200], self.settings.gemini_model)
-                reply = await self.agent.reply(system, turns, ctx)
+            reply = await self.agent.reply(system, turns, ctx, **overrides)
+            self._save_file_uris(msg.chat_id, turns)
         except Exception:
             log.exception("Agent lỗi ở chat %s", msg.chat_id)
             self.stats.incr("errors")
@@ -402,6 +552,7 @@ class Bot:
         self.usage.add(reply.tokens)
         self.stats.incr("tokens", reply.tokens)
         self.stats.incr("replied")
+        self._record_model(msg, reply, overrides)
         names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
         text = strip_name_prefix(to_plain_text(reply.text), names)
         if members:
@@ -413,6 +564,16 @@ class Bot:
             log.warning("Đã vượt hạn mức token ngày: %d", self.usage.used_today())
             if self.groups.get(msg.chat_id).mode == MODE_ALL and self.usage.mark_notified(msg.chat_id):
                 await self._say(msg.chat_id, BUDGET_NOTICE)
+
+    def _record_model(self, msg: IncomingMessage, reply: Any, overrides: dict[str, Any]) -> None:
+        """Ghi model vừa trả lời vào bot_status.txt cho trang Tổng quan; log khi phải dùng model dự phòng."""
+        wanted = overrides.get("model") or self.settings.gemini_model
+        used = getattr(reply, "model", "") or wanted
+        if used != wanted:
+            log.warning("Chat %s: model %s lỗi nên đã trả lời bằng model dự phòng %s", msg.chat_id, wanted, used)
+        held = self.active_models.get(msg.chat_id)
+        self.state.update(last_model=used, last_wanted_model=wanted, last_thinking=getattr(reply, "thinking", ""),
+                          last_profile=held.get("profile", ""), last_chat=msg.chat_id, last_reply_at=now_ms())
 
     # ---------- gửi tin ----------
 

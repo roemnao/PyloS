@@ -48,15 +48,12 @@ class FakeAgent:
     async def reply(self, system: str, turns: list[Turn], ctx: ToolContext, **overrides: Any) -> AgentReply:
         self.calls.append((system, turns, ctx))
         self.overrides.append(overrides)  # model / thinking_level ghi đè của từng lượt
-        if overrides and self.reply_error_on_override is not None:
-            raise self.reply_error_on_override
         return AgentReply(self.reply_text, self.tokens)
 
     # Bộ lọc AI giả: mặc định "không nhờ bot"; test đặt filter_reply/filter_error để đổi kịch bản.
     filter_reply = False
     filter_error: Exception | None = None
     filter_profile = ""  # loại việc bộ lọc trả về (routine | reflective | coding)
-    reply_error_on_override: Exception | None = None
 
     async def classify(self, system: str, text: str, **kwargs: Any) -> tuple[dict[str, Any], int]:
         self.classify_calls.append(text)

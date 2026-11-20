@@ -57,8 +57,8 @@ Receives data from Zalo and outer-city bots; sends data out.
 
 | Building | Vietnamese | Holds |
 |---|---|---|
-| `main_gate` | Cổng chính | `zalo` (personal account, Bot Platform, QR login, polling, webhook, `reply_formatting`: cut a long or multi-line reply into several messages), `external_apps`, `external_bots`, `sessions`, `logs` |
-| `fence` | Hàng rào | `token_limit`, `speech_limit`, `ethics` — the rules **and** the code that enforces them |
+| `main_gate` | Cổng chính | `zalo` (personal account, Bot Platform, QR login, polling, webhook, `reply_formatting`: cut a long or multi-line reply into several messages), `media` (downloads the photos, videos and voice notes users send into their hut), `external_apps`, `external_bots`, `sessions`, `logs` |
+| `fence` | Hàng rào | `token_limit`, `speech_limit`, `web_limit` (which links the bot may open), `ethics` — the rules **and** the code that enforces them |
 | `side_gate` | Cổng phụ | `vps`, `mcp`, `owner_commands`, `shell`, `emergency`, `desktop` — technical entry: receives commands from the owner, the VPS and MCP |
 | `guest_house` | Toà khách | one **hut** per person (Zalo uid) or per Zalo group |
 
@@ -69,7 +69,7 @@ the sender is told. The token limit counts the whole system per month.
 
 **Hut** (túp lều) holds everything that belongs to one person or group: the repos they asked PyloS to work on and the
 GitHub connection details, their schedule/tasks, the profile/preferences the bot noted, files they sent or the bot made
-for them. Chat sessions stay in `main_gate/sessions`. A hut is created automatically on the first message.
+for them (photos, videos and voice notes go to `media/` and are deleted after 24 hours). Chat sessions stay in `main_gate/sessions`. A hut is created automatically on the first message.
 Groups get their own hut, separate from their members' huts.
 
 Work on a user's repo: create a separate branch, push to it, open a PR to `main` for the user to merge.
