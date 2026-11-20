@@ -23,7 +23,7 @@
 |----|----------|------------|
 | 1 | Danh sách key → model, bảng nhiệm vụ, `GeminiAgent` theo key | **Xong**, commit `2a25843` trên `claude/model-keys` (nhánh tách từ `claude/fix-model-shift` vì `main` thiếu 2 commit) |
 | 2 | Cloudflare + `tao_anh` + hạn mức ảnh | **Xong**, trên `claude/image-generation`. Ảnh tạo xong vào `ToolContext.outbox` nhưng **chưa có gì gửi đi cho tới PR 3**, nên PR 2 và PR 3 phải lên VPS cùng lúc |
-| 3 | Gửi ảnh vào Zalo | Đang làm |
+| 3 | Gửi ảnh vào Zalo | **Xong**, trên `claude/image-to-zalo` (tách từ `claude/image-generation`) |
 
 ---
 
