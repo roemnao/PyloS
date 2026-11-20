@@ -166,6 +166,13 @@ FIELDS: tuple[FieldSpec, ...] = (
               "Hạn mức riêng cho ảnh, không tính vào hạn mức token. Hết thì bot nói mai thử lại. 0 = không giới hạn.",
               kind="int", group="Tạo ảnh"),
     FieldSpec("USER_IMAGES_PER_HOUR", "Số ảnh mỗi người mỗi giờ", "0 = không giới hạn.", kind="int", group="Tạo ảnh"),
+    FieldSpec("DOC_TOOLS", "Cho bot làm việc với tài liệu",
+              "Bật: bot đọc, tạo, sửa tệp .docx / .md / .txt (tool ds_tai_lieu, doc_tai_lieu, tao_tai_lieu, sua_tai_lieu) và nhận tệp người dùng gửi.",
+              kind="bool", group="Tài liệu"),
+    FieldSpec("DOCS_PER_DAY", "Số lần tạo / sửa tài liệu mỗi ngày", "Đọc không tính. 0 = không giới hạn.", kind="int", group="Tài liệu"),
+    FieldSpec("USER_DOCS_PER_HOUR", "Số lần tạo / sửa mỗi người mỗi giờ", "0 = không giới hạn.", kind="int", group="Tài liệu"),
+    FieldSpec("DOC_MAX_MB", "Cỡ tối đa tệp người dùng gửi (MB)", "Tệp lớn hơn bị từ chối.", kind="int", group="Tài liệu"),
+    FieldSpec("DOC_KEEP_DAYS", "Giữ tệp bao nhiêu ngày", "Tệp không đụng tới quá số ngày này thì tự xoá. 0 = giữ mãi.", kind="int", group="Tài liệu"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )

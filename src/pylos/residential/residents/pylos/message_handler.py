@@ -20,7 +20,11 @@ from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
 from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODEL_FIXED, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
 from pylos.gate.main_gate.media.media_fetch import Limits, MediaError, MediaFile, fetch_attachment
 from pylos.gate.main_gate.media.media_store import MediaStore
-from pylos.lobby.office.agent_tools import OutgoingImage, create_image, web_reader
+from pylos.gate.main_gate.media.document_fetch import fetch_document
+from pylos.lobby.office.agent_tools import OutgoingFile, OutgoingImage, create_image, documents, web_reader
+from pylos.lobby.office.documents import files as doc_files
+from pylos.lobby.office.documents import reader as doc_reader
+from pylos.lobby.office.documents.files import DocError
 from pylos.residential.residents.pylos.gemini_agent import MediaRef
 from pylos.gate.main_gate.zalo.reply_formatting import split_message, split_reply, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
@@ -132,6 +136,7 @@ class Bot:
         self.media.keep_seconds = settings.media_keep_hours * 3600
         web_reader.configure(settings)
         create_image.configure(settings)
+        documents.configure(settings)
         self.media_limiter.per_minute = settings.user_media_per_hour
         self.chat_limiter.per_minute = settings.chat_rate_per_min
         if settings.allowed_chat_ids:
@@ -323,7 +328,38 @@ class Bot:
             media = await self._fetch_media(msg)
             if media is None:
                 return
+        elif msg.has_document and self.settings.doc_tools:
+            if not self.media_limiter.allow(f"{msg.chat_id}:{msg.from_id}"):
+                log.warning("Vượt giới hạn số tệp mỗi giờ: chat=%s user=%s", msg.chat_id, msg.from_id)
+                return
+            saved = await self._fetch_document(msg)
+            if saved is None:
+                return
+            prompt = f"{prompt}\n[Tệp đã nhận: {saved.name}]"
         await self._reply(msg, prompt, decision, media)
+
+    DOC_UNSUPPORTED_REPLY = "Mình chỉ đọc được tệp .docx, .md và .txt thôi."
+
+    async def _fetch_document(self, msg: IncomingMessage) -> Any:
+        """Tải tệp tài liệu của tin đã qua lọc vào huts/<chat>/docs/. Lỗi: báo ngắn ở chat riêng rồi trả None."""
+        att = msg.document_attachment
+        folder = doc_files.docs_dir(self.settings.huts_dir, msg.chat_id)
+        max_bytes = self.settings.doc_max_mb * 1024 * 1024
+        result = await fetch_document(att, folder, max_bytes) if att is not None else MediaError("unsupported")
+        if isinstance(result, MediaError):
+            log.warning("Không lấy được tệp tài liệu ở chat %s: %s %s", msg.chat_id, result.reason, result.detail)
+            if not msg.is_group:
+                if result.reason == "too_large":
+                    await self._say(msg.chat_id, MEDIA_TOO_LARGE_REPLY.format(mb=self.settings.doc_max_mb))
+                else:
+                    await self._say(msg.chat_id, self.DOC_UNSUPPORTED_REPLY if result.reason == "unsupported"
+                                    else MEDIA_FAILED_REPLY)
+            return None
+        try:
+            doc_files.prune(folder, self.settings.doc_keep_days)
+        except OSError as exc:
+            log.warning("Không dọn được thư mục tài liệu: %s", exc)
+        return result
 
     async def _fetch_media(self, msg: IncomingMessage) -> MediaFile | None:
         """Tải tệp của tin đã qua lọc vào túp lều. Lỗi: báo ngắn ở chat riêng (nhóm im lặng) rồi trả None."""
@@ -556,14 +592,19 @@ class Bot:
         self.usage.add(reply.tokens)
         self.stats.incr("tokens", reply.tokens)
         self.stats.incr("replied")
-        self.stats.incr("images", len(ctx.outbox))
+        images = [o for o in ctx.outbox if isinstance(o, OutgoingImage)]
+        documents_out = [o for o in ctx.outbox if isinstance(o, OutgoingFile)]
+        self.stats.incr("images", len(images))
         self._record_model(msg, reply, overrides)
         names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
         text = strip_name_prefix(to_plain_text(reply.text), names)
         if members:
             text = add_tags(text, prompt, members)  # model hay quên "@" trước tên người cần tag
-        sent_images = await self._send_images(msg.chat_id, ctx.outbox)
-        self.history.append(msg.chat_id, "model", text + (f"\n(đã gửi {sent_images} ảnh)" if sent_images else ""))
+        sent_images = await self._send_images(msg.chat_id, images)
+        sent_files = await self._send_files(msg.chat_id, documents_out)
+        notes = (f"\n(đã gửi {sent_images} ảnh)" if sent_images else "") + \
+                (f"\n(đã gửi tệp: {', '.join(sent_files)})" if sent_files else "")
+        self.history.append(msg.chat_id, "model", text + notes)
         await self._say(msg.chat_id, text)
 
         if msg.is_group and not was_over and self._over_budget():
@@ -625,23 +666,66 @@ class Bot:
         return sent
 
     async def _send_image(self, chat_id: str, image: OutgoingImage) -> Exception | None:
-        send = getattr(self.zalo, "send_image", None)
+        return await self._retry_send(getattr(self.zalo, "send_image", None), "ảnh", chat_id, image.path, image.caption)
+
+    async def _retry_send(self, send: Any, label: str, chat_id: str, *args: Any) -> Exception | None:
+        """Gọi send(chat_id, *args) với thử lại. None = xong; ngược lại là lỗi cuối (ZaloUnsupported: không thử lại)."""
         if send is None:
-            return ZaloUnsupported("Zalo chưa có gửi ảnh")
+            return ZaloUnsupported(f"Zalo chưa có gửi {label}")
         delay, last = self.retry_delay, None
         for attempt in range(1, self.send_retries + 1):
             try:
-                await send(chat_id, image.path, image.caption)
+                await send(chat_id, *args)
                 return None
             except ZaloUnsupported as exc:
                 return exc
             except ZaloError as exc:
                 last = exc
-                log.warning("Gửi ảnh lỗi (lần %d/%d) chat=%s: %s", attempt, self.send_retries, chat_id, exc)
+                log.warning("Gửi %s lỗi (lần %d/%d) chat=%s: %s", label, attempt, self.send_retries, chat_id, exc)
             if attempt < self.send_retries:
                 await asyncio.sleep(delay)
                 delay *= 2
         return last
+
+    FILE_AS_TEXT = "Mình chưa gửi được tệp {name} lên Zalo, nên gửi nội dung dưới dạng tin nhắn (tệp vẫn được giữ lại, bạn nhờ sửa tiếp được):"
+    FILE_FAILED = "Mình đã làm xong tệp {name} nhưng gửi vào chat bị lỗi, bạn nhờ lại sau nhé."
+    FILE_TEXT_MAX = 6000
+
+    async def _send_files(self, chat_id: str, outgoing: list[OutgoingFile]) -> list[str]:
+        """Gửi tệp tài liệu tool vừa tạo / sửa. Zalo chưa gửi được tệp (ZaloUnsupported) thì gửi nội dung dạng tin nhắn.
+        Trả về tên các tệp đã tới tay người dùng (dạng tệp hoặc dạng chữ)."""
+        done: list[str] = []
+        seen: set = set()
+        for item in outgoing:
+            if item.path in seen:  # model gọi sửa nhiều lần cùng một tệp: gửi một lần
+                continue
+            seen.add(item.path)
+            async with self._send_locks.setdefault(chat_id, asyncio.Lock()):
+                failure = await self._retry_send(getattr(self.zalo, "send_file", None), "tệp", chat_id, item.path, item.caption)
+            if failure is None:
+                done.append(item.path.name)
+                continue
+            if isinstance(failure, ZaloUnsupported):
+                if await self._send_file_as_text(chat_id, item):
+                    done.append(item.path.name)
+                continue
+            self.failed.add(chat_id, f"(tệp) {item.path.name}", str(failure))
+            self.stats.incr("errors")
+            await self._say(chat_id, self.FILE_FAILED.format(name=item.path.name))
+        return done
+
+    async def _send_file_as_text(self, chat_id: str, item: OutgoingFile) -> bool:
+        try:
+            text = doc_reader.read_text(item.path)
+        except (DocError, OSError) as exc:
+            log.warning("Không đọc được tệp %s để gửi dạng chữ: %s", item.path, exc)
+            await self._say(chat_id, self.FILE_FAILED.format(name=item.path.name))
+            return False
+        cut = len(text) > self.FILE_TEXT_MAX
+        body = text[:self.FILE_TEXT_MAX] + ("\n…(còn nữa, tệp dài quá nên mình chỉ gửi phần đầu)" if cut else "")
+        head = (item.caption + "\n" if item.caption else "") + self.FILE_AS_TEXT.format(name=item.path.name)
+        await self._send(chat_id, f"{head}\n\n{body}", split=False)
+        return True
 
     async def _send_chunk(self, chat_id: str, text: str) -> bool:
         delay = self.retry_delay

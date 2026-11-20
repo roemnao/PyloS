@@ -83,7 +83,7 @@ through the lobby.**
 | `library` | Toà thư viện | knowledge and skills written or vetted by the owner | All bots read; managers and owner write |
 | `atlas` | Toà bản đồ | the city description, the zoning file and the map drawer (see below) | All bots read; managers and owner write |
 | `dispatch` | Toà điều phối | message bus, shared clock (Vietnam time), bot registry, job queue, envelope log, permissions (roles), scheduler, start/stop | Owner only |
-| `office` | Toà văn phòng | plugins (drawing, documents, code), agent tools (including `tao_anh`, which makes an image and queues it for sending), `model_calls` (which key may call which model: `model_keys.md` lists variable names only, never secret values; one provider per file), and the `warehouse` where generated files are stored by type | Bots use; only the owner adds or changes plugins |
+| `office` | Toà văn phòng | plugins (drawing, documents, code), agent tools (including `tao_anh`, which makes an image and queues it for sending, and `tao_tai_lieu`/`sua_tai_lieu`/`doc_tai_lieu`/`ds_tai_lieu`, which create, edit and read `.docx`/`.md`/`.txt` files kept in each hut's `docs/` folder; the `documents` plugin holds the reader, writer and editor), `model_calls` (which key may call which model: `model_keys.md` lists variable names only, never secret values; one provider per file), and the `warehouse` where generated files are stored by type | Bots use; only the owner adds or changes plugins |
 
 **The map has two layers.**
 - *Detailed map* — the graphify knowledge graph (`graphify-out/graph.json`): every symbol of the code and the links

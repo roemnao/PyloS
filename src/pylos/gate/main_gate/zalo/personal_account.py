@@ -27,6 +27,7 @@ from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo.bot_platform_api import ZaloError
 from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, Attachment, IncomingMessage
 from pylos.gate.main_gate.media.image_size import image_size
+from pylos.gate.main_gate.zalo import file_upload
 from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE
 
 log = logging.getLogger(__name__)
@@ -250,6 +251,7 @@ class PersonalZalo:
             if _is_network_error(exc):
                 raise ZaloError("Không kết nối được Zalo (lỗi mạng), sẽ thử lại", network=True) from None
             raise ZaloError(f"Đăng nhập Zalo cá nhân thất bại: {exc}. {RELOGIN_HINT}") from None
+        file_upload.install_hook()  # để thấy sự kiện file_done mà zlapi bỏ qua (gửi tệp)
         self.self_id = str(self._api.uid() or "")
         if not self.self_id:
             raise ZaloError(f"Đăng nhập Zalo cá nhân thất bại: phiên đã hết hạn. {RELOGIN_HINT}")
@@ -409,6 +411,19 @@ class PersonalZalo:
         if isinstance(result, dict) and result.get("error_code"):
             raise ZaloError(str(result.get("error_message") or result), result.get("error_code"))
         return result
+
+    async def send_file(self, chat_id: str, path: Path, caption: str = "") -> Any:
+        """Gửi một tệp (.docx, .md, .txt...) đã có trên đĩa vào chat; chú thích (nếu có) gửi thành tin chữ ngay sau.
+        ZaloUnsupported: tệp quá lớn hoặc Zalo không báo tải xong, bên gọi sẽ gửi nội dung dạng chữ."""
+        is_group = self._thread_type(chat_id) == self._thread_type_cls.GROUP
+        try:
+            await asyncio.to_thread(file_upload.send_file, self._api, chat_id, is_group, Path(path))
+        except ZaloError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise ZaloError(f"Gửi tệp Zalo cá nhân lỗi: {exc}", network=True) from None
+        if caption:
+            await self.send_message(chat_id, caption)
 
     async def send_chat_action(self, chat_id: str, action: str = "typing") -> None:
         await asyncio.to_thread(self._api.setTyping, chat_id, self._thread_type(chat_id))

@@ -28,6 +28,13 @@ class OutgoingImage:
 
 
 @dataclass(frozen=True)
+class OutgoingFile:
+    """Tệp tài liệu bot vừa tạo / sửa, chờ gửi kèm câu trả lời (tool tao_tai_lieu, sua_tai_lieu)."""
+    path: Path
+    caption: str = ""
+
+
+@dataclass(frozen=True)
 class ToolContext:
     chat_id: str
     user_id: str
@@ -50,7 +57,7 @@ class ToolContext:
     # Gemini xem video YouTube (url, câu hỏi) -> {"summary"} hoặc {"error"}. None: chỉ lấy tiêu đề video.
     video_reader: Callable[[str, str], Awaitable[dict[str, Any]]] | None = None
     # Ảnh tool tạo ra trong lượt này; Bot gửi vào chat sau khi model trả lời (list nên thêm được dù dataclass frozen).
-    outbox: list[OutgoingImage] = field(default_factory=list)
+    outbox: list[OutgoingImage | OutgoingFile] = field(default_factory=list)
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]
