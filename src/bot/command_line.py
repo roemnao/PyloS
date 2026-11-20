@@ -28,6 +28,7 @@ from typing import Any
 
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, discover
 from pylos.lobby.office.agent_tools import web_reader
+from pylos.lobby.office.model_calls import ModelCalls, settings_lookup
 from pylos.residential.residents.pylos.message_handler import Bot
 from pylos.lobby.dispatch.shared.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
 from pylos.gate.main_gate.logs.log_files import setup_logging
@@ -60,6 +61,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
         fallback_models=settings.fallback_models,
         media_inline_max_mb=settings.media_inline_max_mb,
         media_upload_timeout=settings.media_upload_timeout,
+        model_calls=ModelCalls(settings_lookup(settings)),
     )
     return agent, tools
 

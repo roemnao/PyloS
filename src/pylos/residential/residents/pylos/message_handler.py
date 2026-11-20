@@ -135,6 +135,9 @@ class Bot:
         self.chat_limiter.per_minute = settings.chat_rate_per_min
         if settings.allowed_chat_ids:
             self.groups.allow_seed(settings.allowed_chat_ids)
+        model_calls = getattr(self.agent, "model_calls", None)
+        if model_calls is not None:
+            model_calls.update(settings)  # key đổi ở trang Cài đặt có hiệu lực ngay
         configure = getattr(self.agent, "configure", None)
         if configure is not None:
             configure(model=settings.gemini_model, max_tool_rounds=settings.max_tool_rounds,

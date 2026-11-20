@@ -587,3 +587,19 @@ async def test_status_records_last_model_and_flags_fallback(make_bot, agent):
     info = bot_process.status_info(bot.settings)
     assert info["last_model"] == "gemini-4-hydrogen" and info["last_profile"] == "coding"
     assert info["last_chat"] == OWNER and info["fallback_models"] == ["gemini-3.5-flash-lite"]
+
+
+def test_apply_settings_passes_new_keys_to_the_agents_model_calls(make_bot, agent, tmp_path):
+    from conftest import make_settings
+
+    class Calls:
+        updated = None
+
+        def update(self, settings):
+            self.updated = settings
+
+    agent.model_calls = Calls()
+    bot = make_bot()
+    new = make_settings(tmp_path, CLOUDFLARE_API_TOKEN="cf-new", CLOUDFLARE_ACCOUNT_ID="acc")
+    bot.apply_settings(new)
+    assert agent.model_calls.updated is new and new.cloudflare_api_token == "cf-new"

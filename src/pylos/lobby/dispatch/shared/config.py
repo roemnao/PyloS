@@ -156,6 +156,9 @@ class Settings:
     admin_google_client_id: str = ""
     admin_google_client_secret: str = ""
     admin_email: str = ""
+    # Cloudflare Workers AI (tạo ảnh): key nào dùng được model nào ghi ở lobby/office/model_calls/model_keys.md
+    cloudflare_account_id: str = ""
+    cloudflare_api_token: str = ""
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -278,6 +281,8 @@ class Settings:
             admin_google_client_id=env.get("ADMIN_GOOGLE_CLIENT_ID", "").strip(),
             admin_google_client_secret=env.get("ADMIN_GOOGLE_CLIENT_SECRET", "").strip(),
             admin_email=admin_email,
+            cloudflare_account_id=env.get("CLOUDFLARE_ACCOUNT_ID", "").strip(),
+            cloudflare_api_token=env.get("CLOUDFLARE_API_TOKEN", "").strip(),
         )
 
     @property
@@ -307,6 +312,7 @@ class Settings:
     def secrets(self) -> list[str]:
         return [
             s for s in (self.zalo_bot_token, self.gemini_api_key, self.webhook_secret, self.admin_token, self.zalo_imei,
-                        self.schedule_api_key, self.remote_admin_token, self.admin_google_client_secret)
+                        self.schedule_api_key, self.remote_admin_token, self.admin_google_client_secret,
+                        self.cloudflare_api_token)
             if s
         ]

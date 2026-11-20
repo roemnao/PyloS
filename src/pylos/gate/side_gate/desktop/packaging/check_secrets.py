@@ -14,7 +14,7 @@ from pathlib import Path
 from dotenv import dotenv_values
 from PyInstaller.archive.readers import CArchiveReader
 
-SECRET_KEYS = ("ZALO_BOT_TOKEN", "GEMINI_API_KEY", "ADMIN_TOKEN", "WEBHOOK_SECRET")
+SECRET_KEYS = ("ZALO_BOT_TOKEN", "GEMINI_API_KEY", "ADMIN_TOKEN", "WEBHOOK_SECRET", "CLOUDFLARE_API_TOKEN")
 FORBIDDEN_NAMES = (".env", "userdata/", "userdata\\", "data/", "data\\", "workspace/", "workspace\\", "logs/", "logs\\", "secrets/", "secrets\\")
 
 

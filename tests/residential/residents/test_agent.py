@@ -328,3 +328,58 @@ def test_prompt_tells_model_the_sender_role(tmp_path):
     leader = PromptBuilder(tmp_path).build(is_group=True, tool_names=tools, sender_role="leader", team_names=["Thiết kế"])
     assert "basic-user" not in leader and "Thiết kế" in leader and "nhom" in leader
     assert "basic-user" not in PromptBuilder(tmp_path).build(is_group=True, tool_names=[], sender_role="basic")
+
+
+# ---------- danh sách key -> model (lobby/office/model_calls) ----------
+
+class KeyBook:
+    """Giả ModelCalls: `owners` = {model: (nhà cung cấp, client)}; model không có trong đó dùng client chính."""
+
+    def __init__(self, owners):
+        self.owners = owners
+
+    def provider_of(self, model):
+        return self.owners[model][0] if model in self.owners else None
+
+    def gemini_client(self, model):
+        provider, client = self.owners.get(model, (None, None))
+        return client if provider == "gemini" else None
+
+
+def keyed_agent(owners, main_models, **kwargs):
+    agent = GeminiAgent("k", "main", ToolRegistry(), model_calls=KeyBook(owners), **kwargs)
+    agent._client = SimpleNamespace(aio=SimpleNamespace(models=main_models))  # client chính (không gọi mạng)
+    agent.retry_delay = 0
+    return agent
+
+
+async def test_each_model_is_called_with_the_client_of_its_own_key():
+    main, other = PerModel({}, [response("từ key chính")]), PerModel({}, [response("từ key phụ")])
+    owners = {"alt": ("gemini", SimpleNamespace(aio=SimpleNamespace(models=other)))}
+    agent = keyed_agent(owners, main)
+    assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == "từ key chính"
+    reply = await agent.reply("s", [Turn("user", "x")], CTX, model="alt")
+    assert reply.text == "từ key phụ" and main.tried == ["main"] and other.tried == ["alt"]
+
+
+async def test_fallback_on_another_key_uses_that_keys_client():
+    main, other = PerModel({"main": [api_error(429)]}, []), PerModel({}, [response("dự phòng key phụ")])
+    owners = {"alt": ("gemini", SimpleNamespace(aio=SimpleNamespace(models=other)))}
+    reply = await keyed_agent(owners, main, fallback_models=("alt",)).reply("s", [Turn("user", "x")], CTX)
+    assert reply.text == "dự phòng key phụ" and reply.model == "alt"
+    assert main.tried == ["main"] and other.tried == ["alt"]
+
+
+async def test_models_of_other_providers_are_dropped_from_the_chain(caplog):
+    main = PerModel({}, [response("ok")])
+    owners = {"@cf/flux": ("cloudflare", object())}
+    agent = keyed_agent(owners, main, fallback_models=("@cf/flux",))
+    assert agent.chain() == ["main"]
+    assert agent.chain("@cf/flux") == ["main"]  # hồ sơ chọn model không phải Gemini: dùng model chính
+    assert "@cf/flux" in caplog.text
+    assert (await agent.reply("s", [Turn("user", "x")], CTX, model="@cf/flux")).model == "main"
+
+
+def test_a_client_given_directly_ignores_the_key_book():
+    agent = GeminiAgent("k", "main", ToolRegistry(), client=object(), model_calls=KeyBook({"x": ("cloudflare", None)}))
+    assert agent.model_calls is None and agent.chain("x") == ["x", "main"]

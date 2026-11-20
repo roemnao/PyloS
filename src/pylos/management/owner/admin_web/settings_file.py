@@ -155,6 +155,9 @@ FIELDS: tuple[FieldSpec, ...] = (
               group="Đăng nhập"),
     FieldSpec("ADMIN_EMAIL", "Gmail của chủ hệ thống",
               "Đúng một Gmail được vào bằng Google. PyloS không phân quyền.", group="Đăng nhập"),
+    FieldSpec("CLOUDFLARE_ACCOUNT_ID", "Cloudflare Account ID",
+              "Dùng cho model Cloudflare Workers AI (ví dụ tạo ảnh). Lấy ở dash.cloudflare.com > Workers & Pages > Overview. "
+              "Key nào dùng được model nào ghi ở model_keys.md (lobby/office/model_calls).", group="Cloudflare"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )
@@ -163,6 +166,7 @@ FIELD_KEYS = {f.key for f in FIELDS}
 SECRETS: dict[str, str] = {
     "ZALO_BOT_TOKEN": "Bot token Zalo",
     "GEMINI_API_KEY": "API key Gemini",
+    "CLOUDFLARE_API_TOKEN": "API token Cloudflare (quyền Workers AI)",
     "WEBHOOK_SECRET": "Webhook secret (8–256 ký tự)",
     "SCHEDULE_API_KEY": "Khoá agent của web bot lịch (chỉ để giao lịch)",
     "TAVILY_API_KEY": "Khoá Tavily (tìm web miễn phí khoảng 1.000 lượt/tháng, lấy ở tavily.com)",

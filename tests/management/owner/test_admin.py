@@ -111,7 +111,7 @@ def test_secrets_never_leave_the_server(client):
     secrets = {s["key"]: s["set"] for s in client.get("/api/settings", headers=AUTH).json()["secrets"]}
     assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False, "SCHEDULE_API_KEY": False,
                        "ADMIN_GOOGLE_CLIENT_SECRET": False, "REMOTE_ADMIN_TOKEN": False,
-                       "TAVILY_API_KEY": False, "BRAVE_API_KEY": False}
+                       "TAVILY_API_KEY": False, "BRAVE_API_KEY": False, "CLOUDFLARE_API_TOKEN": False}
 
 
 # ---------- cài đặt / .env ----------

@@ -116,12 +116,16 @@ class GeminiAgent:
         media_inline_max_mb: float = 15,
         media_upload_timeout: float = 120,
         client: Any = None,
+        model_calls: Any = None,
     ) -> None:
         from google import genai
         from google.genai import types
 
         self._types = types
         self._client = client or genai.Client(api_key=api_key)
+        # Danh sách key -> model (lobby/office/model_calls): mỗi model dùng đúng key của nó. None, hoặc model không có
+        # trong danh sách: dùng client chính ở trên. `client` truyền vào (test) thì luôn dùng client đó.
+        self.model_calls = None if client is not None else model_calls
         self._model = model
         self._tools = tools
         self._max_rounds = max_tool_rounds
@@ -162,14 +166,31 @@ class GeminiAgent:
             if name and name not in names:
                 names.append(name)
         names = [n for n in names if n not in self._missing] or names[:1]
+        if self.model_calls is not None:
+            usable = [n for n in names if self.model_calls.provider_of(n) in (None, "gemini")]
+            for n in names:
+                if n not in usable:
+                    log.warning("Model %s không phải của Gemini, chat chưa dùng được: bỏ khỏi chuỗi model", n)
+            names = usable or names[:1]
         now = time.monotonic()
         resting = [n for n in names if self._cooling.get(n, 0) > now]
         return [n for n in names if n not in resting] + resting
 
+    def _client_for(self, model: str) -> Any:
+        """Client Gemini của key dành cho `model` (theo model_keys.md); không có trong danh sách thì client chính."""
+        if self.model_calls is not None:
+            client = self.model_calls.gemini_client(model)
+            if client is not None:
+                return client
+        return self._client
+
     FILE_URI_TTL = 47 * 3600  # Files API giữ tệp 48 giờ; dùng lại nếu còn dưới 47 giờ
 
     async def _media_part(self, ref: MediaRef, inline_left: list[int]) -> Any:
-        """Part cho một tệp: nhúng thẳng nếu nhỏ (tổng còn trong hạn mức), ngược lại tải lên Files API."""
+        """Part cho một tệp: nhúng thẳng nếu nhỏ (tổng còn trong hạn mức), ngược lại tải lên Files API.
+
+        Tệp Files API gắn với key đã tải lên (client chính): model dùng key khác (model_keys.md) không đọc được tệp đó,
+        lượt trả lời có video hoặc tệp lớn nên để các model đó ở cuối chuỗi dự phòng."""
         types = self._types
         if ref.file_uri and ref.file_uri_expires > time.time():
             return types.Part.from_uri(file_uri=ref.file_uri, mime_type=ref.mime)
@@ -219,7 +240,7 @@ class GeminiAgent:
         while True:
             try:
                 return await asyncio.wait_for(
-                    self._client.aio.models.generate_content(model=name, contents=contents, config=config),
+                    self._client_for(name).aio.models.generate_content(model=name, contents=contents, config=config),
                     timeout=seconds,
                 )
             except asyncio.TimeoutError:
