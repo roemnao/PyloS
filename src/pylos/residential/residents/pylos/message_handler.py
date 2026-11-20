@@ -20,7 +20,7 @@ from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
 from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODEL_FIXED, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
 from pylos.gate.main_gate.media.media_fetch import Limits, MediaError, MediaFile, fetch_attachment
 from pylos.gate.main_gate.media.media_store import MediaStore
-from pylos.lobby.office.agent_tools import web_reader
+from pylos.lobby.office.agent_tools import create_image, web_reader
 from pylos.residential.residents.pylos.gemini_agent import MediaRef
 from pylos.gate.main_gate.zalo.reply_formatting import split_message, split_reply, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
@@ -131,6 +131,7 @@ class Bot:
         self.user_limiter.per_minute = settings.user_rate_per_min
         self.media.keep_seconds = settings.media_keep_hours * 3600
         web_reader.configure(settings)
+        create_image.configure(settings)
         self.media_limiter.per_minute = settings.user_media_per_hour
         self.chat_limiter.per_minute = settings.chat_rate_per_min
         if settings.allowed_chat_ids:

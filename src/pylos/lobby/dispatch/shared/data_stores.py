@@ -409,7 +409,7 @@ class StatsStore:
     """daily_stats.txt: số liệu theo ngày {"2026-10-22": {"received", "replied", "errors", "tokens", ...}}."""
 
     # filter_pass / filter_block: số tin trong nhóm bộ lọc cho qua / chặn
-    FIELDS = ("received", "replied", "errors", "tokens", "filter_pass", "filter_block")
+    FIELDS = ("received", "replied", "errors", "tokens", "filter_pass", "filter_block", "images")
 
     def __init__(self, path: Path, keep_days: int = 90) -> None:
         self._file = JsonObjectFile(path)

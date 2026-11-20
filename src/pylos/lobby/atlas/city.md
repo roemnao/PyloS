@@ -58,7 +58,7 @@ Receives data from Zalo and outer-city bots; sends data out.
 | Building | Vietnamese | Holds |
 |---|---|---|
 | `main_gate` | Cổng chính | `zalo` (personal account, Bot Platform, QR login, polling, webhook, `reply_formatting`: cut a long or multi-line reply into several messages), `media` (downloads the photos, videos and voice notes users send into their hut), `external_apps`, `external_bots`, `sessions`, `logs` |
-| `fence` | Hàng rào | `token_limit`, `speech_limit`, `web_limit` (which links the bot may open), `ethics` — the rules **and** the code that enforces them |
+| `fence` | Hàng rào | `token_limit` (also the daily and hourly image limit), `speech_limit`, `web_limit` (which links the bot may open), `ethics` — the rules **and** the code that enforces them |
 | `side_gate` | Cổng phụ | `vps`, `mcp`, `owner_commands`, `shell`, `emergency`, `desktop` — technical entry: receives commands from the owner, the VPS and MCP |
 | `guest_house` | Toà khách | one **hut** per person (Zalo uid) or per Zalo group |
 
@@ -83,7 +83,7 @@ through the lobby.**
 | `library` | Toà thư viện | knowledge and skills written or vetted by the owner | All bots read; managers and owner write |
 | `atlas` | Toà bản đồ | the city description, the zoning file and the map drawer (see below) | All bots read; managers and owner write |
 | `dispatch` | Toà điều phối | message bus, shared clock (Vietnam time), bot registry, job queue, envelope log, permissions (roles), scheduler, start/stop | Owner only |
-| `office` | Toà văn phòng | plugins (drawing, documents, code), agent tools, `model_calls` (which key may call which model: `model_keys.md` lists variable names only, never secret values; one provider per file), and the `warehouse` where generated files are stored by type | Bots use; only the owner adds or changes plugins |
+| `office` | Toà văn phòng | plugins (drawing, documents, code), agent tools (including `tao_anh`, which makes an image and queues it for sending), `model_calls` (which key may call which model: `model_keys.md` lists variable names only, never secret values; one provider per file), and the `warehouse` where generated files are stored by type | Bots use; only the owner adds or changes plugins |
 
 **The map has two layers.**
 - *Detailed map* — the graphify knowledge graph (`graphify-out/graph.json`): every symbol of the code and the links

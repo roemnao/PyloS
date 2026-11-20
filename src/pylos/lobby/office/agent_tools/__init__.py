@@ -21,6 +21,13 @@ log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
+class OutgoingImage:
+    """Ảnh bot vừa tạo, chờ gửi kèm câu trả lời (tool tao_anh thêm vào ToolContext.outbox)."""
+    path: Path
+    caption: str = ""
+
+
+@dataclass(frozen=True)
 class ToolContext:
     chat_id: str
     user_id: str
@@ -42,6 +49,8 @@ class ToolContext:
     web_search: Callable[[str], Awaitable[dict[str, Any]]] | None = None
     # Gemini xem video YouTube (url, câu hỏi) -> {"summary"} hoặc {"error"}. None: chỉ lấy tiêu đề video.
     video_reader: Callable[[str, str], Awaitable[dict[str, Any]]] | None = None
+    # Ảnh tool tạo ra trong lượt này; Bot gửi vào chat sau khi model trả lời (list nên thêm được dù dataclass frozen).
+    outbox: list[OutgoingImage] = field(default_factory=list)
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]

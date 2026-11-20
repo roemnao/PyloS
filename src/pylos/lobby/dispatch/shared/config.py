@@ -159,6 +159,11 @@ class Settings:
     # Cloudflare Workers AI (tạo ảnh): key nào dùng được model nào ghi ở lobby/office/model_calls/model_keys.md
     cloudflare_account_id: str = ""
     cloudflare_api_token: str = ""
+    # Bot tạo ảnh (tool tao_anh): model theo nhiệm vụ image trong modelShift.md; hạn mức riêng, không tính vào DAILY_TOKEN_BUDGET
+    image_gen: bool = True
+    image_steps: int = 4
+    image_per_day: int = 50
+    user_images_per_hour: int = 5
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -283,6 +288,10 @@ class Settings:
             admin_email=admin_email,
             cloudflare_account_id=env.get("CLOUDFLARE_ACCOUNT_ID", "").strip(),
             cloudflare_api_token=env.get("CLOUDFLARE_API_TOKEN", "").strip(),
+            image_gen=_bool(env, "IMAGE_GEN", True),
+            image_steps=_int(env, "IMAGE_STEPS", 4, minimum=1),
+            image_per_day=_int(env, "IMAGE_PER_DAY", 50),
+            user_images_per_hour=_int(env, "USER_IMAGES_PER_HOUR", 5),
         )
 
     @property

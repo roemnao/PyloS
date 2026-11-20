@@ -7,6 +7,26 @@
 
 ---
 
+## Cách làm việc (chủ hệ thống chốt 20-11-2026)
+
+- **Làm liền một mạch, không dừng hỏi sau mỗi bước**: PR 1 → PR 2 → PR 3. Chỉ dừng khi có việc **không đảo ngược được hoặc
+  ra ngoài máy**, hoặc thiếu thứ chỉ chủ hệ thống có (ví dụ key thật).
+- Mỗi PR là **một commit (hoặc vài commit) trên nhánh riêng, xếp chồng**: `claude/model-keys` → `claude/image-generation` →
+  `claude/image-to-zalo`. Nhánh sau tách từ nhánh trước.
+- **Chưa push, chưa mở PR, chưa merge** cho tới khi chủ hệ thống nói (merge vào `main` là deploy lên VPS). Cuối cùng báo
+  một lần: đẩy nhánh nào, theo thứ tự nào.
+- Mỗi PR: `pytest -q` xanh, cập nhật `city.md`, `graphify update .` (hook tự chạy sau commit).
+
+## Trạng thái
+
+| PR | Nội dung | Trạng thái |
+|----|----------|------------|
+| 1 | Danh sách key → model, bảng nhiệm vụ, `GeminiAgent` theo key | **Xong**, commit `2a25843` trên `claude/model-keys` (nhánh tách từ `claude/fix-model-shift` vì `main` thiếu 2 commit) |
+| 2 | Cloudflare + `tao_anh` + hạn mức ảnh | **Xong**, trên `claude/image-generation`. Ảnh tạo xong vào `ToolContext.outbox` nhưng **chưa có gì gửi đi cho tới PR 3**, nên PR 2 và PR 3 phải lên VPS cùng lúc |
+| 3 | Gửi ảnh vào Zalo | Đang làm |
+
+---
+
 ## 0. Quyết định đã chốt
 
 | # | Câu hỏi | Chốt | Ghi chú |

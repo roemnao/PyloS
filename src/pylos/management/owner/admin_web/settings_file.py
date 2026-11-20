@@ -158,6 +158,14 @@ FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec("CLOUDFLARE_ACCOUNT_ID", "Cloudflare Account ID",
               "Dùng cho model Cloudflare Workers AI (ví dụ tạo ảnh). Lấy ở dash.cloudflare.com > Workers & Pages > Overview. "
               "Key nào dùng được model nào ghi ở model_keys.md (lobby/office/model_calls).", group="Cloudflare"),
+    FieldSpec("IMAGE_GEN", "Cho bot tạo ảnh",
+              "Bật: bot tạo ảnh khi được nhờ (tool tao_anh). Cần key Cloudflare và model nhiệm vụ image trong modelShift.md.",
+              kind="bool", group="Tạo ảnh"),
+    FieldSpec("IMAGE_STEPS", "Số bước tạo ảnh", "1-8. Nhiều bước hơn thì tốn hạn mức Cloudflare hơn.", kind="int", group="Tạo ảnh"),
+    FieldSpec("IMAGE_PER_DAY", "Số ảnh tối đa mỗi ngày",
+              "Hạn mức riêng cho ảnh, không tính vào hạn mức token. Hết thì bot nói mai thử lại. 0 = không giới hạn.",
+              kind="int", group="Tạo ảnh"),
+    FieldSpec("USER_IMAGES_PER_HOUR", "Số ảnh mỗi người mỗi giờ", "0 = không giới hạn.", kind="int", group="Tạo ảnh"),
     FieldSpec("LOG_LEVEL", "Mức log", kind="choice", choices=("DEBUG", "INFO", "WARNING", "ERROR"), group="Kết nối"),
     FieldSpec("ADMIN_SHOW_HISTORY", "Hiện trang Hội thoại", kind="bool", group="Giao diện"),
 )

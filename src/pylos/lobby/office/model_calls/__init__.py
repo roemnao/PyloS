@@ -5,15 +5,17 @@ Code khác trong bot không giữ key hay client riêng mà hỏi ModelCalls: mo
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
 from pylos.lobby.office.model_calls.catalog import KEYS_FILE, KeyEntry, Lookup, ModelCatalog, env_lookup
 from pylos.lobby.office.model_calls.providers import PROVIDERS
+from pylos.lobby.office.model_calls.results import ImageResult, ModelCallError
 
 log = logging.getLogger(__name__)
 
-__all__ = ["ModelCalls", "KeyEntry", "settings_lookup"]
+__all__ = ["ModelCalls", "KeyEntry", "ImageResult", "ModelCallError", "settings_lookup"]
 
 
 def settings_lookup(settings: Any) -> Lookup:
@@ -46,6 +48,35 @@ class ModelCalls:
         """Nhà cung cấp của model, hoặc None nếu model không có trong danh sách (bên gọi dùng key mặc định)."""
         entry = self.resolve(model)
         return entry.provider if entry else None
+
+    async def generate_image(self, prompt: str, model: str, *, fallbacks: tuple[str, ...] = (), steps: int = 4,
+                             timeout: float = 60) -> ImageResult:
+        """Tạo ảnh bằng `model`; lỗi của riêng model (hết hạn mức, 5xx, hết giờ) thì thử lần lượt `fallbacks`.
+
+        Lỗi cuối cùng ném lên dạng ModelCallError (câu tiếng Việt, không chứa key)."""
+        names: list[str] = []
+        for name in (model, *fallbacks):
+            if name and name not in names:
+                names.append(name)
+        for index, name in enumerate(names):
+            entry = self.resolve(name)
+            provider = self._providers.get(entry.provider) if entry else None
+            started = time.monotonic()
+            try:
+                if entry is None:
+                    raise ModelCallError(f"Model {name} chưa có key dùng được trong model_keys.md")
+                if not hasattr(provider, "generate_image"):
+                    raise ModelCallError(f"Model {name} (nhà cung cấp {entry.provider}) chưa tạo ảnh được")
+                result = await provider.generate_image(entry, name, prompt, steps=steps, timeout=timeout)
+            except ModelCallError as exc:
+                if exc.retryable and index < len(names) - 1:
+                    log.warning("Tạo ảnh bằng %s lỗi (%s), thử model dự phòng %s", name, exc, names[index + 1])
+                    continue
+                raise
+            log.info("Đã tạo ảnh bằng %s: %d byte trong %.1f giây (lời nhắc: %.80s)", name, len(result.data),
+                     time.monotonic() - started, prompt)
+            return result
+        raise ModelCallError("Chưa có model tạo ảnh")
 
     def gemini_client(self, model: str) -> Any | None:
         """Client Gemini của key dành cho `model`; None nếu model không có trong danh sách hoặc không thuộc Gemini."""
