@@ -38,6 +38,10 @@ class ToolContext:
     can_assign: bool = False  # leader hoặc owner: được giao lịch cho người khác (basic chỉ thêm lịch cho chính mình)
     role: str = "basic"  # basic | leader | owner (core/roles.py)
     teams: dict[str, list[str]] = field(default_factory=dict)  # {tên đội đã fold: [uid]} của nhóm này
+    # Tìm web bằng Gemini (Bot gắn vào, đã đếm giới hạn ngày). None: không tìm được (tool tim_web báo lỗi).
+    web_search: Callable[[str], Awaitable[dict[str, Any]]] | None = None
+    # Gemini xem video YouTube (url, câu hỏi) -> {"summary"} hoặc {"error"}. None: chỉ lấy tiêu đề video.
+    video_reader: Callable[[str, str], Awaitable[dict[str, Any]]] | None = None
 
 
 Handler = Callable[[dict[str, Any], ToolContext], Any | Awaitable[Any]]
@@ -52,6 +56,12 @@ class Tool:
     parameters: dict[str, Any] = field(default_factory=lambda: {"type": "object", "properties": {}})
     # Tool ghi/xóa hoặc nhạy cảm: chỉ chủ bot được gọi, kiểm tra ở đây chứ không tin lời model.
     owner_only: bool = False
+    # Trả False thì tool bị ẩn khỏi model (cờ bật/tắt trong cài đặt). None: luôn bật.
+    enabled: Callable[[], bool] | None = None
+
+    @property
+    def active(self) -> bool:
+        return self.enabled is None or bool(self.enabled())
 
 
 class ToolRegistry:
@@ -69,18 +79,19 @@ class ToolRegistry:
         return len(self._tools)
 
     def names(self) -> list[str]:
-        return list(self._tools)
+        return [name for name, tool in self._tools.items() if tool.active]
 
     def declarations(self) -> list[dict[str, Any]]:
         return [
             {"name": t.name, "description": t.description, "parameters_json_schema": t.parameters}
             for t in self._tools.values()
+            if t.active
         ]
 
     async def call(self, name: str, args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
         """Luôn trả về dict để đưa lại cho model; lỗi cũng được báo cho model thay vì làm sập."""
         tool = self._tools.get(name)
-        if tool is None:
+        if tool is None or not tool.active:
             return {"error": f"Không có tool tên {name}"}
         if tool.owner_only and not ctx.is_owner:
             return {"error": "Chỉ chủ bot được dùng tool này."}

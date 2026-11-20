@@ -25,7 +25,7 @@ from pylos.gate.main_gate.zalo.mention_tags import build_mentions
 from pylos.lobby.dispatch.shared.storage import ActivityStore, MemoryDataStore, StateStore
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo.bot_platform_api import ZaloError
-from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, IncomingMessage
+from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, Attachment, IncomingMessage
 from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE
 
 log = logging.getLogger(__name__)
@@ -68,6 +68,57 @@ def load_session(path: Path, imei: str = "") -> tuple[dict[str, str], str, str]:
     return {str(k): str(v) for k, v in raw.items()}, imei, user_agent
 
 
+# msgType của zlapi -> loại tin. Tên trường trong content (href, thumb, params...) chưa kiểm với
+# payload thật (xem kế hoạch, PR 0), nên mọi chỗ đọc đều phòng thủ.
+MSG_KINDS = {
+    "chat.photo": "photo",
+    "chat.video.msg": "video",
+    "chat.voice": "voice",
+    "share.file": "file",
+    "chat.recommended": "link",
+    "chat.link": "link",
+    "chat.sticker": "sticker",
+    "chat.gif": "gif",
+    "chat.doodle": "other",
+    "chat.location.new": "other",
+}
+
+
+def _as_dict(value: Any) -> dict:
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return {}
+    if hasattr(value, "items"):
+        return dict(value.items())
+    return {k: getattr(value, k) for k in ("href", "thumb", "title", "description", "params") if hasattr(value, k)}
+
+
+def _to_int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def attachment_of(kind: str, content: Any) -> Attachment:
+    """Đọc href/thumb/title/description/params của tin không phải chữ."""
+    data = _as_dict(content)
+    params = _as_dict(data.get("params"))
+    url = str(data.get("href") or params.get("hd") or params.get("url") or "")
+    return Attachment(
+        kind=kind,
+        url=url,
+        thumb=str(data.get("thumb") or ""),
+        size=_to_int(params.get("fileSize") or params.get("size")),
+        name=str(params.get("fileName") or params.get("name") or ""),
+        title=str(data.get("title") or ""),
+        description=str(data.get("description") or ""),
+        duration=_to_int(params.get("duration")),
+    )
+
+
 def to_incoming(
     mid: Any, author_id: Any, content: Any, message_object: Any, thread_id: Any, is_group: bool, self_id: str
 ) -> IncomingMessage | None:
@@ -77,13 +128,25 @@ def to_incoming(
     obj = message_object if message_object is not None else {}
     get = obj.get if hasattr(obj, "get") else (lambda _key, default=None: default)
     text = content if isinstance(content, str) else None
+    msg_type = str(get("msgType") or "")
+    kind = "text" if text is not None else MSG_KINDS.get(msg_type, "other")
+    attachments: tuple[Attachment, ...] = ()
+    if text is None:
+        att = attachment_of(kind, content)
+        attachments = (att,)
+        if kind == "link" and att.url:
+            # Thẻ link: đổi thành tin chữ để bot đọc link bằng công cụ web.
+            text = "\n".join(part for part in (att.url, att.title, att.description) if part)
+            kind, attachments = "text", ()
+        elif kind in ("photo", "video", "voice"):
+            text = att.title or att.description or None  # chú thích (caption) nếu có
     author = str(author_id)
     try:
         date_ms = int(get("ts")) if get("ts") not in (None, "") else None
     except (TypeError, ValueError):
         date_ms = None
     return IncomingMessage(
-        event_name=TEXT_EVENT if text is not None else OTHER_EVENT,
+        event_name=TEXT_EVENT if kind == "text" else OTHER_EVENT,
         chat_id=str(thread_id),
         chat_type="GROUP" if is_group else "PRIVATE",
         from_id=author,
@@ -93,8 +156,10 @@ def to_incoming(
         text=text,
         message_id=str(mid) if mid not in (None, "") else None,
         date_ms=date_ms,
-        raw={"personal": True},
+        raw={"personal": True, "msgType": msg_type},
         mentions=_mention_ids(get("mentions")),
+        kind=kind,
+        attachments=attachments,
     )
 
 

@@ -16,7 +16,7 @@ RANK = {BASIC: 0, LEADER: 1, OWNER: 2}
 LABEL = {BASIC: "basic-user", LEADER: "leader", OWNER: "owner"}
 
 # Lệnh chỉ owner dùng được, bất kể tham số.
-OWNER_COMMANDS = ("allow", "deny", "mode", "status", "reset", "remove")
+OWNER_COMMANDS = ("allow", "deny", "mode", "model", "status", "reset", "remove")
 LEADER_REMOVE = ("bo", "bỏ", "remove", "xoa", "xoá", "xóa")
 LEADER_OFF = ("off", "clear", "none")
 

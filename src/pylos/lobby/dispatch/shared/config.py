@@ -24,6 +24,9 @@ LOADED_FROM_DOTENV: set[str] = set()
 DEFAULT_REMOTE_URL = "https://unousgrowth.com"
 
 
+WEB_SEARCH_PROVIDERS = ("auto", "gemini", "tavily", "brave")
+
+
 class ConfigError(Exception):
     """Cấu hình thiếu hoặc sai; thông báo đã sẵn sàng để in cho người dùng."""
 
@@ -60,15 +63,6 @@ THINKING_LEVELS = ("low", "medium", "high")
 SHIFT_PROFILES = ("routine", "reflective", "coding")  # khớp modelShift.md
 
 
-def _shift_profile(env: dict[str, str], name: str, default: str) -> str:
-    """Hồ sơ "model:mức" (ví dụ gemini-4-hydrogen:medium), kiểm tra dạng ngay khi đọc cấu hình."""
-    raw = env.get(name, "").strip() or default
-    model, _, level = raw.rpartition(":")
-    if not model.strip() or level.strip().lower() not in THINKING_LEVELS:
-        raise ConfigError(f"{name} phải có dạng model:mức (mức là low, medium hoặc high), đang là {raw!r}")
-    return f"{model.strip()}:{level.strip().lower()}"
-
-
 @dataclass(frozen=True)
 class Settings:
     zalo_bot_token: str
@@ -94,11 +88,10 @@ class Settings:
     daily_token_budget: int
     # Mức "suy nghĩ" của Gemini khi trả lời: low (nhanh, rẻ) | medium | high (kỹ nhưng chậm, dễ hết giờ)
     thinking_level: str = "low"
-    # Đổi model + thinking theo loại việc (xem căn hộ bot lọc: modelShift.md). Mỗi hồ sơ có dạng "model:mức".
+    # Bot lọc được đổi model + thinking theo loại việc (hồ sơ và model dự phòng riêng: căn hộ bot lọc, modelShift.md).
     model_shift: bool = True
-    shift_routine: str = "gemini-3.5-flash-lite:low"
-    shift_reflective: str = "gemini-3.5-flash-lite:medium"
-    shift_coding: str = "gemini-4-hydrogen:medium"
+    # Model dự phòng chung, thử lần lượt khi model đang dùng quá tải (503), hết hạn mức (429), không tồn tại (404) hoặc hết giờ
+    fallback_models: tuple[str, ...] = ("gemini-3.5-flash-lite",)
     admin_token: str = ""
     admin_port: int = 8081
     admin_show_history: bool = True
@@ -114,6 +107,29 @@ class Settings:
     filter_workspace_dir: Path = Path(FILTER_WORKSPACE_REL)
     filter_context_lines: int = 6
     memorydata_keep: int = 5000
+    # Ảnh, video, tin thoại: bot tải về túp lều rồi cho Gemini xem/nghe (xem gate/main_gate/media)
+    media_input: bool = True
+    media_max_mb_photo: int = 10
+    media_max_mb_audio: int = 15
+    media_max_mb_video: int = 50
+    media_inline_max_mb: int = 15  # nhỏ hơn mức này thì nhúng thẳng vào request, lớn hơn (và mọi video) tải lên Files API
+    media_upload_timeout: int = 120
+    media_keep_hours: int = 24
+    media_followup_turns: int = 3  # hỏi tiếp về tệp trong N lượt gần nhất của người dùng ...
+    media_followup_minutes: int = 30  # ... và chưa quá N phút
+    user_media_per_hour: int = 20
+    # Công cụ web: doc_trang_web (đọc link) và tim_web (tìm Google qua Gemini)
+    web_tools: bool = True
+    web_search: bool = True
+    web_max_chars: int = 8000
+    web_fetch_timeout: int = 15
+    web_search_per_day: int = 100
+    # Nguồn tìm web: auto (Gemini Google Search, lỗi/hết hạn mức thì Tavily rồi Brave nếu có khoá) | gemini | tavily | brave
+    web_search_provider: str = "auto"
+    tavily_api_key: str = ""
+    brave_api_key: str = ""
+    # URL hoặc email liên hệ gửi kèm User-Agent khi đọc trang (Wikipedia chặn bot không có thông tin liên hệ)
+    web_contact: str = ""
     schedule_api_key: str = ""
     # Ai được giao lịch cho người khác qua bot lịch: "owner" (owner và leader từng nhóm) hoặc "all"
     assign_allowed: str = "owner"
@@ -140,13 +156,6 @@ class Settings:
     admin_google_client_id: str = ""
     admin_google_client_secret: str = ""
     admin_email: str = ""
-
-    def shift_profile(self, name: str) -> tuple[str, str] | None:
-        """(model, mức thinking) của hồ sơ routine | reflective | coding; None nếu tên lạ."""
-        if name not in SHIFT_PROFILES:
-            return None
-        model, _, level = getattr(self, f"shift_{name}").rpartition(":")
-        return model, level
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None, base_dir: Path | None = None) -> Settings:
@@ -195,6 +204,9 @@ class Settings:
         if client_id and not re.fullmatch(r"[\w-]+\.apps\.googleusercontent\.com", client_id):
             raise ConfigError("ADMIN_GOOGLE_CLIENT_ID phải có dạng 1234-abc.apps.googleusercontent.com")
 
+        web_search_provider = env.get("WEB_SEARCH_PROVIDER", "auto").strip().lower() or "auto"
+        if web_search_provider not in WEB_SEARCH_PROVIDERS:
+            raise ConfigError(f"WEB_SEARCH_PROVIDER phải là một trong: {', '.join(WEB_SEARCH_PROVIDERS)}")
         return cls(
             zalo_bot_token=env.get("ZALO_BOT_TOKEN", "").strip(),
             gemini_api_key=env.get("GEMINI_API_KEY", "").strip(),
@@ -222,9 +234,7 @@ class Settings:
             daily_token_budget=_int(env, "DAILY_TOKEN_BUDGET", 200000),
             thinking_level=thinking_level,
             model_shift=_bool(env, "MODEL_SHIFT", True),
-            shift_routine=_shift_profile(env, "SHIFT_ROUTINE", "gemini-3.5-flash-lite:low"),
-            shift_reflective=_shift_profile(env, "SHIFT_REFLECTIVE", "gemini-3.5-flash-lite:medium"),
-            shift_coding=_shift_profile(env, "SHIFT_CODING", "gemini-4-hydrogen:medium"),
+            fallback_models=_csv(env["FALLBACK_MODELS"]) if "FALLBACK_MODELS" in env else ("gemini-3.5-flash-lite",),
             admin_token=env.get("ADMIN_TOKEN", "").strip(),
             admin_port=_int(env, "ADMIN_PORT", 8081, minimum=1),
             admin_show_history=_bool(env, "ADMIN_SHOW_HISTORY", True),
@@ -236,6 +246,25 @@ class Settings:
             filter_workspace_dir=path("FILTER_WORKSPACE_DIR", FILTER_WORKSPACE_REL),
             filter_context_lines=_int(env, "FILTER_CONTEXT_LINES", 6),
             memorydata_keep=_int(env, "MEMORYDATA_KEEP", 5000),
+            media_input=_bool(env, "MEDIA_INPUT", True),
+            media_max_mb_photo=_int(env, "MEDIA_MAX_MB_PHOTO", 10, minimum=1),
+            media_max_mb_audio=_int(env, "MEDIA_MAX_MB_AUDIO", 15, minimum=1),
+            media_max_mb_video=_int(env, "MEDIA_MAX_MB_VIDEO", 50, minimum=1),
+            media_inline_max_mb=_int(env, "MEDIA_INLINE_MAX_MB", 15, minimum=1),
+            media_upload_timeout=_int(env, "MEDIA_UPLOAD_TIMEOUT", 120, minimum=1),
+            media_keep_hours=_int(env, "MEDIA_KEEP_HOURS", 24, minimum=1),
+            media_followup_turns=_int(env, "MEDIA_FOLLOWUP_TURNS", 3),
+            media_followup_minutes=_int(env, "MEDIA_FOLLOWUP_MINUTES", 30),
+            user_media_per_hour=_int(env, "USER_MEDIA_PER_HOUR", 20),
+            web_tools=_bool(env, "WEB_TOOLS", True),
+            web_search=_bool(env, "WEB_SEARCH", True),
+            web_max_chars=_int(env, "WEB_MAX_CHARS", 8000, minimum=500),
+            web_fetch_timeout=_int(env, "WEB_FETCH_TIMEOUT", 15, minimum=1),
+            web_search_per_day=_int(env, "WEB_SEARCH_PER_DAY", 100),
+            web_search_provider=web_search_provider,
+            tavily_api_key=env.get("TAVILY_API_KEY", "").strip(),
+            brave_api_key=env.get("BRAVE_API_KEY", "").strip(),
+            web_contact=env.get("WEB_CONTACT", "").strip(),
             schedule_api_key=env.get("SCHEDULE_API_KEY", "").strip(),
             assign_allowed=assign_allowed,
             reply_split=reply_split,

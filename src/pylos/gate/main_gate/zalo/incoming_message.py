@@ -17,6 +17,25 @@ from typing import Any
 
 TEXT_EVENT = "message.text.received"
 
+# Loại tin (IncomingMessage.kind). Chỉ ảnh, video, tin thoại được gửi cho Gemini xem/nghe.
+MEDIA_KINDS = ("photo", "video", "voice")
+
+
+@dataclass(frozen=True)
+class Attachment:
+    """Một tệp đính kèm trong tin Zalo (chưa tải về)."""
+
+    kind: str  # photo | video | voice | file | link | sticker | gif | other
+    url: str = ""
+    thumb: str = ""
+    mime: str = ""
+    size: int = 0
+    name: str = ""
+    title: str = ""
+    description: str = ""
+    duration: int = 0  # mili giây nếu Zalo báo
+
+
 
 @dataclass(frozen=True)
 class IncomingMessage:
@@ -32,6 +51,13 @@ class IncomingMessage:
     raw: dict[str, Any] = field(repr=False, compare=False, default_factory=dict)
     # ID những người được @tag trong tin (chỉ acc Zalo cá nhân mới có thông tin này)
     mentions: tuple[str, ...] = ()
+    # Loại tin và tệp đính kèm (ảnh/video/tin thoại...). Tin chữ: kind="text", attachments=().
+    kind: str = "text"
+    attachments: tuple[Attachment, ...] = ()
+
+    @property
+    def has_media(self) -> bool:
+        return self.kind in MEDIA_KINDS and any(a.url for a in self.attachments)
 
     @property
     def is_group(self) -> bool:

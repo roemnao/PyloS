@@ -110,7 +110,8 @@ def test_secrets_never_leave_the_server(client):
         assert ZALO_TOKEN not in text and ADMIN_TOKEN not in text, path
     secrets = {s["key"]: s["set"] for s in client.get("/api/settings", headers=AUTH).json()["secrets"]}
     assert secrets == {"ZALO_BOT_TOKEN": True, "GEMINI_API_KEY": False, "WEBHOOK_SECRET": False, "SCHEDULE_API_KEY": False,
-                       "ADMIN_GOOGLE_CLIENT_SECRET": False, "REMOTE_ADMIN_TOKEN": False}
+                       "ADMIN_GOOGLE_CLIENT_SECRET": False, "REMOTE_ADMIN_TOKEN": False,
+                       "TAVILY_API_KEY": False, "BRAVE_API_KEY": False}
 
 
 # ---------- cài đặt / .env ----------
@@ -167,7 +168,7 @@ def test_group_changes_reach_running_bot_without_clobbering(client, tmp_path):
     assert not bot_store.get("g1").allowed
 
     res = client.patch("/api/groups/g1", json={"allowed": True, "mode": "all", "label": "Nhà mình"}, headers=AUTH)
-    assert res.json() == {"chat_id": "g1", "allowed": True, "mode": "all", "label": "Nhà mình"}
+    assert res.json() == {"chat_id": "g1", "allowed": True, "mode": "all", "model_mode": "flexible", "label": "Nhà mình"}
     state = bot_store.get("g1")
     assert state.allowed and state.mode == "all" and state.label == "Nhà mình"
 
@@ -409,3 +410,15 @@ def test_page_and_every_asset_it_links_are_served(client):
         if asset.endswith(".css"):
             for font in re.findall(r"url\(([^)]+)\)", resp.text):
                 assert client.get("/static/" + font.strip("'\"")).status_code == 200, font
+
+
+def test_group_model_mode_and_held_model_are_exposed(client, tmp_path):
+    from pylos.lobby.dispatch.shared.storage import ActiveModelStore
+
+    assert client.patch("/api/groups/g1", json={"model_mode": "fixed"}, headers=AUTH).json()["model_mode"] == "fixed"
+    assert client.patch("/api/groups/g1", json={"model_mode": "lung tung"}, headers=AUTH).status_code == 400
+    ActiveModelStore(tmp_path / "huts").set("g1", profile="coding", model="gemini-4-hydrogen", thinking="medium")
+    data = client.get("/api/groups", headers=AUTH).json()
+    row = next(g for g in data["groups"] if g["chat_id"] == "g1")
+    assert row["model_mode"] == "fixed" and row["active_model"]["model"] == "gemini-4-hydrogen"
+    assert data["model_modes"] == ["flexible", "fixed"]

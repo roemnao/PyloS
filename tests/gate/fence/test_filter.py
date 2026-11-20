@@ -240,15 +240,53 @@ async def test_model_shift_off_means_no_profile_and_no_extra_call(make_filter, a
     assert len(agent.classify_calls) == 1  # chỉ lần hỏi AI của nhóm all
 
 
-def test_shift_profile_settings(tmp_path):
-    from pylos.lobby.dispatch.shared.config import ConfigError
+async def test_filter_tells_ai_which_profile_the_chat_holds_and_skips_when_locked(make_filter, agent):
+    f = make_filter(identity=("me-1", "Mèo Ú"), MODEL_SHIFT="true")
+    agent.filter_profile = "coding"
+    await decide_with(f, msg("/bot tiếp đi", group=True), current_profile="coding")
+    assert "Hồ sơ đang giữ của cuộc trò chuyện: coding" in agent.classify_calls[-1]
+    await decide_with(f, msg("bạn nghĩ sao?", group=False), current_profile="")
+    assert "Hồ sơ đang giữ của cuộc trò chuyện: chưa có" in agent.classify_calls[-1]
 
-    s = make_settings(tmp_path, MODEL_SHIFT="true")
-    assert s.shift_profile("routine") == ("gemini-3.5-flash-lite", "low")
-    assert s.shift_profile("reflective") == ("gemini-3.5-flash-lite", "medium")
-    assert s.shift_profile("coding") == ("gemini-4-hydrogen", "medium")
-    assert s.shift_profile("lạ") is None
-    assert make_settings(tmp_path, SHIFT_CODING="gemini-x:HIGH").shift_profile("coding") == ("gemini-x", "high")
-    for bad in ("gemini-x", "gemini-x:ultra", ":low"):
-        with pytest.raises(ConfigError):
-            make_settings(tmp_path, SHIFT_CODING=bad)
+    calls = len(agent.classify_calls)
+    d = await decide_with(f, msg("/bot sửa lỗi này"), shift=False)  # chat đặt /model fixed
+    assert (d.passed, d.profile) == (True, "") and len(agent.classify_calls) == calls
+    agent.filter_reply = True
+    d = await decide_with(f, msg("sửa lỗi này giúp"), mode="all", shift=False)
+    assert (d.passed, d.profile) == (True, "") and "profile" not in agent.classify_systems[-1]
+
+
+async def decide_with(f, m, mode="default", **kwargs):
+    return await f.decide(m, mode=mode, over_budget=False, recent=[], **kwargs)
+
+
+def test_parse_profiles_table_and_defaults():
+    from pylos.residential.residents.filter.instructions import DEFAULT_PROFILES, parse_profiles
+
+    table = """
+| profile | model | thinking | fallbacks |
+|---|---|---|---|
+| routine | `m-lite` | HIGH | a, b |
+| coding | m-big | medium | - |
+| reflective | m-x | ultra | a |
+| lạ | m-y | low | a |
+"""
+    got = parse_profiles(table)
+    assert (got["routine"].model, got["routine"].thinking, got["routine"].fallbacks) == ("m-lite", "high", ("a", "b"))
+    assert (got["coding"].model, got["coding"].fallbacks) == ("m-big", ())
+    assert got["reflective"] == DEFAULT_PROFILES["reflective"]  # thinking sai: bỏ dòng, dùng mặc định
+    assert parse_profiles("") == DEFAULT_PROFILES
+
+
+def test_shipped_profile_table_is_valid_and_matches_defaults():
+    from pylos.lobby.dispatch.shared.config import PROJECT_ROOT
+    from pylos.residential.residents.filter.instructions import DEFAULT_PROFILES, FilterInstructions
+
+    workspace = FilterInstructions(PROJECT_ROOT / "src/pylos/residential/residents/filter/workspace")
+    assert workspace.profiles() == DEFAULT_PROFILES  # bảng trong modelShift.md và mặc định trong code không lệch nhau
+
+
+def test_fallback_models_setting(tmp_path):
+    assert make_settings(tmp_path).fallback_models == ("gemini-3.5-flash-lite",)
+    assert make_settings(tmp_path, FALLBACK_MODELS="a, b").fallback_models == ("a", "b")
+    assert make_settings(tmp_path, FALLBACK_MODELS="").fallback_models == ()

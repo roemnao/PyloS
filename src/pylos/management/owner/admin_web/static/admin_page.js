@@ -259,6 +259,16 @@ function stat(label, value, extra) {
   return h("div", { class: "card stat" }, h("div", { class: "label", text: label }), h("div", { class: "value", text: value }), extra);
 }
 
+function lastModelText(s) {
+  if (!s.last_model) return "chưa trả lời lần nào từ khi theo dõi";
+  const parts = [s.last_model];
+  if (s.last_thinking) parts.push(`thinking ${s.last_thinking}`);
+  if (s.last_profile) parts.push(`việc ${s.last_profile}`);
+  if (s.last_wanted_model && s.last_wanted_model !== s.last_model) parts.push(`⚠ dự phòng, ${s.last_wanted_model} đang lỗi`);
+  parts.push(ago(s.last_reply_at));
+  return parts.join(" · ");
+}
+
 function renderOverview(main) {
   const s = state.status;
   if (!s) {
@@ -316,7 +326,9 @@ function renderOverview(main) {
         h("dt", { text: "Zalo phản hồi lần cuối" }), h("dd", { text: ago(s.last_poll_at) }),
         h("dt", { text: "Tin nhắn cuối" }), h("dd", { text: ago(s.last_message_at) }),
         h("dt", { text: "Nhận tin" }), h("dd", { text: s.receive_mode }),
-        h("dt", { text: "Model" }), h("dd", { class: "mono", text: s.model }),
+        h("dt", { text: "Model chính" }), h("dd", { class: "mono",
+          text: s.fallback_models && s.fallback_models.length ? `${s.model} · dự phòng: ${s.fallback_models.join(", ")}` : s.model }),
+        h("dt", { text: "Model đang dùng" }), h("dd", { class: "mono", text: lastModelText(s) }),
         h("dt", { text: "Tự chạy khi đăng nhập" }), h("dd", { text: s.autostart ? "có (ứng dụng ZaloBot)"
           : s.task_installed ? "có (Task Scheduler)" : "chưa bật · bật ở menu khay: Khởi động cùng Windows" }))),
     h("div", { class: "grid" },
@@ -595,6 +607,16 @@ async function renderGroups(main) {
       h("option", { value: "default", text: "default: khi được gọi", selected: g.mode === "default" }),
       h("option", { value: "all", text: "all: mọi tin nhắn", selected: g.mode === "all" }));
 
+    const am = g.active_model || {};
+    const modelMode = h("select", { "aria-label": "Chế độ model",
+      title: "flexible: bot lọc được đổi model theo loại việc. fixed: giữ nguyên model đang dùng (lệnh /model trong chat)",
+      onchange: (e) => patch({ model_mode: e.target.value }, `Chế độ model: ${e.target.value}`) },
+      h("option", { value: "flexible", text: "model: flexible", selected: g.model_mode !== "fixed" }),
+      h("option", { value: "fixed", text: "model: fixed", selected: g.model_mode === "fixed" }));
+    const modelNote = h("div", { class: "muted small mono",
+      text: am.model ? `Model đang giữ: ${am.model} · thinking ${am.thinking || "mặc định"} · việc ${am.profile || "?"}`
+        : "Model đang giữ: model chính" });
+
     list.append(h("div", { class: "group-row" },
       h("div", {}, label, h("div", { class: "id", text: `${isPrivate ? "Chat riêng" : "Nhóm"} · ${g.chat_id}` }),
         isPrivate ? null : h("div", { class: "muted small", title: "Đổi bằng lệnh /leader trong nhóm",
@@ -607,6 +629,7 @@ async function renderGroups(main) {
         h("div", { class: "muted", text: g.last_seen ? ago(g.last_seen) : "chưa nhắn từ khi theo dõi" })),
       h("label", { class: "switch" }, allowed, h("span", { text: g.owner_private ? "Luôn được phép" : "Được phép" })),
       isPrivate ? h("span", { class: "muted small", text: "Chat riêng: luôn trả lời" }) : mode,
+      h("div", {}, modelMode, modelNote),
       h("div", { class: "row" },
         state.status && state.status.show_history === false ? null
           : h("button", { class: "btn small", type: "button", text: "Hội thoại",

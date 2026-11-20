@@ -4,9 +4,54 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 log = logging.getLogger(__name__)
+
+SHIFT_DOC = "modelShift.md"  # trong căn hộ: bảng hồ sơ (profile -> model, thinking, dự phòng) và cách nhận biết loại việc
+PROFILE_NAMES = ("routine", "reflective", "coding")
+THINKING_LEVELS = ("low", "medium", "high")
+
+
+@dataclass(frozen=True)
+class Profile:
+    name: str
+    model: str
+    thinking: str
+    fallbacks: tuple[str, ...] = ()
+
+
+# Dùng khi modelShift.md thiếu, hỏng hoặc thiếu dòng của hồ sơ nào đó.
+DEFAULT_PROFILES: dict[str, Profile] = {
+    "routine": Profile("routine", "gemini-3.1-flash-lite", "low", ("gemini-3.5-flash-lite",)),
+    "reflective": Profile("reflective", "gemini-3.1-flash-lite", "medium", ("gemini-3.5-flash-lite",)),
+    "coding": Profile("coding", "gemini-4-hydrogen", "medium", ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite")),
+}
+
+
+def parse_profiles(text: str) -> dict[str, Profile]:
+    """Đọc bảng markdown `| profile | model | thinking | fallbacks |` trong modelShift.md.
+
+    Dòng sai (tên lạ, thiếu model, thinking không phải low/medium/high) bị bỏ qua và ghi cảnh báo;
+    hồ sơ không có dòng hợp lệ thì dùng DEFAULT_PROFILES."""
+    found: dict[str, Profile] = {}
+    for line in text.splitlines():
+        if "|" not in line:
+            continue
+        cells = [c.strip().strip("`").strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3 or cells[0].lower() not in PROFILE_NAMES:
+            continue  # tiêu đề, dòng kẻ ---, hoặc bảng khác
+        name, model, thinking = cells[0].lower(), cells[1], cells[2].lower()
+        if not model or thinking not in THINKING_LEVELS:
+            log.warning("modelShift.md: bỏ dòng hồ sơ %s vì thiếu model hoặc thinking không phải low/medium/high", name)
+            continue
+        fallbacks = tuple(f.strip().strip("`").strip() for f in (cells[3] if len(cells) > 3 else "").split(",")
+                          if f.strip().strip("`").strip() and f.strip() != "-")
+        found[name] = Profile(name, model, thinking, fallbacks)
+    for name, default in DEFAULT_PROFILES.items():
+        found.setdefault(name, default)
+    return found
 
 # Ghi chú <!-- ... --> trong file là cho người đọc, không đưa vào chỉ dẫn.
 _HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
@@ -60,6 +105,10 @@ class FilterInstructions:
         except OSError as exc:
             log.warning("Không đọc được %s của bot lọc: %s", name, exc)
             return ""
+
+    def profiles(self) -> dict[str, Profile]:
+        """Bảng hồ sơ hiện hành (tự nạp lại khi modelShift.md đổi); hỏng hoặc thiếu thì dùng mặc định."""
+        return parse_profiles(self.doc(SHIFT_DOC))
 
     def text(self, names: str) -> str:
         docs = self.docs()

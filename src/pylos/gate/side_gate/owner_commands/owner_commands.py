@@ -8,10 +8,12 @@ from dataclasses import dataclass
 from pylos.lobby.office.agent_tools.assign_events import match_member
 from pylos.lobby.dispatch.permissions.roles import BASIC, LABEL, LEADER, LEADER_OFF, LEADER_REMOVE, OWNER, allows, required_role
 from pylos.gate.fence.speech_limit.text_fold import fold
-from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODE_DEFAULT, GroupStore, HistoryStore, UsageStore
+from pylos.lobby.dispatch.shared.storage import (
+    MODE_ALL, MODE_DEFAULT, MODEL_FIXED, MODEL_FLEXIBLE, ActiveModelStore, GroupStore, HistoryStore, UsageStore,
+)
 from pylos.gate.main_gate.zalo import IncomingMessage
 
-COMMANDS = ("help", "mode", "allow", "deny", "status", "reset", "id", "leader", "add", "remove", "team", "vaitro", "role")
+COMMANDS = ("help", "mode", "model", "allow", "deny", "status", "reset", "id", "leader", "add", "remove", "team", "vaitro", "role")
 
 HELP_LINES: tuple[tuple[str, str, str], ...] = (
     (BASIC, "/help", "danh sách lệnh bạn dùng được"),
@@ -26,6 +28,7 @@ HELP_LINES: tuple[tuple[str, str, str], ...] = (
     (OWNER, "/remove leader @a", "gỡ leader"),
     (OWNER, "/leader all | /leader off", "cả nhóm là leader | xoá hết leader"),
     (OWNER, "/mode all | /mode default", "bộ lọc AI | chỉ trả lời khi được gọi (/bot, @tag, tên bot)"),
+    (OWNER, "/model flexible | /model fixed", "bot lọc được đổi model theo loại việc | giữ nguyên model đang dùng"),
     (OWNER, "/allow, /deny", "cho phép hoặc chặn nhóm này dùng bot"),
     (OWNER, "/status", "xem trạng thái"),
     (OWNER, "/reset", "xóa lịch sử hội thoại của nhóm này"),
@@ -63,6 +66,14 @@ def describe_mode(mode: str, triggers: tuple[str, ...]) -> str:
     return f"default (chỉ trả lời khi được gọi: {', '.join(triggers)}, @tag hoặc tên bot)"
 
 
+def describe_model(model_mode: str, active: dict) -> str:
+    held = (f"{active['model']} (thinking {active['thinking'] or 'mặc định'}, việc {active['profile'] or '?'})"
+            if active else "model chính, bot lọc chưa đổi lần nào")
+    if model_mode == MODEL_FIXED:
+        return f"fixed (bot lọc không đổi model). Đang dùng: {held}."
+    return f"flexible (bot lọc được đổi model theo loại việc). Đang giữ: {held}."
+
+
 class CommandHandler:
     def __init__(
         self,
@@ -72,6 +83,7 @@ class CommandHandler:
         triggers: tuple[str, ...],
         daily_budget: int,
         allow_all: bool = False,
+        active_models: ActiveModelStore | None = None,
     ) -> None:
         self.groups = groups
         self.history = history
@@ -79,6 +91,7 @@ class CommandHandler:
         self.triggers = triggers
         self.daily_budget = daily_budget
         self.allow_all = allow_all
+        self.active_models = active_models
 
     def handle(self, cmd: ParsedCommand, msg: IncomingMessage, role: str = OWNER,
                members: dict[str, str] | None = None, self_id: str = "") -> str:
@@ -113,6 +126,14 @@ class CommandHandler:
             if cmd.arg:
                 return "Chế độ không hợp lệ. Dùng /mode all hoặc /mode default."
             return f"Chế độ hiện tại: {describe_mode(self.groups.get(chat_id).mode, self.triggers)}."
+        if cmd.name == "model":
+            if cmd.arg in (MODEL_FLEXIBLE, MODEL_FIXED):
+                self.groups.set_model_mode(chat_id, cmd.arg)
+            elif cmd.arg:
+                return "Dùng /model flexible (bot lọc được đổi model) hoặc /model fixed (giữ nguyên model đang dùng)."
+            active = self.active_models.get(chat_id) if self.active_models else {}
+            prefix = "Đã chuyển sang chế độ model " if cmd.arg else "Chế độ model hiện tại: "
+            return prefix + describe_model(self.groups.get(chat_id).model_mode, active)
         if cmd.name in ("leader", "add", "remove"):
             return self._leader(cmd, msg, members, self_id)
         if cmd.name == "team":
@@ -124,6 +145,7 @@ class CommandHandler:
                 f"Cho phép: {'có' if self.groups.is_allowed(chat_id, self.allow_all) else 'không'}"
                 f"{' (mọi chat đều được phép, trừ chat bị /deny)' if self.allow_all else ''}\n"
                 f"Chế độ: {describe_mode(state.mode, self.triggers)}\n"
+                f"Chế độ model: {state.model_mode}\n"
                 f"Token hôm nay: {self.usage.used_today()}{budget}"
             )
         return help_text(role)

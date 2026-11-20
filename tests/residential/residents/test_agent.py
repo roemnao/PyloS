@@ -141,6 +141,119 @@ async def test_reply_drops_thinking_when_model_rejects_it():
     assert agent._no_thinking == {"m"}
 
 
+class PerModel(FakeModels):
+    """Mỗi model một kịch bản: {model: [lỗi hoặc None, ...]}; hết danh sách thì trả lời bình thường."""
+
+    def __init__(self, script, responses):
+        super().__init__(responses)
+        self.script = {k: list(v) for k, v in script.items()}
+        self.tried = []
+
+    async def generate_content(self, *, model, contents, config):
+        self.tried.append(model)
+        queue = self.script.get(model)
+        if queue:
+            err = queue.pop(0)
+            if err is not None:
+                raise err
+        return await super().generate_content(model=model, contents=contents, config=config)
+
+
+def api_error(code, text="err"):
+    error = RuntimeError(f"{code} {text}")
+    error.code = code
+    return error
+
+
+def chain_agent(models, **kwargs):
+    agent = GeminiAgent("k", "main", ToolRegistry(), fallback_models=("fb1", "fb2"),
+                        client=SimpleNamespace(aio=SimpleNamespace(models=models)), **kwargs)
+    agent.retry_delay = 0
+    return agent
+
+
+async def test_overloaded_model_falls_over_to_next_after_one_retry():
+    models = PerModel({"main": [api_error(503)] * 5}, [response("từ dự phòng")])
+    reply = await chain_agent(models).reply("s", [Turn("user", "x")], CTX)
+    assert reply.text == "từ dự phòng" and reply.model == "fb1"
+    assert models.tried == ["main", "main", "fb1"]  # 1 lần thử lại cùng model rồi sang dự phòng, không chờ 2 lần như trước
+
+
+async def test_quota_and_missing_models_switch_immediately_and_404_is_remembered():
+    models = PerModel({"main": [api_error(429)], "fb1": [api_error(404)]}, [response("ok"), response("lần hai")])
+    agent = chain_agent(models)
+    reply = await agent.reply("s", [Turn("user", "x")], CTX)
+    assert reply.model == "fb2" and models.tried == ["main", "fb1", "fb2"]  # 429 và 404 không thử lại
+    models.tried.clear()
+    await agent.reply("s", [Turn("user", "y")], CTX)
+    assert models.tried == ["fb2"]  # fb1 báo 404 nên bị bỏ khỏi chuỗi; main vừa lỗi 429 nên đang nghỉ
+    agent.configure(model="main", max_tool_rounds=4, max_output_tokens=1024, timeout_seconds=60)
+    assert "fb1" in agent.chain()  # đổi cấu hình thì cho thử lại
+
+
+async def test_last_model_keeps_the_old_retry_behaviour_and_errors_surface():
+    models = PerModel({m: [api_error(503)] * 9 for m in ("main", "fb1", "fb2")}, [response("never")])
+    with pytest.raises(RuntimeError, match="503"):
+        await chain_agent(models).reply("s", [Turn("user", "x")], CTX)
+    assert models.tried == ["main", "main", "fb1", "fb1", "fb2", "fb2", "fb2"]  # model cuối: 1 lần + 2 lần thử lại
+
+    models = PerModel({"main": [api_error(400)]}, [response("never")])
+    with pytest.raises(RuntimeError, match="400"):
+        await chain_agent(models).reply("s", [Turn("user", "x")], CTX)
+    assert models.tried == ["main"]  # lỗi do yêu cầu sai: không đổi model
+
+
+async def test_profile_chain_order_and_tool_rounds_stay_on_answering_model():
+    registry = ToolRegistry([Tool("noop", "không làm gì", lambda a, c: "ok")])
+    call = SimpleNamespace(name="noop", args={})
+    models = PerModel({"big": [api_error(503)] * 3}, [response(calls=[call]), response("xong")])
+    agent = GeminiAgent("k", "main", registry, fallback_models=("fb1",), client=SimpleNamespace(aio=SimpleNamespace(models=models)))
+    agent.retry_delay = 0
+    assert agent.chain("big", ("pf",)) == ["big", "pf", "main", "fb1"]
+    reply = await agent.reply("s", [Turn("user", "x")], CTX, model="big", fallbacks=("pf",))
+    assert reply.text == "xong" and reply.model == "pf"
+    assert models.tried == ["big", "big", "pf", "pf"]  # vòng tool thứ hai ở lại pf, không quay về big
+
+
+async def test_thinking_is_remembered_per_model_and_reported():
+    class Picky(PerModel):
+        async def generate_content(self, *, model, contents, config):
+            if model == "main" and config.thinking_config is not None:
+                self.tried.append(model)
+                raise api_error(400, "thinking_level is not supported")
+            return await super().generate_content(model=model, contents=contents, config=config)
+
+    models = Picky({}, [response("a"), response("b")])
+    agent = chain_agent(models)
+    first = await agent.reply("s", [Turn("user", "x")], CTX, thinking_level="medium")
+    assert first.thinking == "" and agent._no_thinking == {"main"}  # main không nhận: gọi lại không có thinking
+    await agent.reply("s", [Turn("user", "y")], CTX, model="fb1", thinking_level="high")
+    assert models.requests[-1][2].thinking_config.thinking_level.value.lower() == "high"  # model khác vẫn có thinking
+
+
+async def test_failed_model_rests_for_a_while_instead_of_being_retried_every_message():
+    models = PerModel({"main": [api_error(503)] * 2}, [response("a"), response("b"), response("c")])
+    agent = chain_agent(models)
+    await agent.reply("s", [Turn("user", "x")], CTX)
+    assert models.tried == ["main", "main", "fb1"]
+    models.tried.clear()
+    await agent.reply("s", [Turn("user", "y")], CTX)
+    assert models.tried == ["fb1"]  # main đang nghỉ: khỏi chờ nó lỗi lại
+    assert agent.chain() == ["fb1", "fb2", "main"]  # bị đẩy xuống cuối, không bị bỏ
+    agent._cooling["main"] = 0  # hết thời gian nghỉ
+    models.tried.clear()
+    await agent.reply("s", [Turn("user", "z")], CTX)
+    assert models.tried == ["main"] and "main" not in agent._cooling  # main chạy lại được thì hết nghỉ
+
+
+async def test_classify_uses_fallback_models():
+    ok = response('{"reply": true}')
+    ok.text = '{"reply": true}'
+    models = PerModel({"main": [api_error(503)] * 3}, [ok])
+    data, _ = await chain_agent(models).classify("s", "t")
+    assert data == {"reply": True} and models.tried == ["main", "main", "fb1"]
+
+
 async def test_empty_reply_falls_back():
     agent, _ = make_agent([response(None)])
     assert (await agent.reply("s", [Turn("user", "x")], CTX)).text == EMPTY_REPLY
