@@ -241,3 +241,17 @@ def test_image_settings_have_defaults_and_validation(tmp_path):
 
     with pytest.raises(ConfigError):
         make_settings(tmp_path, IMAGE_STEPS="0")
+
+
+async def test_cloudflare_nsfw_false_positive_asks_the_model_to_rephrase(tmp_path, tool, caplog):
+    body = {"success": False, "errors": [{"message": "AiError: AiError: Input prompt contains NSFW content. (abc)"}]}
+    with pytest.raises(ModelCallError) as info:
+        await provider(lambda r: httpx.Response(400, json=body)).generate_image(ENTRY, "@cf/flux", "a ripe yellow banana")
+    assert info.value.rephrase and not info.value.retryable and "Bộ lọc nội dung" in str(info.value)
+
+    _, registry = tool(FakeCalls(error=info.value))
+    ctx = ctx_for(tmp_path)
+    with caplog.at_level("WARNING"):
+        reply = await registry.call("tao_anh", {"prompt": "a ripe yellow banana"}, ctx)
+    assert "Viết lại prompt" in reply["goi_y"] and not ctx.outbox
+    assert "tao_anh lỗi" in caplog.text  # có log để tra khi lỗi chỉ về model

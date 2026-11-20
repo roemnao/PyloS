@@ -5,6 +5,7 @@ Bot gửi ảnh vào chat sau khi model trả lời. Tool ẩn khỏi model khi 
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -15,6 +16,8 @@ from pylos.lobby.dispatch.shared.data_stores import DailyCounter
 from pylos.lobby.dispatch.shared.userdata_paths import IMAGE_USAGE_FILE
 from pylos.lobby.office.agent_tools import OutgoingImage, Tool, ToolContext
 from pylos.lobby.office.model_calls import ModelCallError
+
+log = logging.getLogger(__name__)
 
 MAX_PROMPT = 1000
 MAX_CAPTION = 300
@@ -71,6 +74,11 @@ async def _create(args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
         result = await CONFIG.calls.generate_image(prompt[:MAX_PROMPT], model, fallbacks=fallbacks,
                                                    steps=CONFIG.steps, timeout=CONFIG.timeout)
     except ModelCallError as exc:
+        log.warning("tao_anh lỗi ở chat %s: %s", ctx.chat_id, exc)  # kết quả tool chỉ về model, nên ghi log để còn tra
+        if exc.rephrase:
+            return {"error": f"Không tạo được ảnh: {exc}.",
+                    "goi_y": "Viết lại prompt khác (đổi từ, thêm bối cảnh rõ ràng, tránh từ mơ hồ) rồi gọi lại tao_anh. "
+                              "Thử lại tối đa 2 lần; vẫn bị từ chối thì báo người dùng đổi cách mô tả."}
         return {"error": f"Không tạo được ảnh: {exc}"}
     folder = hut_media_dir(ctx.huts_dir, ctx.chat_id)
     folder.mkdir(parents=True, exist_ok=True)

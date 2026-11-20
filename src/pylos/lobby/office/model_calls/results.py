@@ -8,11 +8,13 @@ from dataclasses import dataclass
 class ModelCallError(Exception):
     """Gọi model lỗi; `str(exc)` đã là câu tiếng Việt đọc được và KHÔNG chứa key.
 
-    `retryable`: lỗi của riêng model hoặc của lúc này (hết hạn mức, 5xx, hết giờ): thử model dự phòng được."""
+    `retryable`: lỗi của riêng model hoặc của lúc này (hết hạn mức, 5xx, hết giờ): thử model dự phòng được.
+    `rephrase`: bộ lọc nội dung của nhà cung cấp từ chối lời nhắc (hay nhầm với từ vô hại): viết lại lời nhắc rồi gọi lại."""
 
-    def __init__(self, message: str, *, retryable: bool = False) -> None:
+    def __init__(self, message: str, *, retryable: bool = False, rephrase: bool = False) -> None:
         super().__init__(message)
         self.retryable = retryable
+        self.rephrase = rephrase
 
 
 @dataclass(frozen=True)

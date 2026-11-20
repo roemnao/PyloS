@@ -55,6 +55,9 @@ class CloudflareProvider:
             raise ModelCallError(f"Cloudflare lỗi phía máy chủ ({status})", retryable=True)
         if status >= 400:
             detail = _describe(response)
+            if "nsfw" in detail.lower():  # bộ lọc nội dung của Cloudflare, hay nhầm cả từ vô hại (ví dụ "ripe yellow banana")
+                raise ModelCallError("Bộ lọc nội dung của Cloudflare từ chối lời nhắc này (nó đôi khi nhầm cả từ vô hại)",
+                                     rephrase=True)
             raise ModelCallError(f"Cloudflare từ chối yêu cầu ({status}){': ' + detail if detail else ''}")
         if response.headers.get("content-type", "").startswith("image/"):
             data = response.content
