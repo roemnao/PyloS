@@ -16,6 +16,16 @@ quota (429), missing (404) or too slow; the code handles them, you never choose 
 | reflective | gemini-3.1-flash-lite | medium   | gemini-3.5-flash-lite                        |
 | coding     | gemini-4-hydrogen     | medium   | gemini-3.5-flash-lite, gemini-3.1-flash-lite |
 
+## Task models (read by the code)
+
+Some work is not answering in chat but making something else. The code reads this table; you never choose these models
+and you do not return them as a profile. When the assistant needs to **create an image**, it uses the model on the
+`image` row. Which key may call a model is listed in `lobby/office/model_calls/model_keys.md`.
+
+| task  | model                                | fallbacks |
+|-------|--------------------------------------|-----------|
+| image | @cf/black-forest-labs/flux-1-schnell | -         |
+
 ## How to choose (your job)
 
 When a message asks the assistant to do something, also return its profile. Judge by what the person wants, not by single

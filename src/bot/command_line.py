@@ -27,7 +27,9 @@ from pathlib import Path
 from typing import Any
 
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, discover
-from pylos.lobby.office.agent_tools import web_reader
+from pylos.lobby.office.agent_tools import create_image, web_reader
+from pylos.residential.residents.filter.instructions import FilterInstructions
+from pylos.lobby.office.model_calls import ModelCalls, settings_lookup
 from pylos.residential.residents.pylos.message_handler import Bot
 from pylos.lobby.dispatch.shared.config import ENV_FILE, PROJECT_ROOT, ConfigError, Settings, is_frozen
 from pylos.gate.main_gate.logs.log_files import setup_logging
@@ -49,6 +51,14 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
     web_reader.configure(settings)  # tool web bật/tắt theo cài đặt (ẩn khỏi tools.names())
     if not settings.gemini_api_key and allow_echo:
         return EchoAgent(), tools
+    model_calls = ModelCalls(settings_lookup(settings))
+    instructions = FilterInstructions(settings.filter_workspace_dir)
+
+    def image_task() -> tuple[str, tuple[str, ...]]:
+        task = instructions.tasks()["image"]
+        return task.model, task.fallbacks
+
+    create_image.configure(settings, model_calls=model_calls, task=image_task)  # tool tao_anh ẩn nếu thiếu key
     agent = GeminiAgent(
         settings.gemini_api_key,
         settings.gemini_model,
@@ -60,6 +70,7 @@ def _build_agent(settings: Settings, allow_echo: bool = False):
         fallback_models=settings.fallback_models,
         media_inline_max_mb=settings.media_inline_max_mb,
         media_upload_timeout=settings.media_upload_timeout,
+        model_calls=model_calls,
     )
     return agent, tools
 

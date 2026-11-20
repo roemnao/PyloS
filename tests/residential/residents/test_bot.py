@@ -587,3 +587,119 @@ async def test_status_records_last_model_and_flags_fallback(make_bot, agent):
     info = bot_process.status_info(bot.settings)
     assert info["last_model"] == "gemini-4-hydrogen" and info["last_profile"] == "coding"
     assert info["last_chat"] == OWNER and info["fallback_models"] == ["gemini-3.5-flash-lite"]
+
+
+def test_apply_settings_passes_new_keys_to_the_agents_model_calls(make_bot, agent, tmp_path):
+    from conftest import make_settings
+
+    class Calls:
+        updated = None
+
+        def update(self, settings):
+            self.updated = settings
+
+    agent.model_calls = Calls()
+    bot = make_bot()
+    new = make_settings(tmp_path, CLOUDFLARE_API_TOKEN="cf-new", CLOUDFLARE_ACCOUNT_ID="acc")
+    bot.apply_settings(new)
+    assert agent.model_calls.updated is new and new.cloudflare_api_token == "cf-new"
+
+
+# ---------- gửi ảnh bot tạo (tool tao_anh -> ToolContext.outbox) ----------
+
+class ImageAgent:
+    """Giống FakeAgent nhưng như thể model vừa gọi tao_anh: đưa ảnh vào ctx.outbox rồi trả lời."""
+
+    def __init__(self, paths, reply="đây nhé"):
+        self.paths, self.reply_text = paths, reply
+
+    async def reply(self, system, turns, ctx, **overrides):
+        from pylos.lobby.office.agent_tools import OutgoingImage
+        from pylos.residential.residents.pylos import AgentReply
+
+        ctx.outbox.extend(OutgoingImage(p, "chú thích") for p in self.paths)
+        return AgentReply(self.reply_text, 5)
+
+    async def classify(self, *a, **k):  # bộ lọc AI không dùng trong các test này
+        raise AssertionError("không được gọi")
+
+
+class ImageZalo:
+    def __init__(self, fail=None):
+        self.events, self.fail = [], fail
+
+    async def send_message(self, chat_id, text):
+        self.events.append(("text", text))
+        return {}
+
+    async def send_image(self, chat_id, path, caption=""):
+        if self.fail:
+            raise self.fail
+        self.events.append(("image", path.name, caption))
+        return {}
+
+    async def send_chat_action(self, chat_id, action="typing"):
+        return None
+
+
+def image_bot(tmp_path, zalo, agent):
+    from conftest import make_settings
+    from pylos.residential.residents.pylos import PromptBuilder
+    from pylos.residential.residents.pylos.message_handler import Bot
+
+    settings = make_settings(tmp_path, ALLOW_ALL_CHATS="true")
+    return Bot(settings, zalo, agent, PromptBuilder(settings.workspace_dir), retry_delay=0)
+
+
+def pictures(tmp_path, count=2):
+    paths = []
+    for i in range(count):
+        path = tmp_path / f"gen_{i}.png"
+        path.write_bytes(b"\x89PNG\r\n\x1a\n")
+        paths.append(path)
+    return paths
+
+
+async def test_generated_images_are_sent_before_the_text_and_counted(tmp_path):
+    zalo = ImageZalo()
+    bot = image_bot(tmp_path, zalo, ImageAgent(pictures(tmp_path)))
+    await send(bot, event("vẽ con mèo", **PRIVATE))
+    assert zalo.events == [("image", "gen_0.png", "chú thích"), ("image", "gen_1.png", "chú thích"), ("text", "đây nhé")]
+    assert bot.stats.today()["images"] == 2
+    assert "(đã gửi 2 ảnh)" in bot.history.recent(OWNER, 5)[-1]["text"]
+
+
+async def test_image_send_failure_is_retried_dead_lettered_and_the_user_is_told(tmp_path):
+    from pylos.gate.main_gate.zalo import ZaloError
+
+    zalo = ImageZalo(fail=ZaloError("temporary", 500))
+    bot = image_bot(tmp_path, zalo, ImageAgent(pictures(tmp_path)))
+    await send(bot, event("vẽ con mèo", **PRIVATE))
+    texts = [e[1] for e in zalo.events if e[0] == "text"]
+    assert texts == [bot.IMAGE_FAILED, "đây nhé"] and not [e for e in zalo.events if e[0] == "image"]
+    assert "(ảnh) gen_0.png" in (tmp_path / "data" / "failed_replies.txt").read_text(encoding="utf-8")
+    assert "(đã gửi" not in bot.history.recent(OWNER, 5)[-1]["text"]
+
+
+async def test_zalo_without_image_support_gets_a_clear_notice_without_retries(tmp_path):
+    from pylos.gate.main_gate.zalo import ZaloUnsupported
+
+    zalo = ImageZalo(fail=ZaloUnsupported("Zalo Bot"))
+    bot = image_bot(tmp_path, zalo, ImageAgent(pictures(tmp_path, 1)))
+    await send(bot, event("vẽ con mèo", **PRIVATE))
+    assert [e[1] for e in zalo.events if e[0] == "text"] == [bot.IMAGE_UNSUPPORTED, "đây nhé"]
+
+    class NoImages(ImageZalo):
+        send_image = None  # client cũ không có send_image
+
+    legacy = NoImages()
+    bot2 = image_bot(tmp_path / "b", legacy, ImageAgent(pictures(tmp_path, 1)))
+    await send(bot2, event("vẽ", **PRIVATE))
+    assert bot2.IMAGE_UNSUPPORTED in [e[1] for e in legacy.events if e[0] == "text"]
+
+
+async def test_replies_without_images_are_unchanged(tmp_path):
+    zalo = ImageZalo()
+    bot = image_bot(tmp_path, zalo, ImageAgent([]))
+    await send(bot, event("chào", **PRIVATE))
+    assert zalo.events == [("text", "đây nhé")] and bot.stats.today()["images"] == 0

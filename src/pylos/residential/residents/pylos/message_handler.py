@@ -20,11 +20,11 @@ from pylos.gate.fence.token_limit.rate_limiter import RateLimiter
 from pylos.lobby.dispatch.shared.storage import MODE_ALL, MODEL_FIXED, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, SeenStore, StateStore, StatsStore, UsageStore
 from pylos.gate.main_gate.media.media_fetch import Limits, MediaError, MediaFile, fetch_attachment
 from pylos.gate.main_gate.media.media_store import MediaStore
-from pylos.lobby.office.agent_tools import web_reader
+from pylos.lobby.office.agent_tools import OutgoingImage, create_image, web_reader
 from pylos.residential.residents.pylos.gemini_agent import MediaRef
 from pylos.gate.main_gate.zalo.reply_formatting import split_message, split_reply, to_plain_text
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
-from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, parse_updates
+from pylos.gate.main_gate.zalo import IncomingMessage, ZaloError, ZaloUnsupported, parse_updates
 from pylos.lobby.dispatch.shared.data_stores import DailyCounter
 from pylos.lobby.dispatch.shared.userdata_paths import WEB_SEARCH_USAGE_FILE, BOT_STATUS_FILE, CHAT_ACTIVITY_FILE, DAILY_STATS_FILE, FAILED_REPLIES_FILE, GROUP_SETTINGS_FILE, PROCESSED_IDS_FILE, TOKEN_USAGE_FILE
 
@@ -131,10 +131,14 @@ class Bot:
         self.user_limiter.per_minute = settings.user_rate_per_min
         self.media.keep_seconds = settings.media_keep_hours * 3600
         web_reader.configure(settings)
+        create_image.configure(settings)
         self.media_limiter.per_minute = settings.user_media_per_hour
         self.chat_limiter.per_minute = settings.chat_rate_per_min
         if settings.allowed_chat_ids:
             self.groups.allow_seed(settings.allowed_chat_ids)
+        model_calls = getattr(self.agent, "model_calls", None)
+        if model_calls is not None:
+            model_calls.update(settings)  # key đổi ở trang Cài đặt có hiệu lực ngay
         configure = getattr(self.agent, "configure", None)
         if configure is not None:
             configure(model=settings.gemini_model, max_tool_rounds=settings.max_tool_rounds,
@@ -552,12 +556,14 @@ class Bot:
         self.usage.add(reply.tokens)
         self.stats.incr("tokens", reply.tokens)
         self.stats.incr("replied")
+        self.stats.incr("images", len(ctx.outbox))
         self._record_model(msg, reply, overrides)
         names = {msg.from_name, *(t.name for t in turns), *self.filter.names()}
         text = strip_name_prefix(to_plain_text(reply.text), names)
         if members:
             text = add_tags(text, prompt, members)  # model hay quên "@" trước tên người cần tag
-        self.history.append(msg.chat_id, "model", text)
+        sent_images = await self._send_images(msg.chat_id, ctx.outbox)
+        self.history.append(msg.chat_id, "model", text + (f"\n(đã gửi {sent_images} ảnh)" if sent_images else ""))
         await self._say(msg.chat_id, text)
 
         if msg.is_group and not was_over and self._over_budget():
@@ -596,6 +602,46 @@ class Bot:
         except Exception as exc:  # noqa: BLE001 - chỉ là hiệu ứng "đang gõ"
             log.debug("sendChatAction lỗi: %s", exc)
         await asyncio.sleep(self.settings.reply_part_delay_ms / 1000)
+
+    IMAGE_UNSUPPORTED = "Mình đã tạo ảnh nhưng chế độ Zalo này chưa gửi được ảnh."
+    IMAGE_FAILED = "Mình đã tạo ảnh nhưng gửi vào chat bị lỗi, bạn nhờ lại sau nhé."
+
+    async def _send_images(self, chat_id: str, images: list[OutgoingImage]) -> int:
+        """Gửi các ảnh tool tao_anh vừa tạo, trước phần chữ của câu trả lời. Trả về số ảnh đã gửi được.
+
+        Thử lại như tin chữ; gửi lỗi hẳn thì lưu vào failed.txt và báo người dùng một câu (không gửi tiếp ảnh sau)."""
+        sent = 0
+        failure: Exception | None = None
+        async with self._send_locks.setdefault(chat_id, asyncio.Lock()):
+            for image in images:
+                failure = await self._send_image(chat_id, image)
+                if failure is not None:
+                    self.failed.add(chat_id, f"(ảnh) {image.path.name}", str(failure))
+                    self.stats.incr("errors")
+                    break
+                sent += 1
+        if failure is not None:
+            await self._say(chat_id, self.IMAGE_UNSUPPORTED if isinstance(failure, ZaloUnsupported) else self.IMAGE_FAILED)
+        return sent
+
+    async def _send_image(self, chat_id: str, image: OutgoingImage) -> Exception | None:
+        send = getattr(self.zalo, "send_image", None)
+        if send is None:
+            return ZaloUnsupported("Zalo chưa có gửi ảnh")
+        delay, last = self.retry_delay, None
+        for attempt in range(1, self.send_retries + 1):
+            try:
+                await send(chat_id, image.path, image.caption)
+                return None
+            except ZaloUnsupported as exc:
+                return exc
+            except ZaloError as exc:
+                last = exc
+                log.warning("Gửi ảnh lỗi (lần %d/%d) chat=%s: %s", attempt, self.send_retries, chat_id, exc)
+            if attempt < self.send_retries:
+                await asyncio.sleep(delay)
+                delay *= 2
+        return last
 
     async def _send_chunk(self, chat_id: str, text: str) -> bool:
         delay = self.retry_delay

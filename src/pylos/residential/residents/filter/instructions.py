@@ -30,6 +30,46 @@ DEFAULT_PROFILES: dict[str, Profile] = {
 }
 
 
+TASK_NAMES = ("image",)
+
+
+@dataclass(frozen=True)
+class TaskModel:
+    """Model cho một loại việc không phải trả lời chat (bảng `| task | model | fallbacks |` trong modelShift.md)."""
+    task: str
+    model: str
+    fallbacks: tuple[str, ...] = ()
+
+
+DEFAULT_TASKS: dict[str, TaskModel] = {
+    "image": TaskModel("image", "@cf/black-forest-labs/flux-1-schnell"),
+}
+
+
+def _fallbacks(cell: str) -> tuple[str, ...]:
+    items = (f.strip().strip("`").strip() for f in cell.split(","))
+    return tuple(f for f in items if f and f != "-")
+
+
+def parse_tasks(text: str) -> dict[str, TaskModel]:
+    """Đọc bảng `| task | model | fallbacks |`. Dòng thiếu model bị bỏ; nhiệm vụ không có dòng hợp lệ dùng DEFAULT_TASKS."""
+    found: dict[str, TaskModel] = {}
+    for line in text.splitlines():
+        if "|" not in line:
+            continue
+        cells = [c.strip().strip("`").strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 2 or cells[0].lower() not in TASK_NAMES:
+            continue  # tiêu đề, dòng kẻ ---, hoặc bảng hồ sơ
+        task, model = cells[0].lower(), cells[1]
+        if not model or model == "-":
+            log.warning("modelShift.md: bỏ dòng nhiệm vụ %s vì thiếu model", task)
+            continue
+        found[task] = TaskModel(task, model, _fallbacks(cells[2] if len(cells) > 2 else ""))
+    for task, default in DEFAULT_TASKS.items():
+        found.setdefault(task, default)
+    return found
+
+
 def parse_profiles(text: str) -> dict[str, Profile]:
     """Đọc bảng markdown `| profile | model | thinking | fallbacks |` trong modelShift.md.
 
@@ -109,6 +149,10 @@ class FilterInstructions:
     def profiles(self) -> dict[str, Profile]:
         """Bảng hồ sơ hiện hành (tự nạp lại khi modelShift.md đổi); hỏng hoặc thiếu thì dùng mặc định."""
         return parse_profiles(self.doc(SHIFT_DOC))
+
+    def tasks(self) -> dict[str, TaskModel]:
+        """Bảng model theo nhiệm vụ (ví dụ tạo ảnh); tự nạp lại khi modelShift.md đổi, hỏng hoặc thiếu thì dùng mặc định."""
+        return parse_tasks(self.doc(SHIFT_DOC))
 
     def text(self, names: str) -> str:
         docs = self.docs()

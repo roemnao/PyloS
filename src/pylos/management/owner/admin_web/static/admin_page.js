@@ -337,6 +337,7 @@ function renderOverview(main) {
       stat("Bộ lọc (nhóm)", `${num(s.today.filter_pass)} qua · ${num(s.today.filter_block)} chặn`,
         h("div", { class: "label", text: "tin trong nhóm hôm nay" })),
       stat("Lỗi", num(s.today.errors)),
+      stat("Ảnh đã tạo hôm nay", num(s.today.images || 0)),
       stat("Token hôm nay", num(used), tokenExtra)),
     h("div", { class: "card" }, h("h2", { text: "Token 14 ngày gần nhất" }), chart),
     h("div", { class: "card" },

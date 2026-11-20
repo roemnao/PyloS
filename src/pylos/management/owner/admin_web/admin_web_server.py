@@ -34,6 +34,7 @@ from pylos.management.owner.admin_web import google_login
 from pylos.management.owner.admin_web.google_login import TTL_SECONDS, PendingLogins
 from pylos.management.owner.admin_web.admin_sessions import AdminDevices, AdminSessions
 from pylos.management.owner.admin_web import settings_file
+from pylos.lobby.office.model_calls import ModelCalls, settings_lookup
 from pylos.residential.residents.pylos import EchoAgent, GeminiAgent, PromptBuilder, ToolContext, Turn, discover
 from pylos.lobby.dispatch.shared.config import ConfigError, Settings
 from pylos.lobby.dispatch.shared.storage import MODEL_FLEXIBLE, MODEL_MODES, MODES, ActiveModelStore, ActivityStore, FailedStore, GroupStore, HistoryStore, MemoryDataStore, StatsStore, UsageStore, atomic_write_text
@@ -865,6 +866,7 @@ def create_app(ctx: AdminContext, port: int) -> FastAPI:
                 timeout_seconds=settings.llm_timeout_seconds, thinking_level=settings.thinking_level,
                 fallback_models=settings.fallback_models, media_inline_max_mb=settings.media_inline_max_mb,
                 media_upload_timeout=settings.media_upload_timeout,
+                model_calls=ModelCalls(settings_lookup(settings)),
             )
         else:
             agent = EchoAgent()

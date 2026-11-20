@@ -26,6 +26,7 @@ from pylos.lobby.dispatch.shared.storage import ActivityStore, MemoryDataStore, 
 from pylos.lobby.dispatch.clock.vietnam_time import now_ms
 from pylos.gate.main_gate.zalo.bot_platform_api import ZaloError
 from pylos.gate.main_gate.zalo.incoming_message import TEXT_EVENT, Attachment, IncomingMessage
+from pylos.gate.main_gate.media.image_size import image_size
 from pylos.lobby.dispatch.shared.userdata_paths import CHAT_ACTIVITY_FILE
 
 log = logging.getLogger(__name__)
@@ -389,6 +390,22 @@ class PersonalZalo:
             result = await asyncio.to_thread(send)
         except Exception as exc:  # noqa: BLE001
             raise ZaloError(f"Gửi tin Zalo cá nhân lỗi: {exc}", network=True) from None
+        if isinstance(result, dict) and result.get("error_code"):
+            raise ZaloError(str(result.get("error_message") or result), result.get("error_code"))
+        return result
+
+    async def send_image(self, chat_id: str, path: Path, caption: str = "") -> Any:
+        """Gửi một ảnh PNG/JPEG đã có trên đĩa (kèm chú thích nếu có) vào chat."""
+        def send() -> Any:
+            width, height = image_size(Path(path).read_bytes()[:65536]) or (1024, 1024)
+            message = self._message_cls(text=caption) if caption else None
+            return self._api.sendLocalImage(str(path), chat_id, self._thread_type(chat_id), width=width, height=height,
+                                            message=message)
+
+        try:
+            result = await asyncio.to_thread(send)
+        except Exception as exc:  # noqa: BLE001
+            raise ZaloError(f"Gửi ảnh Zalo cá nhân lỗi: {exc}", network=True) from None
         if isinstance(result, dict) and result.get("error_code"):
             raise ZaloError(str(result.get("error_message") or result), result.get("error_code"))
         return result

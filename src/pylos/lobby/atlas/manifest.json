@@ -1,8 +1,8 @@
 {
   "pyproject.toml": {
-    "mtime": 1795146075.5895212,
-    "seen": 1795146208.6441047,
-    "ast_hash": "e917ee97df465ce862b7191b6b671d13",
+    "mtime": 1795154586.7503712,
+    "seen": 1795154696.7627246,
+    "ast_hash": "17dbbcd7460b52fb09622cb1fbd98a0f",
     "semantic_hash": ""
   },
   "src/bot/__init__.py": {
@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "src/bot/command_line.py": {
-    "mtime": 1795145884.3432772,
-    "seen": 1795146208.6441047,
-    "ast_hash": "ab20ee22279875df1459f95c46bc35d9",
+    "mtime": 1795154999.641363,
+    "seen": 1795155228.9944735,
+    "ast_hash": "359d712867aecffef47d15129f36e5cc",
     "semantic_hash": ""
   },
   "src/bot/core/__init__.py": {
@@ -144,9 +144,9 @@
     "semantic_hash": ""
   },
   "src/pylos/gate/main_gate/zalo/__init__.py": {
-    "mtime": 1793885160.9359531,
-    "seen": 1793885308.64541,
-    "ast_hash": "e5b9d70e3ddd537744d3187aca5b2b59",
+    "mtime": 1795155279.8847086,
+    "seen": 1795155577.4598553,
+    "ast_hash": "ce45951717067173a658b15ca639ab0c",
     "semantic_hash": ""
   },
   "src/pylos/gate/side_gate/__init__.py": {
@@ -294,9 +294,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/office/agent_tools/__init__.py": {
-    "mtime": 1795146997.00415,
-    "seen": 1795147395.2386293,
-    "ast_hash": "75afd5c39819910dde69213ab7b517a1",
+    "mtime": 1795154960.4107578,
+    "seen": 1795155228.9944735,
+    "ast_hash": "2dac87813cd3d80ddaa95f79164b2da0",
     "semantic_hash": ""
   },
   "src/pylos/lobby/office/code/__init__.py": {
@@ -522,9 +522,9 @@
     "semantic_hash": ""
   },
   "src/pylos/gate/main_gate/zalo/bot_platform_api.py": {
-    "mtime": 1792885841.7050252,
-    "seen": 1793878380.7045643,
-    "ast_hash": "51626c83549be6cc3fdc06aa87eeab8a",
+    "mtime": 1795155262.8593686,
+    "seen": 1795155577.4598553,
+    "ast_hash": "07923e46fb4e520098fed2cbd4375660",
     "semantic_hash": ""
   },
   "src/pylos/gate/main_gate/zalo/incoming_message.py": {
@@ -540,9 +540,9 @@
     "semantic_hash": ""
   },
   "src/pylos/gate/main_gate/zalo/personal_account.py": {
-    "mtime": 1795145106.439545,
-    "seen": 1795146208.6441047,
-    "ast_hash": "62d91b7772533c8d1646ff10356a15b3",
+    "mtime": 1795155279.9069874,
+    "seen": 1795155577.4598553,
+    "ast_hash": "d1f58a83a56ff91cf82181a447df91b4",
     "semantic_hash": ""
   },
   "src/pylos/gate/main_gate/zalo/qr_login.py": {
@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/admin_web_server.py": {
-    "mtime": 1795147080.0658743,
-    "seen": 1795147395.2386293,
-    "ast_hash": "6e9e019b7701c553322411acb44f89df",
+    "mtime": 1795154366.7127395,
+    "seen": 1795154696.7627246,
+    "ast_hash": "5d2d4cafe0e037cbf7ec9bacc1ad6112",
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/google_login.py": {
@@ -636,15 +636,15 @@
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/settings_file.py": {
-    "mtime": 1795147921.8711286,
-    "seen": 1795148158.070845,
-    "ast_hash": "2a2b08893db14ca4e4e3b6d61dd39c10",
+    "mtime": 1795154999.6003258,
+    "seen": 1795155228.9944735,
+    "ast_hash": "3f5ae862ed5ac708ab62a68bc58ac790",
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/static/admin_page.js": {
-    "mtime": 1795109644.8882847,
-    "seen": 1795146208.6441047,
-    "ast_hash": "716f2d15cf598ed67e7d5250822337ab",
+    "mtime": 1795154960.3961592,
+    "seen": 1795155228.9944735,
+    "ast_hash": "5b42f89c0525941458a9de37153bfe72",
     "semantic_hash": ""
   },
   "src/pylos/management/owner/admin_web/static/theme.js": {
@@ -672,9 +672,9 @@
     "semantic_hash": ""
   },
   "src/pylos/gate/side_gate/desktop/packaging/check_secrets.py": {
-    "mtime": 1794150213.4231663,
-    "seen": 1794150651.327677,
-    "ast_hash": "20652de6dbaea364c69267940d595f77",
+    "mtime": 1795154604.0770974,
+    "seen": 1795154696.7627246,
+    "ast_hash": "e31e88b16d2e393aef09750829e1f182",
     "semantic_hash": ""
   },
   "src/pylos/gate/side_gate/desktop/packaging/zalobot_entry.py": {
@@ -744,15 +744,15 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/config.py": {
-    "mtime": 1795147921.8711286,
-    "seen": 1795148158.070845,
-    "ast_hash": "79e71b7bfcc701e6afc80dea23bbde79",
+    "mtime": 1795154999.599332,
+    "seen": 1795155228.9944735,
+    "ast_hash": "4541550182e7bb033a62677ddd9ff57f",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/data_stores.py": {
-    "mtime": 1795145836.0019765,
-    "seen": 1795146208.6441047,
-    "ast_hash": "c93ce3c7312028f1bc657ca5c26b3038",
+    "mtime": 1795154960.3961592,
+    "seen": 1795155228.9944735,
+    "ast_hash": "dba4a77dc744ce7d6bc1fb41006246f2",
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/first_run_setup.py": {
@@ -774,9 +774,9 @@
     "semantic_hash": ""
   },
   "src/pylos/lobby/dispatch/shared/userdata_paths.py": {
-    "mtime": 1795145836.0033708,
-    "seen": 1795146208.6441047,
-    "ast_hash": "d6909833a150406d180c6d46c691e53e",
+    "mtime": 1795154960.3951695,
+    "seen": 1795155228.9944735,
+    "ast_hash": "5cf624e2a33da5a50cf93e224eb05204",
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/__init__.py": {
@@ -786,15 +786,15 @@
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/gemini_agent.py": {
-    "mtime": 1795146997.00415,
-    "seen": 1795147395.2386293,
-    "ast_hash": "f88552a3117b45bc0293b11ef735973c",
+    "mtime": 1795154354.9223604,
+    "seen": 1795154696.7627246,
+    "ast_hash": "c9bf2b49f0b8039665da31298713a722",
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/message_handler.py": {
-    "mtime": 1795147921.8711286,
-    "seen": 1795148158.070845,
-    "ast_hash": "38070c52c742735d81251318ac7e56ac",
+    "mtime": 1795155332.2796354,
+    "seen": 1795155577.4598553,
+    "ast_hash": "ab0b0679dc95f7783305bb1d4464b375",
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/pylos/system_prompt.py": {
@@ -906,9 +906,9 @@
     "semantic_hash": ""
   },
   "tests/lobby/dispatch/test_storage.py": {
-    "mtime": 1794152748.3013916,
-    "seen": 1794157336.9134364,
-    "ast_hash": "15fb6a64d5ea4beac429b9777e61f2ee",
+    "mtime": 1795155036.1486506,
+    "seen": 1795155228.9944735,
+    "ast_hash": "01e44545940bde70dcb26f1860ca5c07",
     "semantic_hash": ""
   },
   "tests/lobby/dispatch/test_updater.py": {
@@ -936,9 +936,9 @@
     "semantic_hash": ""
   },
   "tests/management/owner/test_admin.py": {
-    "mtime": 1795147921.872133,
-    "seen": 1795148158.070845,
-    "ast_hash": "50c7220bf88249eecbac5345dcb46ebe",
+    "mtime": 1795154452.1215303,
+    "seen": 1795154696.7627246,
+    "ast_hash": "55bbd13faa9203874e22ec579812b472",
     "semantic_hash": ""
   },
   "tests/management/owner/test_google_login.py": {
@@ -954,15 +954,15 @@
     "semantic_hash": ""
   },
   "tests/residential/residents/test_agent.py": {
-    "mtime": 1795109430.5464644,
-    "seen": 1795146208.6441047,
-    "ast_hash": "bfc9a5c7a37b71e876e110426a896780",
+    "mtime": 1795154471.3017116,
+    "seen": 1795154696.7627246,
+    "ast_hash": "3a01f26bed8d2e10d87d85ff39f05e82",
     "semantic_hash": ""
   },
   "tests/residential/residents/test_bot.py": {
-    "mtime": 1795108979.4338179,
-    "seen": 1795146208.6441047,
-    "ast_hash": "97d10eadfd46fbe81a7dfad0d6a92a4a",
+    "mtime": 1795155440.262745,
+    "seen": 1795155577.4598553,
+    "ast_hash": "9dcdfcbdae83ad80b1afe0359dcb7a8f",
     "semantic_hash": ""
   },
   "tests/residential/residents/test_no_web_coupling.py": {
@@ -1020,9 +1020,9 @@
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/filter/instructions.py": {
-    "mtime": 1795108788.397528,
-    "seen": 1795146208.6441047,
-    "ast_hash": "9d5ec47f4a80a1c2a6cfd4f636fb6409",
+    "mtime": 1795154328.384097,
+    "seen": 1795154696.7627246,
+    "ast_hash": "900bc2f08599f9ffb963aed10722e38c",
     "semantic_hash": ""
   },
   "tests/gate/main_gate/test_split_reply.py": {
@@ -1224,9 +1224,9 @@
     "semantic_hash": ""
   },
   "src/pylos/residential/residents/filter/workspace/modelShift.md": {
-    "mtime": 1795108940.9414496,
-    "seen": 1795146208.6441047,
-    "ast_hash": "8252db9acc8eb72c7c03eac239362773",
+    "mtime": 1795154328.1187975,
+    "seen": 1795154696.7627246,
+    "ast_hash": "b95c97c1849039ddb613198497ea5d62",
     "semantic_hash": ""
   },
   "src/pylos/gate/fence/web_limit/__init__.py": {
@@ -1323,6 +1323,84 @@
     "mtime": 1795148021.0212288,
     "seen": 1795148158.070845,
     "ast_hash": "da4c4139592f0a1f7113a5f1b25f84c9",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/__init__.py": {
+    "mtime": 1795154914.364123,
+    "seen": 1795155228.9944735,
+    "ast_hash": "8acf8a09782e1102e4973623ff766999",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/catalog.py": {
+    "mtime": 1795154303.7505476,
+    "seen": 1795154696.7627246,
+    "ast_hash": "66ae914dcdd88a8850ce5cb5a5464fb1",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/providers/__init__.py": {
+    "mtime": 1795154304.1149187,
+    "seen": 1795154696.7627246,
+    "ast_hash": "4b8b4f33ba79486c148a80e9be5b537e",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/providers/cloudflare.py": {
+    "mtime": 1795154906.6023736,
+    "seen": 1795155228.9944735,
+    "ast_hash": "48cd4548a413737046502abca0fc4ba1",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/providers/gemini.py": {
+    "mtime": 1795154303.8574314,
+    "seen": 1795154696.7627246,
+    "ast_hash": "df5e107beb36aa10b3fbdf8bdaad5dc3",
+    "semantic_hash": ""
+  },
+  "tests/lobby/office/test_model_calls.py": {
+    "mtime": 1795154452.2975612,
+    "seen": 1795154696.7627246,
+    "ast_hash": "2fcd85d50dd74f7ad90eabe567699f25",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/model_keys.md": {
+    "mtime": 1795154303.5446305,
+    "seen": 1795154696.7627246,
+    "ast_hash": "94a9313469a3ac622bb83d52c3ee65c9",
+    "semantic_hash": ""
+  },
+  "src/pylos/gate/fence/token_limit/image_limit.py": {
+    "mtime": 1795154960.4746966,
+    "seen": 1795155228.9944735,
+    "ast_hash": "a0d6cd9738a260749d46568e9e36ac40",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/agent_tools/create_image.py": {
+    "mtime": 1795154999.5796535,
+    "seen": 1795155228.9944735,
+    "ast_hash": "d5a165bf5876214d7c7a88df5b9e35a0",
+    "semantic_hash": ""
+  },
+  "src/pylos/lobby/office/model_calls/results.py": {
+    "mtime": 1795154906.5186772,
+    "seen": 1795155228.9944735,
+    "ast_hash": "3ea2ce47ddf4a75f575dbce6e02c1bd5",
+    "semantic_hash": ""
+  },
+  "tests/lobby/office/test_create_image.py": {
+    "mtime": 1795155130.9269516,
+    "seen": 1795155228.9944735,
+    "ast_hash": "fbff3326e31da606f52b2860750711c2",
+    "semantic_hash": ""
+  },
+  "src/pylos/gate/main_gate/media/image_size.py": {
+    "mtime": 1795155262.6827204,
+    "seen": 1795155577.4598553,
+    "ast_hash": "d0465e0cc123fd85ffbf629044b8fa62",
+    "semantic_hash": ""
+  },
+  "tests/gate/main_gate/test_send_image.py": {
+    "mtime": 1795155440.214046,
+    "seen": 1795155577.4598553,
+    "ast_hash": "d9edce3e43e970c1cdcf6631d68276b2",
     "semantic_hash": ""
   }
 }

@@ -22,6 +22,10 @@ class ZaloError(Exception):
         self.network = network
 
 
+class ZaloUnsupported(ZaloError):
+    """Chế độ Zalo này chưa làm được việc được nhờ (ví dụ gửi ảnh ở chế độ Zalo Bot): không thử lại."""
+
+
 class ZaloClient:
     def __init__(self, token: str, http: httpx.AsyncClient | None = None, base_url: str = BASE_URL) -> None:
         self._token = token
@@ -64,6 +68,9 @@ class ZaloClient:
 
     async def send_message(self, chat_id: str, text: str) -> dict[str, Any]:
         return await self.call("sendMessage", {"chat_id": chat_id, "text": text})
+
+    async def send_image(self, chat_id: str, path: Any, caption: str = "") -> Any:
+        raise ZaloUnsupported("Chế độ Zalo Bot chưa hỗ trợ gửi ảnh (dùng RECEIVE_MODE=personal)")
 
     async def send_chat_action(self, chat_id: str, action: str = "typing") -> None:
         await self.call("sendChatAction", {"chat_id": chat_id, "action": action})
